@@ -52,6 +52,10 @@
       left: 0 !important;
       z-index: 2 !important;
     }
+    /* Allow scrolling through fabric canvas when view/scroll mode is active */
+    .canvas-container.pointer-events-none-override {
+      pointer-events: none !important;
+    }
     .text-layer {
       position: absolute;
       top: 0;
@@ -156,9 +160,9 @@
   <div class="bg-slate-800/90 backdrop-blur border-b border-slate-700/80 px-4 py-2 flex flex-wrap items-center justify-between gap-3 z-10 shrink-0">
     <!-- Active Tool Selectors -->
     <div class="flex items-center space-x-1 bg-slate-900/80 p-1 rounded-xl border border-slate-700/60">
-      <button data-tool="select" title="Select / Move Annotations, Pinch to Zoom & Scroll PDF" class="tool-btn active flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+      <button data-tool="view" title="View, Pinch to Zoom & Scroll PDF" class="tool-btn active flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition">
         <i class="fa-solid fa-hand"></i>
-        <span class="hidden md:inline">Select & Scroll</span>
+        <span class="hidden md:inline">View</span>
       </button>
 
       <button data-tool="text-select" title="Select and Copy ANY PDF Text" class="tool-btn flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition text-slate-400 hover:text-slate-200">
@@ -332,9 +336,8 @@
       pageNum: 1,
       pageCount: 0,
       scale: 1.02,          // Default zoom set to 102%
-      activeTool: 'select', // 'select', 'text-select', 'pen', 'eraser', 'textbox', 'image'
+      activeTool: 'view',   // 'view', 'text-select', 'pen', 'eraser', 'textbox', 'image'
       fabricCanvases: [],   // Array of Fabric.js instances per page index
-      normalizedAnnotations: [], // Persisted relative coordinates per page
       history: [],          // Stores canvas state history for undo/redo
       historyIndex: -1,
       isApplyingHistory: false,
@@ -410,7 +413,7 @@
           } else {
             // Toggle off if clicking the already active tool
             if (state.activeTool === tool && (tool === 'pen' || tool === 'eraser' || tool === 'textbox')) {
-              setActiveTool('select');
+              setActiveTool('view');
             } else {
               setActiveTool(tool);
             }
@@ -474,7 +477,7 @@
     }
 
     /**
-     * Pinch-to-Zoom & Touch Handler for Select Mode
+     * Pinch-to-Zoom & Touch Handler for View Mode
      */
     function setupPinchToZoom() {
       viewportContainer.addEventListener('wheel', (e) => {
@@ -486,7 +489,7 @@
       }, { passive: false });
 
       viewportContainer.addEventListener('touchstart', (e) => {
-        if (e.touches.length === 2 && state.activeTool === 'select') {
+        if (e.touches.length === 2 && state.activeTool === 'view') {
           initialPinchDist = Math.hypot(
             e.touches[0].pageX - e.touches[1].pageX,
             e.touches[0].pageY - e.touches[1].pageY
@@ -496,14 +499,14 @@
       });
 
       viewportContainer.addEventListener('touchmove', (e) => {
-        if (e.touches.length === 2 && initialPinchDist && state.activeTool === 'select') {
+        if (e.touches.length === 2 && initialPinchDist && state.activeTool === 'view') {
           e.preventDefault();
           const dist = Math.hypot(
             e.touches[0].pageX - e.touches[1].pageX,
             e.touches[0].pageY - e.touches[1].pageY
           );
           const factor = dist / initialPinchDist;
-          const targetScale = Math.min(Math.max(0.5, initialZoomScale * factor), 3.0);
+          const targetScale = Math.min(Math.max(0.5, initialZoomScale * factor), 4.0);
           setZoom(targetScale);
         }
       }, { passive: false });
@@ -581,82 +584,8 @@
       dropZone.classList.add('hidden');
       renderWrapper.classList.remove('hidden');
 
-      state.normalizedAnnotations = new Array(state.pageCount).fill(null);
-
       await renderAllPages();
       saveHistoryState();
-    }
-
-    /**
-     * Capture Normalized Relative Coordinates for Annotation Resolution Independence
-     */
-    function captureNormalizedAnnotations() {
-      state.fabricCanvases.forEach((fc, idx) => {
-        const width = fc.width;
-        const height = fc.height;
-        if (!width || !height) return;
-
-        const objects = fc.getObjects();
-        const normalizedObjects = objects.map(obj => {
-          const json = obj.toJSON(['selectable', 'editable']);
-          json.leftRel = obj.left / width;
-          json.topRel = obj.top / height;
-          json.scaleXRel = (obj.scaleX || 1) / width;
-          json.scaleYRel = (obj.scaleY || 1) / height;
-          json.fontSizeRel = obj.fontSize ? (obj.fontSize / height) : null;
-          json.strokeWidthRel = obj.strokeWidth ? (obj.strokeWidth / width) : null;
-          return json;
-        });
-
-        state.normalizedAnnotations[idx] = normalizedObjects;
-      });
-    }
-
-    /**
-     * Restore Normalized Annotations accurately relative to new page dimensions
-     */
-    function restoreNormalizedAnnotations(fc, idx) {
-      return new Promise((resolve) => {
-        const normalizedObjects = state.normalizedAnnotations[idx];
-        if (!normalizedObjects || normalizedObjects.length === 0) {
-          resolve();
-          return;
-        }
-
-        const width = fc.width;
-        const height = fc.height;
-
-        const enlivenedObjects = [];
-        let count = 0;
-
-        normalizedObjects.forEach((jsonObj) => {
-          fabric.util.enlivenObjects([jsonObj], (objs) => {
-            if (objs && objs.length > 0) {
-              const obj = objs[0];
-              obj.left = jsonObj.leftRel * width;
-              obj.top = jsonObj.topRel * height;
-              obj.scaleX = jsonObj.scaleXRel * width;
-              obj.scaleY = jsonObj.scaleYRel * height;
-
-              if (jsonObj.fontSizeRel) {
-                obj.fontSize = jsonObj.fontSizeRel * height;
-              }
-              if (jsonObj.strokeWidthRel) {
-                obj.strokeWidth = jsonObj.strokeWidthRel * width;
-              }
-
-              obj.setCoords();
-              enlivenedObjects.push(obj);
-            }
-            count++;
-            if (count === normalizedObjects.length) {
-              enlivenedObjects.forEach(o => fc.add(o));
-              fc.renderAll();
-              resolve();
-            }
-          });
-        });
-      });
     }
 
     /**
@@ -681,22 +610,24 @@
 
       for (let i = 1; i <= state.pageCount; i++) {
         const page = await state.pdfDoc.getPage(i);
-        const viewport = page.getViewport({ scale: state.scale });
+        // We get base viewport (scale 1.0) for logical coordinates and scaled viewport for initial CSS styling
+        const baseViewport = page.getViewport({ scale: 1.0 });
+        const scaledViewport = page.getViewport({ scale: state.scale });
 
         // Page Container
         const pageContainer = document.createElement('div');
         pageContainer.className = 'pdf-page-container';
         pageContainer.id = `page-container-${i}`;
-        pageContainer.style.width = `${viewport.width}px`;
-        pageContainer.style.height = `${viewport.height}px`;
+        pageContainer.style.width = `${scaledViewport.width}px`;
+        pageContainer.style.height = `${scaledViewport.height}px`;
 
         // PDF Background Render Canvas
         const pdfCanvas = document.createElement('canvas');
         pdfCanvas.className = 'pdf-canvas-layer';
-        pdfCanvas.width = Math.floor(viewport.width * outputScale);
-        pdfCanvas.height = Math.floor(viewport.height * outputScale);
-        pdfCanvas.style.width = `${viewport.width}px`;
-        pdfCanvas.style.height = `${viewport.height}px`;
+        pdfCanvas.width = Math.floor(scaledViewport.width * outputScale);
+        pdfCanvas.height = Math.floor(scaledViewport.height * outputScale);
+        pdfCanvas.style.width = `${scaledViewport.width}px`;
+        pdfCanvas.style.height = `${scaledViewport.height}px`;
         
         const pdfCtx = pdfCanvas.getContext('2d');
         pdfCtx.imageSmoothingEnabled = true;
@@ -709,8 +640,11 @@
         // Text Selection Overlay Layer
         const textLayerDiv = document.createElement('div');
         textLayerDiv.className = `text-layer ${state.activeTool === 'text-select' ? 'active-select' : ''}`;
-        textLayerDiv.style.width = `${viewport.width}px`;
-        textLayerDiv.style.height = `${viewport.height}px`;
+        // Set at base dimensions, then scale visually via CSS
+        textLayerDiv.style.width = `${baseViewport.width}px`;
+        textLayerDiv.style.height = `${baseViewport.height}px`;
+        textLayerDiv.style.transform = `scale(${state.scale})`;
+        textLayerDiv.style.transformOrigin = '0 0';
 
         pageContainer.appendChild(pdfCanvas);
         pageContainer.appendChild(fabricCanvasEl);
@@ -721,28 +655,36 @@
         const transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
         await page.render({ 
           canvasContext: pdfCtx, 
-          viewport: viewport,
+          viewport: scaledViewport,
           transform: transform 
         }).promise;
 
-        // Render PDF Text Layer
+        // Render PDF Text Layer at Base Viewport Coordinates
         const textContent = await page.getTextContent();
         await pdfjsLib.renderTextLayer({
           textContentSource: textContent,
           container: textLayerDiv,
-          viewport: viewport,
+          viewport: baseViewport,
           textDivs: []
         }).promise;
 
-        // Initialize Fabric.js Overlay Canvas
+        // Initialize Fabric.js Overlay Canvas AT BASE SCALE (Scale 1.0)
         const fCanvas = new fabric.Canvas(fabricCanvasEl.id, {
-          width: viewport.width,
-          height: viewport.height,
-          selection: state.activeTool === 'select',
+          width: baseViewport.width,
+          height: baseViewport.height,
+          selection: false,
           isDrawingMode: state.activeTool === 'pen',
           allowTouchScrolling: true,
-          enableRetinaScaling: false
+          enableRetinaScaling: true
         });
+
+        // Save base dimensions to scale up and down efficiently without re-rendering
+        fCanvas.baseWidth = baseViewport.width;
+        fCanvas.baseHeight = baseViewport.height;
+
+        // Apply current Zoom properties
+        fCanvas.setDimensions({ width: scaledViewport.width, height: scaledViewport.height });
+        fCanvas.setZoom(state.scale);
 
         // Initialize Brush
         fCanvas.freeDrawingBrush = new fabric.PencilBrush(fCanvas);
@@ -754,20 +696,17 @@
         fCanvas.on('selection:updated', onObjectSelected);
         fCanvas.on('selection:cleared', onObjectCleared);
         fCanvas.on('object:added', () => { 
-          if (!state.isApplyingHistory) {
-            captureNormalizedAnnotations();
+          if (!state.isApplyingHistory && !state.isRendering) {
             saveHistoryState(); 
           }
         });
         fCanvas.on('object:modified', () => { 
-          if (!state.isApplyingHistory) {
-            captureNormalizedAnnotations();
+          if (!state.isApplyingHistory && !state.isRendering) {
             saveHistoryState(); 
           }
         });
         fCanvas.on('object:removed', () => { 
-          if (!state.isApplyingHistory) {
-            captureNormalizedAnnotations();
+          if (!state.isApplyingHistory && !state.isRendering) {
             saveHistoryState(); 
           }
         });
@@ -777,6 +716,7 @@
 
       state.isRendering = false;
       updateToolUI();
+      setActiveTool(state.activeTool);
     }
 
     /**
@@ -820,13 +760,22 @@
         }
       });
 
-      // Update Fabric Canvases
+      // Update Fabric Canvases & pointer-events pass-through for scrolling
       state.fabricCanvases.forEach(fCanvas => {
         fCanvas.calcOffset();
 
         fCanvas.isDrawingMode = (tool === 'pen');
-        fCanvas.selection = (tool === 'select');
-        fCanvas.allowTouchScrolling = (tool === 'select' || tool === 'text-select');
+        fCanvas.selection = false; 
+        fCanvas.allowTouchScrolling = true;
+
+        const wrapperEl = fCanvas.upperCanvasEl ? fCanvas.upperCanvasEl.parentNode : null;
+        if (wrapperEl) {
+          if (tool === 'view' || tool === 'text-select') {
+            wrapperEl.classList.add('pointer-events-none-override');
+          } else {
+            wrapperEl.classList.remove('pointer-events-none-override');
+          }
+        }
 
         if (tool === 'pen') {
           if (!fCanvas.freeDrawingBrush) {
@@ -841,6 +790,8 @@
           fCanvas.defaultCursor = 'text';
         } else if (tool === 'text-select') {
           fCanvas.defaultCursor = 'text';
+        } else if (tool === 'view') {
+          fCanvas.defaultCursor = 'grab';
         } else {
           fCanvas.defaultCursor = 'default';
         }
@@ -878,7 +829,7 @@
               textbox.selectAll();
               fCanvas.renderAll();
 
-              setActiveTool('select');
+              setActiveTool('view');
             }
           });
         } else if (tool === 'eraser') {
@@ -978,19 +929,20 @@
           if (!currentCanvas) return;
 
           const fabricImg = new fabric.Image(imgObj, {
-            left: currentCanvas.width / 4,
-            top: currentCanvas.height / 4,
+            left: currentCanvas.baseWidth / 4,
+            top: currentCanvas.baseHeight / 4,
             opacity: 1.0,
             imageSmoothing: true,
             objectCaching: false
           });
 
-          const targetWidth = currentCanvas.width * 0.4;
+          // Compute size relative to logical base width to ensure consistent insertion regardless of zoom
+          const targetWidth = currentCanvas.baseWidth * 0.4;
           fabricImg.scaleToWidth(targetWidth);
 
           currentCanvas.add(fabricImg);
           currentCanvas.setActiveObject(fabricImg);
-          setActiveTool('select');
+          setActiveTool('view');
         };
       };
       reader.readAsDataURL(file);
@@ -1016,8 +968,8 @@
           angle: angle,
           originX: 'center',
           originY: 'center',
-          left: fCanvas.width / 2,
-          top: fCanvas.height / 2,
+          left: fCanvas.baseWidth / 2,
+          top: fCanvas.baseHeight / 2,
           selectable: true
         });
         fCanvas.add(watermarkText);
@@ -1053,27 +1005,63 @@
       }
     }
 
-    async function setZoom(newScale) {
-      if (newScale < 0.5 || newScale > 3.0 || state.isRendering) return;
+    /**
+     * Fluid Smooth Zoom - Instantaneous manipulation of CSS + Canvas Properties
+     */
+    function setZoom(newScale) {
+      if (newScale < 0.5 || newScale > 4.0 || state.isRendering || state.fabricCanvases.length === 0) return;
       
-      captureNormalizedAnnotations();
-
+      const oldScale = state.scale;
       state.scale = newScale;
       zoomVal.textContent = Math.round(state.scale * 100) + '%';
       
-      await renderAllPages();
+      const scaleRatio = state.scale / oldScale;
 
-      // Restore drawing layers accurately relative to new zoom dimensions
-      const restorePromises = state.fabricCanvases.map((fc, idx) => {
-        return restoreNormalizedAnnotations(fc, idx);
+      // Maintain scroll position centered to zoom target
+      const container = viewportContainer;
+      const centerScrollY = container.scrollTop + container.clientHeight / 2;
+      const centerScrollX = container.scrollLeft + container.clientWidth / 2;
+
+      state.fabricCanvases.forEach((fCanvas, index) => {
+        const pageNum = index + 1;
+        const pageContainer = document.getElementById(`page-container-${pageNum}`);
+        if (!pageContainer) return;
+
+        // Calculate newly scaled physical dimensions
+        const newWidth = fCanvas.baseWidth * state.scale;
+        const newHeight = fCanvas.baseHeight * state.scale;
+
+        // Scale Parent Container
+        pageContainer.style.width = `${newWidth}px`;
+        pageContainer.style.height = `${newHeight}px`;
+
+        // Stretch PDF Background Canvas via CSS for fluid rendering
+        const pdfCanvas = pageContainer.querySelector('.pdf-canvas-layer');
+        if (pdfCanvas) {
+          pdfCanvas.style.width = `${newWidth}px`;
+          pdfCanvas.style.height = `${newHeight}px`;
+        }
+
+        // Scale overlay text-layer using CSS Transform
+        const textLayer = pageContainer.querySelector('.text-layer');
+        if (textLayer) {
+          textLayer.style.transform = `scale(${state.scale})`;
+        }
+
+        // Adjust Fabric zoom & dimension states properly
+        fCanvas.setDimensions({ width: newWidth, height: newHeight });
+        fCanvas.setZoom(state.scale);
+        fCanvas.calcOffset();
+        fCanvas.renderAll();
       });
-      await Promise.all(restorePromises);
 
-      setActiveTool(state.activeTool);
+      // Adjust relative scroll position accurately
+      container.scrollTop = centerScrollY * scaleRatio - container.clientHeight / 2;
+      container.scrollLeft = centerScrollX * scaleRatio - container.clientWidth / 2;
     }
 
     /**
-     * Undo & Redo System
+     * Undo & Redo System (Stores scale 1.0 JSON representation)
      */
     function saveHistoryState() {
       if (state.isApplyingHistory || state.isRendering) return;
@@ -1113,7 +1101,6 @@
             loadedCount++;
             if (loadedCount === snapshot.length) {
               state.isApplyingHistory = false;
-              captureNormalizedAnnotations();
               updateUndoRedoUI();
             }
           });
@@ -1156,11 +1143,24 @@
           const fCanvas = state.fabricCanvases[i];
 
           if (fCanvas && fCanvas.getObjects().length > 0) {
+            
+            // To ensure perfect mapping, revert scale to 1 temporarily to extract native size base coordinates overlay
+            const originalZoom = fCanvas.getZoom();
+            const originalWidth = fCanvas.width;
+            const originalHeight = fCanvas.height;
+            
+            fCanvas.setZoom(1);
+            fCanvas.setDimensions({ width: fCanvas.baseWidth, height: fCanvas.baseHeight });
             fCanvas.discardActiveObject();
             fCanvas.renderAll();
 
-            const overlayDataUrl = fCanvas.toDataURL({ format: 'png', multiplier: 2 });
+            const overlayDataUrl = fCanvas.toDataURL({ format: 'png', multiplier: 2 }); // x2 resolution quality multiplier
             const pngImage = await pdfDoc.embedPng(overlayDataUrl);
+
+            // Re-apply original active viewport sizing
+            fCanvas.setDimensions({ width: originalWidth, height: originalHeight });
+            fCanvas.setZoom(originalZoom);
+            fCanvas.renderAll();
 
             const { width, height } = page.getSize();
             page.drawImage(pngImage, {
