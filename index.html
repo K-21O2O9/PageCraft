@@ -1,1163 +1,1160 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-slate-900 text-slate-100">
+<html lang="en" class="h-full bg-slate-950 text-slate-100">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>PageCraft - Advanced PDF Reader & Editor</title>
+  <title>PageCraft - Advanced PDF Studio</title>
 
-  <!-- Tailwind CSS-->
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- FontAwesome Icons -->
+  <!-- FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- PDF.js  Engine -->
+  <!-- Google Fonts for Beautified Writing -->
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+  
+  <!-- Core Engines -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <!-- Fabric.js Canvas Engine -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
-  <!-- PDF-Lib for Saving & Modifying PDFs -->
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-  <!-- Download helper -->
   <script src="https://unpkg.com/downloadjs@1.4.7/download.min.js"></script>
+  
+  <!-- Tesseract.js for Client-Side OCR (Beautify feature) -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
   <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   </script>
 
   <style>
-    /* Custom Scrollbars */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #0f172a; }
-    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    /* Premium Scrollbars */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; border: 2px solid #0f172a; }
     ::-webkit-scrollbar-thumb:hover { background: #475569; }
 
-    /* Canvas Layering Setup */
-    .pdf-page-container {
-      position: relative;
-      margin: 0 auto 2rem auto;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
-      touch-action: pan-x pan-y pinch-zoom;
-    }
-    .pdf-canvas-layer {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 1;
-      image-rendering: -webkit-optimize-contrast;
-      image-rendering: crisp-edges;
-    }
-    /* Enforce Fabric Container exact overlay alignment on top of PDF canvas */
-    .canvas-container {
-      position: absolute !important;
-      top: 0 !important;
-      left: 0 !important;
-      z-index: 2 !important;
-    }
-    /* Allow scrolling through fabric canvas when view/scroll mode is active */
-    .canvas-container.pointer-events-none-override {
-      pointer-events: none !important;
-    }
-    .text-layer {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      overflow: hidden;
-      opacity: 1;
-      line-height: 1.0;
-      z-index: 3;
-      pointer-events: none;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-    .text-layer.active-select {
-      pointer-events: auto !important;
-      z-index: 10 !important;
-      user-select: text !important;
-      -webkit-user-select: text !important;
-    }
-    .text-layer span {
-      color: transparent;
-      position: absolute;
-      white-space: pre;
-      cursor: text;
-      transform-origin: 0% 0%;
-    }
-    .text-layer.active-select span {
-      user-select: text !important;
-      -webkit-user-select: text !important;
-    }
-    .text-layer.active-select ::selection {
-      background: rgba(59, 130, 246, 0.45) !important;
-      color: transparent !important;
+    body { overscroll-behavior-y: none; }
+
+    /* UI Animations */
+    .menu-transition { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+    .menu-collapsed { transform: translateY(-100%); margin-bottom: -120px; opacity: 0; pointer-events: none; }
+    
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
 
-    /* Lock scroll when in active drawing / editing mode */
-    .drawing-lock {
-      overflow: hidden !important;
-      touch-action: none !important;
+    /* Tool Buttons */
+    .tool-btn { transition: all 0.2s ease; }
+    .tool-btn.active {
+      background: rgba(99, 102, 241, 0.2);
+      color: #818cf8;
+      box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.4);
+    }
+
+    /* Virtualized Canvas Container */
+    #document-wrapper {
+      transform-origin: top left;
+      transition: transform 0.1s ease-out;
+    }
+
+    .pdf-page-container {
+      position: relative;
+      margin: 0 auto 2rem auto; 
+      background: white;
+      box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.6), 0 4px 10px -5px rgba(0, 0, 0, 0.4);
+      border-radius: 4px;
+    }
+
+    .pdf-canvas-layer {
+      position: absolute;
+      top: 0; left: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .canvas-container {
+      position: absolute !important;
+      top: 0 !important; left: 0 !important;
+      z-index: 2 !important;
+    }
+
+    .view-mode-active .canvas-container { pointer-events: none !important; }
+    
+    .text-layer {
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 3; pointer-events: none;
+      opacity: 1; line-height: 1.0;
+    }
+    .text-layer.active-select { pointer-events: auto !important; user-select: text; }
+    .text-layer span { color: transparent; position: absolute; white-space: pre; cursor: text; transform-origin: 0% 0%; }
+    .text-layer.active-select ::selection { background: rgba(99, 102, 241, 0.4); color: transparent; }
+
+    #loading-indicator {
+      transition: opacity 0.3s ease;
     }
   </style>
 </head>
 
-<body class="h-full flex flex-col font-sans overflow-hidden select-none">
+<body class="h-full flex flex-col font-sans overflow-hidden select-none bg-slate-950">
 
-  <!-- Top Navigation / Header Toolbar -->
-  <header class="min-h-16 bg-slate-800 border-b border-slate-700 flex flex-wrap sm:flex-nowrap items-center justify-between px-3 py-2 sm:py-0 sm:px-4 z-20 shrink-0 gap-2">
-    <!-- Brand Logo -->
-    <div class="flex items-center space-x-3">
-      <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-blue-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-        <i class="fa-solid fa-file-signature text-white text-base sm:text-xl"></i>
+  <!-- Floating Toggle Menu Button -->
+  <button id="btn-toggle-menu" class="absolute top-2 right-4 z-50 p-2 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 backdrop-blur shadow-lg border border-slate-600/50 transition-all opacity-0 pointer-events-none translate-y-[-20px]">
+    <i class="fa-solid fa-chevron-down text-sm"></i>
+  </button>
+
+  <!-- Header & Toolbar Container (Collapsible) -->
+  <div id="ui-header-container" class="menu-transition z-40 shrink-0 relative">
+    
+    <!-- Top Navigation -->
+    <header class="h-16 glass-panel flex items-center justify-between px-4">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-blue-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+          <i class="fa-solid fa-file-signature text-white text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-wide text-white">PageCraft</h1>
+          <p class="text-xs text-indigo-300/80 font-medium tracking-wider uppercase">Studio</p>
+        </div>
       </div>
-      <div>
-        <h1 class="text-base sm:text-lg font-bold tracking-wide bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">PageCraft</h1>
-        <p class="text-[10px] sm:text-xs text-slate-400 font-medium">PDF Reader & Studio</p>
-      </div>
-    </div>
 
-    <!-- Quick Tools / Main Actions -->
-    <div class="flex items-center flex-wrap sm:flex-nowrap gap-1.5 sm:space-x-2">
-      <label for="pdf-upload" class="flex items-center space-x-1.5 px-3 py-1.5 sm:py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold cursor-pointer transition">
-        <i class="fa-solid fa-folder-open text-indigo-400"></i>
-        <span>Open PDF</span>
-        <input type="file" id="pdf-upload" accept="application/pdf" class="hidden">
-      </label>
+      <div class="flex items-center gap-2">
+        <label for="pdf-upload" class="flex items-center space-x-2 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold cursor-pointer transition border border-slate-700/50">
+          <i class="fa-solid fa-folder-open text-indigo-400"></i>
+          <span>Open</span>
+          <input type="file" id="pdf-upload" accept="application/pdf" class="hidden">
+        </label>
 
-      <div class="h-5 w-px bg-slate-700 mx-0.5 hidden sm:block"></div>
+        <div class="h-5 w-px bg-slate-700 mx-1 hidden sm:block"></div>
 
-      <!-- Undo & Redo -->
-      <button id="btn-undo" title="Undo (Ctrl+Z)" class="p-1.5 sm:p-2 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition">
-        <i class="fa-solid fa-rotate-left text-xs sm:text-sm"></i>
-      </button>
-      <button id="btn-redo" title="Redo (Ctrl+Y)" class="p-1.5 sm:p-2 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition">
-        <i class="fa-solid fa-rotate-right text-xs sm:text-sm"></i>
-      </button>
-
-      <div class="h-5 w-px bg-slate-700 mx-0.5 hidden sm:block"></div>
-
-      <!-- Zoom Controls -->
-      <div class="flex items-center bg-slate-900/60 rounded-lg p-1 border border-slate-700">
-        <button id="btn-zoom-out" title="Zoom Out" class="p-1 rounded text-slate-300 hover:bg-slate-700 transition">
-          <i class="fa-solid fa-minus text-[10px]"></i>
+        <button id="btn-undo" title="Undo (Ctrl+Z)" class="p-2 rounded-lg bg-slate-800/50 hover:bg-slate-700 text-slate-300 disabled:opacity-30 transition">
+          <i class="fa-solid fa-rotate-left text-sm"></i>
         </button>
-        <span id="zoom-percentage" class="px-1.5 text-[11px] sm:text-xs font-mono font-bold text-indigo-300 min-w-[40px] sm:min-w-[50px] text-center">102%</span>
-        <button id="btn-zoom-in" title="Zoom In" class="p-1 rounded text-slate-300 hover:bg-slate-700 transition">
-          <i class="fa-solid fa-plus text-[10px]"></i>
+        <button id="btn-redo" title="Redo (Ctrl+Y)" class="p-2 rounded-lg bg-slate-800/50 hover:bg-slate-700 text-slate-300 disabled:opacity-30 transition">
+          <i class="fa-solid fa-rotate-right text-sm"></i>
+        </button>
+
+        <div class="h-5 w-px bg-slate-700 mx-1 hidden sm:block"></div>
+
+        <div class="flex items-center bg-slate-900/60 rounded-lg p-1 border border-slate-700/50">
+          <button id="btn-zoom-out" class="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-700 transition"><i class="fa-solid fa-minus text-[10px]"></i></button>
+          <span id="zoom-percentage" class="px-2 text-xs font-mono font-bold text-indigo-300 w-[55px] text-center">100%</span>
+          <button id="btn-zoom-in" class="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-700 transition"><i class="fa-solid fa-plus text-[10px]"></i></button>
+        </div>
+
+        <div class="h-5 w-px bg-slate-700 mx-1 hidden sm:block"></div>
+
+        <button id="btn-save-pdf" class="flex items-center space-x-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/20 transition relative overflow-hidden group">
+          <i class="fa-solid fa-download"></i>
+          <span>Export</span>
+          <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform"></div>
+        </button>
+        
+        <!-- Minimize Menu Button -->
+        <button id="btn-minimize-menu" title="Hide Menu" class="ml-2 p-2 rounded-full bg-slate-800/50 hover:bg-slate-700 text-slate-400 hover:text-white transition">
+          <i class="fa-solid fa-chevron-up text-sm"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Secondary Toolbar -->
+    <div class="glass-panel px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 shadow-xl shadow-black/20">
+      
+      <!-- Tools -->
+      <div class="flex items-center gap-1 bg-slate-900/50 p-1 rounded-xl border border-slate-700/50">
+        <button data-tool="view" title="Pan & Zoom View" class="tool-btn active flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200">
+          <i class="fa-solid fa-hand"></i><span class="hidden md:inline">View</span>
+        </button>
+        <button data-tool="select" title="Select & Move Objects" class="tool-btn flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200">
+          <i class="fa-solid fa-arrow-pointer"></i><span class="hidden md:inline">Select</span>
+        </button>
+        <div class="w-px h-4 bg-slate-700 mx-1"></div>
+        <button data-tool="text-select" title="Highlight Native PDF Text" class="tool-btn flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200">
+          <i class="fa-solid fa-i-cursor"></i>
+        </button>
+        <button data-tool="textbox" title="Add Text" class="tool-btn flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200">
+          <i class="fa-solid fa-font"></i>
+        </button>
+        <div class="w-px h-4 bg-slate-700 mx-1"></div>
+        <button data-tool="pen" title="Draw" class="tool-btn flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200">
+          <i class="fa-solid fa-pen-nib"></i>
+        </button>
+        <button data-tool="highlight" title="Highlighter" class="tool-btn flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200">
+          <i class="fa-solid fa-highlighter"></i>
+        </button>
+        <button data-tool="eraser" title="Erase Objects" class="tool-btn flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200">
+          <i class="fa-solid fa-eraser"></i>
+        </button>
+        
+        <button id="btn-delete-selected" title="Delete Selected" class="px-2 py-1.5 rounded-lg text-xs font-medium text-rose-400 hover:bg-rose-500/20 transition hidden ml-1">
+          <i class="fa-solid fa-trash-can"></i>
         </button>
       </div>
 
-      <div class="h-5 w-px bg-slate-700 mx-0.5 hidden sm:block"></div>
-
-      <!-- Save & Export -->
-      <button id="btn-save-pdf" class="flex items-center space-x-1.5 px-3.5 py-1.5 sm:py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/30 transition">
-        <i class="fa-solid fa-download"></i>
-        <span>Save PDF</span>
-      </button>
-    </div>
-  </header>
-
-  <!-- Secondary Interactive Toolbar & Editing Bar -->
-  <div class="bg-slate-800/90 backdrop-blur border-b border-slate-700/80 px-3 sm:px-4 py-2 flex flex-wrap items-center justify-between gap-3 z-10 shrink-0">
-    <!-- Active Tool Selectors -->
-    <div class="flex items-center flex-wrap gap-1 bg-slate-900/80 p-1 rounded-xl border border-slate-700/60">
-      <button data-tool="view" title="View, Pinch to Zoom & Scroll PDF" class="tool-btn active flex items-center space-x-1 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition">
-        <i class="fa-solid fa-hand"></i>
-        <span class="hidden md:inline">View</span>
-      </button>
-
-      <button data-tool="text-select" title="Select and Copy ANY PDF Text" class="tool-btn flex items-center space-x-1 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition text-slate-400 hover:text-slate-200">
-        <i class="fa-solid fa-i-cursor"></i>
-        <span class="hidden md:inline">Text Select</span>
-      </button>
-
-      <button data-tool="pen" title="Freehand Drawing Pen (Click again to toggle off & scroll)" class="tool-btn flex items-center space-x-1 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition text-slate-400 hover:text-slate-200">
-        <i class="fa-solid fa-pen-nib"></i>
-        <span class="hidden md:inline">Draw</span>
-      </button>
-
-      <button data-tool="eraser" title="Eraser Tool" class="tool-btn flex items-center space-x-1 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition text-slate-400 hover:text-slate-200">
-        <i class="fa-solid fa-eraser"></i>
-        <span class="hidden md:inline">Eraser</span>
-      </button>
-
-      <button data-tool="textbox" title="Add Text Box (Click on page to type)" class="tool-btn flex items-center space-x-1 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition text-slate-400 hover:text-slate-200">
-        <i class="fa-solid fa-font"></i>
-        <span class="hidden md:inline">Text Box</span>
-      </button>
-
-      <button data-tool="image" title="Insert Image" class="tool-btn flex items-center space-x-1 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition text-slate-400 hover:text-slate-200">
-        <i class="fa-regular fa-image"></i>
-        <span class="hidden md:inline">Image</span>
-      </button>
-      <input type="file" id="image-upload" accept="image/*" class="hidden">
-
-      <button id="btn-watermark-modal" title="Add Watermark" class="tool-btn flex items-center space-x-1 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition text-slate-400 hover:text-slate-200">
-        <i class="fa-solid fa-stamp"></i>
-        <span class="hidden md:inline">Watermark</span>
-      </button>
-
-      <button id="btn-delete-selected" title="Delete Selected Object" class="px-2 py-1.5 rounded-lg text-xs font-medium text-rose-400 hover:bg-rose-500/20 transition hidden">
-        <i class="fa-solid fa-trash-can"></i>
-      </button>
-    </div>
-
-    <!-- Tool Property Controls -->
-    <div class="flex items-center flex-wrap gap-3 text-xs">
-      <!-- Color Picker -->
-      <div class="flex items-center space-x-1.5">
-        <span class="text-slate-400 font-medium">Color:</span>
-        <input type="color" id="prop-color" value="#ef4444" class="w-6 h-6 sm:w-7 sm:h-7 bg-transparent rounded cursor-pointer border-0">
+      <!-- Properties -->
+      <div class="flex items-center gap-4 bg-slate-900/50 p-1.5 px-3 rounded-xl border border-slate-700/50 text-xs">
+        <div class="flex items-center space-x-2">
+          <div class="w-6 h-6 rounded-md overflow-hidden border border-slate-600 relative">
+            <input type="color" id="prop-color" value="#ef4444" class="absolute -top-2 -left-2 w-10 h-10 cursor-pointer">
+          </div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <i class="fa-solid fa-circle text-[8px] text-slate-500"></i>
+          <input type="range" id="prop-size" min="1" max="60" value="4" class="w-20 accent-indigo-500">
+        </div>
+        <div class="flex items-center space-x-2">
+          <i class="fa-solid fa-droplet text-[10px] text-slate-500"></i>
+          <input type="range" id="prop-opacity" min="0.1" max="1.0" step="0.05" value="1.0" class="w-20 accent-indigo-500">
+        </div>
       </div>
 
-      <!-- Pen Thickness / Font Size / Eraser Size -->
-      <div class="flex items-center space-x-1.5">
-        <span class="text-slate-400 font-medium" id="prop-size-label">Size:</span>
-        <input type="range" id="prop-size" min="1" max="60" value="4" class="w-20 sm:w-24 accent-indigo-500 cursor-pointer">
-        <span id="prop-size-val" class="w-6 text-slate-300 font-mono">4px</span>
+      <!-- Pagination -->
+      <div class="flex items-center space-x-2 bg-slate-900/50 rounded-xl px-3 py-1 border border-slate-700/50">
+        <button id="btn-prev-page" class="p-1 text-slate-400 hover:text-white disabled:opacity-30"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+        <input type="number" id="page-num-input" value="1" min="1" class="w-12 bg-slate-800/80 text-center font-bold text-indigo-300 border border-slate-600 rounded py-0.5 text-xs focus:outline-none focus:border-indigo-500">
+        <span class="text-xs text-slate-400 font-medium">/ <span id="page-count">0</span></span>
+        <button id="btn-next-page" class="p-1 text-slate-400 hover:text-white disabled:opacity-30"><i class="fa-solid fa-chevron-right text-xs"></i></button>
       </div>
-
-      <!-- Opacity Slider -->
-      <div class="flex items-center space-x-1.5">
-        <span class="text-slate-400 font-medium">Opacity:</span>
-        <input type="range" id="prop-opacity" min="0.1" max="1.0" step="0.05" value="1.0" class="w-16 sm:w-20 accent-indigo-500 cursor-pointer">
-        <span id="prop-opacity-val" class="w-7 text-slate-300 font-mono">100%</span>
-      </div>
-    </div>
-
-    <!-- Page Controls -->
-    <div class="flex items-center space-x-2 bg-slate-900/60 rounded-xl px-3 py-1 border border-slate-700/60">
-      <button id="btn-prev-page" class="p-1 text-slate-300 hover:text-white disabled:opacity-30 transition">
-        <i class="fa-solid fa-chevron-left text-xs"></i>
-      </button>
-      <span class="text-xs text-slate-400">Page</span>
-      <input type="number" id="page-num-input" value="1" min="1" class="w-10 bg-slate-800 text-center font-bold text-indigo-300 border border-slate-700 rounded py-0.5 text-xs focus:outline-none focus:border-indigo-500">
-      <span class="text-xs text-slate-400">of <span id="page-count">0</span></span>
-      <button id="btn-next-page" class="p-1 text-slate-300 hover:text-white disabled:opacity-30 transition">
-        <i class="fa-solid fa-chevron-right text-xs"></i>
-      </button>
     </div>
   </div>
 
-  <!-- Main Viewport Container -->
-  <main class="flex-1 relative overflow-auto bg-slate-950 p-4 sm:p-6 flex justify-center items-start" id="viewport-container">
+  <!-- Loading State -->
+  <div id="loading-indicator" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur flex flex-col items-center justify-center opacity-0 pointer-events-none">
+    <i class="fa-solid fa-circle-notch fa-spin text-4xl text-indigo-500 mb-4"></i>
+    <p id="loading-text" class="text-slate-300 font-medium tracking-wide">Processing Document...</p>
+  </div>
+
+  <!-- Main Viewport -->
+  <main id="viewport-container" class="flex-1 relative overflow-auto bg-slate-950 p-6 flex flex-col view-mode-active">
     
-    <!-- Empty State Placeholder -->
-    <div id="drop-zone" class="my-auto flex flex-col items-center justify-center p-8 sm:p-12 border-2 border-dashed border-slate-700 rounded-2xl bg-slate-900/50 hover:bg-slate-900/80 hover:border-indigo-500/50 transition cursor-pointer max-w-lg text-center shadow-2xl">
+    <!-- Empty State -->
+    <div id="drop-zone" class="my-auto mx-auto flex flex-col items-center justify-center p-10 border-2 border-dashed border-slate-700/60 rounded-2xl bg-slate-900/40 hover:bg-slate-800/60 hover:border-indigo-500/50 transition-all cursor-pointer max-w-lg text-center shadow-2xl">
       <div class="w-16 h-16 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center mb-4 text-3xl">
         <i class="fa-solid fa-cloud-arrow-up"></i>
       </div>
-      <h3 class="text-lg font-bold text-white mb-1">Upload a PDF Document</h3>
-      <p class="text-sm text-slate-400 mb-4">Drag and drop your file here, or click to browse standard PDF files.</p>
-      <button class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-lg shadow-indigo-600/30 transition">
-        Choose PDF File
+      <h3 class="text-lg font-bold text-white mb-2">Upload PDF Document</h3>
+      <p class="text-sm text-slate-400 mb-6 leading-relaxed">Drag and drop your file here, or click to browse. Fully client-side, your privacy is guaranteed.</p>
+      <button class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm shadow-lg shadow-indigo-600/20 transition-all pointer-events-none">
+        Choose File
       </button>
-      <p class="text-xs text-slate-500 mt-4">100% Client-Side Processing • Your privacy is protected</p>
     </div>
 
-    <!-- Document Page Wrapper -->
-    <div id="pdf-render-wrapper" class="hidden flex flex-col items-center justify-center">
-      <!-- Dynamic pages rendered here -->
+    <!-- The Virtualized Document Wrapper -->
+    <div id="document-wrapper" class="hidden flex flex-col">
+      <!-- Page Containers will be injected here dynamically by AppCore -->
     </div>
 
   </main>
 
-  <!-- Watermark Modal Dialog -->
-  <div id="watermark-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <h3 class="text-base font-bold text-white flex items-center gap-2">
-          <i class="fa-solid fa-stamp text-indigo-400"></i> Add Watermark Overlay
-        </h3>
-        <button id="close-watermark-modal" class="text-slate-400 hover:text-white p-1">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-
-      <div class="space-y-4 text-xs">
-        <div>
-          <label class="block text-slate-300 font-semibold mb-1">Watermark Text</label>
-          <input type="text" id="wm-text" value="CONFIDENTIAL" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-slate-300 font-semibold mb-1">Text Color</label>
-            <input type="color" id="wm-color" value="#ef4444" class="w-full h-9 bg-slate-800 border border-slate-700 rounded-lg p-1 cursor-pointer">
-          </div>
-          <div>
-            <label class="block text-slate-300 font-semibold mb-1">Font Size</label>
-            <input type="number" id="wm-size" value="48" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white">
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-slate-300 font-semibold mb-1">Opacity (%)</label>
-            <input type="number" id="wm-opacity" value="30" min="5" max="100" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white">
-          </div>
-          <div>
-            <label class="block text-slate-300 font-semibold mb-1">Rotation Angle</label>
-            <input type="number" id="wm-angle" value="-45" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white">
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-slate-300 font-semibold mb-1">Target Pages</label>
-          <select id="wm-target" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white">
-            <option value="current">Current Page Only</option>
-            <option value="all">Apply to All Pages</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="flex justify-end space-x-3 pt-2">
-        <button id="btn-cancel-wm" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold">Cancel</button>
-        <button id="btn-apply-wm" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-600/30">Apply Watermark</button>
-      </div>
-    </div>
-  </div>
-
-  <style>
-    .tool-btn.active {
-      background-color: rgba(99, 102, 241, 0.25);
-      color: #818cf8;
-      border: 1px solid rgba(99, 102, 241, 0.4);
-    }
-  </style>
-
-  <!-- Main Application Controller Script -->
   <script>
     /**
-     * PageCraft Application State
+     * MODULE 1: AppCore & State
      */
-    const state = {
+    const AppState = {
       pdfDoc: null,
       pdfBytes: null,
-      pageNum: 1,
-      pageCount: 0,
-      scale: 1.02,          // Default zoom set to 102%
-      activeTool: 'view',   // 'view', 'text-select', 'pen', 'eraser', 'textbox', 'image'
-      fabricCanvases: [],   // Array of Fabric.js instances per page index
-      history: [],          // Stores canvas state history for undo/redo
+      numPages: 0,
+      pageDimensions: [], 
+      
+      scale: 1.0,         
+      zoomCssScale: 1.0,  
+      
+      activeTool: 'view', 
+      beautifyWriting: false,
+      pendingStrokes: [],
+      strokeTimeout: null,
+
+      pageData: {},       
+      activePages: new Set(), 
+      fabricInstances: {}, 
+      
+      historyStack: [],
       historyIndex: -1,
-      isApplyingHistory: false,
-      isRendering: false    // Guard for render cycles
+      isApplyingHistory: false
     };
 
-    // Touch Pinch Tracking
-    let initialPinchDist = null;
-    let initialZoomScale = 1.02;
-
-    // DOM Elements
-    const dropZone = document.getElementById('drop-zone');
-    const pdfUpload = document.getElementById('pdf-upload');
-    const imageUpload = document.getElementById('image-upload');
-    const renderWrapper = document.getElementById('pdf-render-wrapper');
-    const viewportContainer = document.getElementById('viewport-container');
-    const pageNumInput = document.getElementById('page-num-input');
-    const pageCountEl = document.getElementById('page-count');
-    const zoomVal = document.getElementById('zoom-percentage');
-    
-    // Tools & Props DOM
-    const toolBtns = document.querySelectorAll('.tool-btn[data-tool]');
-    const propColor = document.getElementById('prop-color');
-    const propSize = document.getElementById('prop-size');
-    const propSizeVal = document.getElementById('prop-size-val');
-    const propOpacity = document.getElementById('prop-opacity');
-    const propOpacityVal = document.getElementById('prop-opacity-val');
-    const deleteBtn = document.getElementById('btn-delete-selected');
-
-    // Init App Listeners
-    window.addEventListener('DOMContentLoaded', () => {
-      initEventListeners();
-      setupDragAndDrop();
-      setupPinchToZoom();
-      updateToolUI();
-    });
+    /**
+     * Tesseract Preload Engine (For zero-latency handwriting recognition)
+     */
+    const BeautifyEngine = {
+      workerPromise: null,
+      init() {
+        this.workerPromise = (async () => {
+          try {
+            const worker = await Tesseract.createWorker('eng');
+            // Hard whitelist strictly to text and numbers to prevent scribbles from becoming weird symbols
+            await worker.setParameters({
+              tessedit_char_whitelist: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,!?'
+            });
+            return worker;
+          } catch (e) {
+            console.error("Failed to init BeautifyEngine", e);
+            return null;
+          }
+        })();
+      }
+    };
 
     /**
-     * Setup Event Listeners
+     * MODULE 13: Menu Controller
      */
-    function initEventListeners() {
-      // PDF File Uploads
-      dropZone.addEventListener('click', () => pdfUpload.click());
-      pdfUpload.addEventListener('change', handleFileSelect);
+    const MenuController = {
+      init() {
+        const header = document.getElementById('ui-header-container');
+        const btnMin = document.getElementById('btn-minimize-menu');
+        const btnToggle = document.getElementById('btn-toggle-menu');
 
-      // Scroll Observer for current active page tracking
-      viewportContainer.addEventListener('scroll', updateActivePageOnScroll);
-
-      // Page Navigation
-      document.getElementById('btn-prev-page').addEventListener('click', () => changePage(-1));
-      document.getElementById('btn-next-page').addEventListener('click', () => changePage(1));
-      pageNumInput.addEventListener('change', (e) => {
-        let num = parseInt(e.target.value);
-        if (num >= 1 && num <= state.pageCount) {
-          state.pageNum = num;
-          scrollToPage(state.pageNum);
-        } else {
-          e.target.value = state.pageNum;
-        }
-      });
-
-      // Zoom Controls
-      document.getElementById('btn-zoom-in').addEventListener('click', () => setZoom(state.scale + 0.25));
-      document.getElementById('btn-zoom-out').addEventListener('click', () => setZoom(state.scale - 0.25));
-
-      // Tool Switches with toggle logic
-      toolBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-          if (state.isRendering) return;
-          const tool = btn.getAttribute('data-tool');
-          if (tool === 'image') {
-            imageUpload.click();
-          } else {
-            // Toggle off if clicking the already active tool
-            if (state.activeTool === tool && (tool === 'pen' || tool === 'eraser' || tool === 'textbox')) {
-              setActiveTool('view');
-            } else {
-              setActiveTool(tool);
-            }
-          }
-        });
-      });
-
-      imageUpload.addEventListener('change', handleImageInsert);
-
-      // Property Controls
-      propColor.addEventListener('input', updateActiveToolProperties);
-      propSize.addEventListener('input', (e) => {
-        propSizeVal.textContent = e.target.value + 'px';
-        updateActiveToolProperties();
-      });
-      propOpacity.addEventListener('input', (e) => {
-        propOpacityVal.textContent = Math.round(e.target.value * 100) + '%';
-        updateActiveToolProperties();
-      });
-
-      deleteBtn.addEventListener('click', deleteSelectedObject);
-
-      // Undo / Redo
-      document.getElementById('btn-undo').addEventListener('click', undo);
-      document.getElementById('btn-redo').addEventListener('click', redo);
-
-      // Watermark Modal
-      document.getElementById('btn-watermark-modal').addEventListener('click', () => {
-        document.getElementById('watermark-modal').classList.remove('hidden');
-      });
-      document.getElementById('close-watermark-modal').addEventListener('click', () => {
-        document.getElementById('watermark-modal').classList.add('hidden');
-      });
-      document.getElementById('btn-cancel-wm').addEventListener('click', () => {
-        document.getElementById('watermark-modal').classList.add('hidden');
-      });
-      document.getElementById('btn-apply-wm').addEventListener('click', applyWatermark);
-
-      // Save PDF Button
-      document.getElementById('btn-save-pdf').addEventListener('click', saveExportPDF);
-
-      // Keyboard Shortcuts
-      window.addEventListener('keydown', (e) => {
-        const isEditingText = state.fabricCanvases.some(fc => {
-          const activeObj = fc.getActiveObject();
-          return activeObj && activeObj.isEditing;
+        btnMin.addEventListener('click', () => {
+          header.classList.add('menu-collapsed');
+          btnToggle.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-[-20px]');
         });
 
-        if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
-          e.preventDefault();
-          if (e.shiftKey) redo(); else undo();
-        } else if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
-          e.preventDefault();
-          redo();
-        } else if ((e.key === 'Delete' || e.key === 'Backspace') && !isEditingText) {
-          if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
-            deleteSelectedObject();
-          }
-        }
-      });
-    }
-
-    /**
-     * Pinch-to-Zoom & Touch Handler for View Mode
-     */
-    function setupPinchToZoom() {
-      viewportContainer.addEventListener('wheel', (e) => {
-        if (e.ctrlKey || e.metaKey) {
-          e.preventDefault();
-          const delta = e.deltaY < 0 ? 0.15 : -0.15;
-          setZoom(state.scale + delta);
-        }
-      }, { passive: false });
-
-      viewportContainer.addEventListener('touchstart', (e) => {
-        if (e.touches.length === 2 && state.activeTool === 'view') {
-          initialPinchDist = Math.hypot(
-            e.touches[0].pageX - e.touches[1].pageX,
-            e.touches[0].pageY - e.touches[1].pageY
-          );
-          initialZoomScale = state.scale;
-        }
-      });
-
-      viewportContainer.addEventListener('touchmove', (e) => {
-        if (e.touches.length === 2 && initialPinchDist && state.activeTool === 'view') {
-          e.preventDefault();
-          const dist = Math.hypot(
-            e.touches[0].pageX - e.touches[1].pageX,
-            e.touches[0].pageY - e.touches[1].pageY
-          );
-          const factor = dist / initialPinchDist;
-          const targetScale = Math.min(Math.max(0.5, initialZoomScale * factor), 4.0);
-          setZoom(targetScale);
-        }
-      }, { passive: false });
-
-      viewportContainer.addEventListener('touchend', (e) => {
-        if (e.touches.length < 2) {
-          initialPinchDist = null;
-        }
-      });
-    }
-
-    /**
-     * Drag & Drop File Loader
-     */
-    function setupDragAndDrop() {
-      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        dropZone.addEventListener(eventName, preventDefaults, false);
-      });
-      function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
-
-      dropZone.addEventListener('drop', (e) => {
-        const dt = e.dataTransfer;
-        const files = dt.files;
-        if (files.length && files[0].type === 'application/pdf') {
-          loadPDFFile(files[0]);
-        }
-      });
-    }
-
-    function handleFileSelect(e) {
-      const file = e.target.files[0];
-      if (file && file.type === 'application/pdf') {
-        loadPDFFile(file);
+        btnToggle.addEventListener('click', () => {
+          header.classList.remove('menu-collapsed');
+          btnToggle.classList.add('opacity-0', 'pointer-events-none', 'translate-y-[-20px]');
+        });
+      },
+      showLoading(text) {
+        const ind = document.getElementById('loading-indicator');
+        document.getElementById('loading-text').textContent = text;
+        ind.classList.remove('opacity-0', 'pointer-events-none');
+      },
+      hideLoading() {
+        document.getElementById('loading-indicator').classList.add('opacity-0', 'pointer-events-none');
       }
-    }
+    };
 
     /**
-     * Track active visible page while scrolling
+     * MODULE 12: Undo/Redo System
      */
-    function updateActivePageOnScroll() {
-      if (!state.pageCount) return;
-      const containerBounds = viewportContainer.getBoundingClientRect();
-      const containerCenter = containerBounds.top + containerBounds.height / 3;
-
-      for (let i = 1; i <= state.pageCount; i++) {
-        const el = document.getElementById(`page-container-${i}`);
-        if (el) {
-          const rect = el.getBoundingClientRect();
-          if (rect.top <= containerCenter && rect.bottom >= containerCenter) {
-            if (state.pageNum !== i) {
-              state.pageNum = i;
-              pageNumInput.value = i;
-            }
-            break;
-          }
-        }
-      }
-    }
-
-    /**
-     * Load PDF Buffer and Render Pages
-     */
-    async function loadPDFFile(file) {
-      const arrayBuffer = await file.arrayBuffer();
-      state.pdfBytes = arrayBuffer.slice(0); // Copy for pdf-lib
-
-      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-      state.pdfDoc = await loadingTask.promise;
-      state.pageCount = state.pdfDoc.numPages;
-      state.pageNum = 1;
-
-      pageCountEl.textContent = state.pageCount;
-      pageNumInput.value = 1;
-
-      dropZone.classList.add('hidden');
-      renderWrapper.classList.remove('hidden');
-
-      await renderAllPages();
-      saveHistoryState();
-    }
-
-    /**
-     * Safe Canvas Memory Calculation & HD Renderer
-     */
-    async function renderAllPages() {
-      state.isRendering = true;
-      
-      // Clean up previous Fabric instances safely
-      state.fabricCanvases.forEach(fc => {
-        try {
-          fc.clear();
-          fc.dispose();
-        } catch(e) {}
-      });
-      state.fabricCanvases = [];
-      renderWrapper.innerHTML = '';
-
-      // Safe DPR scaling
-      const dpr = window.devicePixelRatio || 1;
-      const outputScale = dpr > 1 ? Math.min(dpr, 1.5) : 1;
-
-      for (let i = 1; i <= state.pageCount; i++) {
-        const page = await state.pdfDoc.getPage(i);
-        const baseViewport = page.getViewport({ scale: 1.0 });
-        const scaledViewport = page.getViewport({ scale: state.scale });
-
-        // Page Container
-        const pageContainer = document.createElement('div');
-        pageContainer.className = 'pdf-page-container';
-        pageContainer.id = `page-container-${i}`;
-        pageContainer.style.width = `${scaledViewport.width}px`;
-        pageContainer.style.height = `${scaledViewport.height}px`;
-
-        // PDF Background Render Canvas
-        const pdfCanvas = document.createElement('canvas');
-        pdfCanvas.className = 'pdf-canvas-layer';
-        pdfCanvas.width = Math.floor(scaledViewport.width * outputScale);
-        pdfCanvas.height = Math.floor(scaledViewport.height * outputScale);
-        pdfCanvas.style.width = `${scaledViewport.width}px`;
-        pdfCanvas.style.height = `${scaledViewport.height}px`;
+    const HistoryManager = {
+      saveState() {
+        if (AppState.isApplyingHistory) return;
         
-        const pdfCtx = pdfCanvas.getContext('2d');
-        pdfCtx.imageSmoothingEnabled = true;
-        pdfCtx.imageSmoothingQuality = 'high';
-
-        // Fabric Canvas Element
-        const fabricCanvasEl = document.createElement('canvas');
-        fabricCanvasEl.id = `fabric-canvas-${i}`;
-
-        // Text Selection Overlay Layer
-        const textLayerDiv = document.createElement('div');
-        textLayerDiv.className = `text-layer ${state.activeTool === 'text-select' ? 'active-select' : ''}`;
-        textLayerDiv.style.width = `${baseViewport.width}px`;
-        textLayerDiv.style.height = `${baseViewport.height}px`;
-        textLayerDiv.style.transform = `scale(${state.scale})`;
-        textLayerDiv.style.transformOrigin = '0 0';
-
-        pageContainer.appendChild(pdfCanvas);
-        pageContainer.appendChild(fabricCanvasEl);
-        pageContainer.appendChild(textLayerDiv);
-        renderWrapper.appendChild(pageContainer);
-
-        // Render PDF page
-        const transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
-        await page.render({ 
-          canvasContext: pdfCtx, 
-          viewport: scaledViewport,
-          transform: transform 
-        }).promise;
-
-        // Render PDF Text Layer at Base Viewport Coordinates
-        const textContent = await page.getTextContent();
-        await pdfjsLib.renderTextLayer({
-          textContentSource: textContent,
-          container: textLayerDiv,
-          viewport: baseViewport,
-          textDivs: []
-        }).promise;
-
-        // Initialize Fabric.js Overlay Canvas AT BASE SCALE (Scale 1.0)
-        const fCanvas = new fabric.Canvas(fabricCanvasEl.id, {
-          width: baseViewport.width,
-          height: baseViewport.height,
-          selection: false,
-          isDrawingMode: state.activeTool === 'pen',
-          allowTouchScrolling: true,
-          enableRetinaScaling: true
-        });
-
-        fCanvas.baseWidth = baseViewport.width;
-        fCanvas.baseHeight = baseViewport.height;
-
-        fCanvas.setDimensions({ width: scaledViewport.width, height: scaledViewport.height });
-        fCanvas.setZoom(state.scale);
-
-        fCanvas.freeDrawingBrush = new fabric.PencilBrush(fCanvas);
-        fCanvas.freeDrawingBrush.color = propColor.value;
-        fCanvas.freeDrawingBrush.width = parseInt(propSize.value) || 4;
-
-        fCanvas.on('selection:created', onObjectSelected);
-        fCanvas.on('selection:updated', onObjectSelected);
-        fCanvas.on('selection:cleared', onObjectCleared);
-        fCanvas.on('object:added', () => { 
-          if (!state.isApplyingHistory && !state.isRendering) {
-            saveHistoryState(); 
-          }
-        });
-        fCanvas.on('object:modified', () => { 
-          if (!state.isApplyingHistory && !state.isRendering) {
-            saveHistoryState(); 
-          }
-        });
-        fCanvas.on('object:removed', () => { 
-          if (!state.isApplyingHistory && !state.isRendering) {
-            saveHistoryState(); 
+        AppState.activePages.forEach(pageNum => {
+          if (AppState.fabricInstances[pageNum]) {
+            AppState.pageData[pageNum] = JSON.stringify(AppState.fabricInstances[pageNum].toJSON());
           }
         });
 
-        state.fabricCanvases.push(fCanvas);
+        const snapshot = JSON.stringify(AppState.pageData);
+        
+        AppState.historyStack = AppState.historyStack.slice(0, AppState.historyIndex + 1);
+        AppState.historyStack.push(snapshot);
+        if (AppState.historyStack.length > 20) AppState.historyStack.shift(); 
+        else AppState.historyIndex++;
+        
+        this.updateUI();
+      },
+      async applyState(snapshotStr) {
+        AppState.isApplyingHistory = true;
+        try {
+          AppState.pageData = JSON.parse(snapshotStr);
+          
+          for (let pageNum of AppState.activePages) {
+            const fCanvas = AppState.fabricInstances[pageNum];
+            if (fCanvas && AppState.pageData[pageNum]) {
+              await new Promise(resolve => fCanvas.loadFromJSON(AppState.pageData[pageNum], resolve));
+              fCanvas.setZoom(AppState.scale); // Hard enforce coordinates relative to zoom state!
+              fCanvas.renderAll();
+            } else if (fCanvas) {
+              fCanvas.clear();
+            }
+          }
+        } finally {
+          AppState.isApplyingHistory = false;
+          this.updateUI();
+        }
+      },
+      undo() {
+        if (AppState.historyIndex > 0) {
+          AppState.historyIndex--;
+          this.applyState(AppState.historyStack[AppState.historyIndex]);
+        }
+      },
+      redo() {
+        if (AppState.historyIndex < AppState.historyStack.length - 1) {
+          AppState.historyIndex++;
+          this.applyState(AppState.historyStack[AppState.historyIndex]);
+        }
+      },
+      updateUI() {
+        document.getElementById('btn-undo').disabled = AppState.historyIndex <= 0;
+        document.getElementById('btn-redo').disabled = AppState.historyIndex >= AppState.historyStack.length - 1;
       }
-
-      state.isRendering = false;
-      updateToolUI();
-      setActiveTool(state.activeTool);
-    }
+    };
 
     /**
-     * Active Tool Switcher & Scroll Lock Handler
+     * MODULE 10/11: Selection & Tool Controller
      */
-    function setActiveTool(tool) {
-      state.activeTool = tool;
+    const ToolController = {
+      init() {
+        const btns = document.querySelectorAll('.tool-btn[data-tool]');
+        btns.forEach(btn => {
+          btn.addEventListener('click', () => {
+            const tool = btn.getAttribute('data-tool');
+            this.setActiveTool(tool);
+          });
+        });
 
-      if (tool === 'pen' || tool === 'textbox' || tool === 'eraser') {
-        viewportContainer.classList.add('drawing-lock');
-      } else {
-        viewportContainer.classList.remove('drawing-lock');
-      }
-
-      toolBtns.forEach(btn => {
-        if (btn.getAttribute('data-tool') === tool) {
-          btn.classList.add('active');
-        } else {
-          btn.classList.remove('active');
-        }
-      });
-
-      const sizeLabel = document.getElementById('prop-size-label');
-      if (tool === 'textbox') {
-        sizeLabel.textContent = 'Font:';
-      } else if (tool === 'eraser') {
-        sizeLabel.textContent = 'Eraser:';
-      } else {
-        sizeLabel.textContent = 'Size:';
-      }
-
-      document.querySelectorAll('.text-layer').forEach(layer => {
-        if (tool === 'text-select') {
-          layer.classList.add('active-select');
-        } else {
-          layer.classList.remove('active-select');
-        }
-      });
-
-      state.fabricCanvases.forEach(fCanvas => {
-        fCanvas.calcOffset();
-
-        fCanvas.isDrawingMode = (tool === 'pen');
-        fCanvas.selection = false; 
-        fCanvas.allowTouchScrolling = true;
-
-        const wrapperEl = fCanvas.upperCanvasEl ? fCanvas.upperCanvasEl.parentNode : null;
-        if (wrapperEl) {
-          if (tool === 'view' || tool === 'text-select') {
-            wrapperEl.classList.add('pointer-events-none-override');
-          } else {
-            wrapperEl.classList.remove('pointer-events-none-override');
+        document.getElementById('prop-color').addEventListener('input', this.updateProps.bind(this));
+        document.getElementById('prop-size').addEventListener('input', this.updateProps.bind(this));
+        document.getElementById('prop-opacity').addEventListener('input', this.updateProps.bind(this));
+        document.getElementById('btn-delete-selected').addEventListener('click', this.deleteSelected.bind(this));
+        
+        window.addEventListener('keydown', (e) => {
+          if ((e.key === 'Delete' || e.key === 'Backspace') && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+            this.deleteSelected();
           }
+        });
+      },
+
+      setActiveTool(tool) {
+        AppState.activeTool = tool;
+        
+        document.querySelectorAll('.tool-btn[data-tool]').forEach(b => {
+          b.classList.toggle('active', b.getAttribute('data-tool') === tool);
+        });
+
+        const viewport = document.getElementById('viewport-container');
+        if (tool === 'view' || tool === 'text-select') {
+          viewport.classList.add('view-mode-active');
+        } else {
+          viewport.classList.remove('view-mode-active');
         }
 
-        if (tool === 'pen') {
-          if (!fCanvas.freeDrawingBrush) {
-            fCanvas.freeDrawingBrush = new fabric.PencilBrush(fCanvas);
-          }
-          fCanvas.freeDrawingBrush.color = propColor.value;
-          fCanvas.freeDrawingBrush.width = parseInt(propSize.value) || 4;
+        document.querySelectorAll('.text-layer').forEach(layer => {
+          layer.classList.toggle('active-select', tool === 'text-select');
+        });
+
+        AppState.activePages.forEach(pageNum => {
+          this.applyToolToCanvas(AppState.fabricInstances[pageNum]);
+        });
+      },
+
+      applyToolToCanvas(fCanvas) {
+        if (!fCanvas) return;
+        const tool = AppState.activeTool;
+        const color = document.getElementById('prop-color').value;
+        const size = parseInt(document.getElementById('prop-size').value);
+        const opacity = parseFloat(document.getElementById('prop-opacity').value);
+
+        fCanvas.isDrawingMode = (tool === 'pen' || tool === 'highlight');
+        fCanvas.selection = (tool === 'select');
+        
+        if (fCanvas.isDrawingMode) {
+          fCanvas.freeDrawingBrush = new fabric.PencilBrush(fCanvas);
+          fCanvas.freeDrawingBrush.color = tool === 'highlight' ? this.hexToRgba(color, Math.min(opacity * 0.5, 0.5)) : color;
+          fCanvas.freeDrawingBrush.width = tool === 'highlight' ? size * 3 : size;
           fCanvas.defaultCursor = 'crosshair';
-        } else if (tool === 'eraser') {
-          fCanvas.defaultCursor = 'cell';
-        } else if (tool === 'textbox') {
-          fCanvas.defaultCursor = 'text';
-        } else if (tool === 'text-select') {
-          fCanvas.defaultCursor = 'text';
-        } else if (tool === 'view') {
-          fCanvas.defaultCursor = 'grab';
         } else {
-          fCanvas.defaultCursor = 'default';
+          fCanvas.defaultCursor = tool === 'view' ? 'grab' : (tool === 'eraser' ? 'cell' : 'default');
         }
+
+        if (tool !== 'select' && tool !== 'textbox') {
+            fCanvas.discardActiveObject();
+        }
+
+        fCanvas.forEachObject(obj => {
+          if (tool === 'textbox' && (obj.type === 'textbox' || obj.type === 'i-text')) {
+              obj.selectable = true;
+              obj.evented = true;
+          } else {
+              obj.selectable = (tool === 'select');
+              obj.evented = (tool === 'select' || tool === 'eraser');
+          }
+        });
 
         fCanvas.off('mouse:down');
         fCanvas.off('mouse:move');
         fCanvas.off('mouse:up');
+        fCanvas.off('path:created'); 
+
+        // Instant OCR Handwriting trigger
+        fCanvas.on('path:created', (e) => {
+          if (AppState.activeTool === 'pen' && AppState.beautifyWriting) {
+            AppState.pendingStrokes.push(e.path);
+            clearTimeout(AppState.strokeTimeout);
+            
+            AppState.strokeTimeout = setTimeout(() => {
+              this.processBeautify(fCanvas);
+            }, 800); // Trigger super-fast snapshot 800ms after user pauses pen
+          }
+        });
 
         if (tool === 'textbox') {
-          fCanvas.on('mouse:down', (options) => {
-            if (state.activeTool === 'textbox') {
-              if (options.target && (options.target.type === 'textbox' || options.target.type === 'i-text')) {
-                options.target.enterEditing();
-                return;
-              }
-
-              const pointer = fCanvas.getPointer(options.e);
-              const fontBaseSize = Math.max(16, parseInt(propSize.value) * 3);
-              const textbox = new fabric.Textbox('Type text here...', {
-                left: pointer.x,
-                top: pointer.y,
-                width: 200,
-                fontSize: fontBaseSize,
-                fill: propColor.value,
-                opacity: parseFloat(propOpacity.value),
-                fontFamily: 'Helvetica, Arial, sans-serif',
-                editable: true
-              });
-
-              fCanvas.add(textbox);
-              fCanvas.setActiveObject(textbox);
-              textbox.enterEditing();
-              textbox.selectAll();
-              fCanvas.renderAll();
-
-              setActiveTool('view');
-            }
-          });
-        } else if (tool === 'eraser') {
-          let isErasing = false;
-
-          fCanvas.on('mouse:down', (options) => {
-            isErasing = true;
-            if (options.target) {
-              fCanvas.remove(options.target);
-              fCanvas.renderAll();
-            }
-          });
-
-          fCanvas.on('mouse:move', (options) => {
-            if (isErasing && options.target) {
-              fCanvas.remove(options.target);
-              fCanvas.renderAll();
-            }
-          });
-
-          fCanvas.on('mouse:up', () => {
-            isErasing = false;
-          });
-        }
-      });
-    }
-
-    /**
-     * Update Properties of Brush or Active Selected Object
-     */
-    function updateActiveToolProperties() {
-      const color = propColor.value;
-      const size = parseInt(propSize.value) || 4;
-      const opacity = parseFloat(propOpacity.value) || 1.0;
-
-      state.fabricCanvases.forEach(fCanvas => {
-        if (fCanvas.freeDrawingBrush) {
-          fCanvas.freeDrawingBrush.color = color;
-          fCanvas.freeDrawingBrush.width = size;
-        }
-
-        const activeObj = fCanvas.getActiveObject();
-        if (activeObj) {
-          if (activeObj.type === 'textbox' || activeObj.type === 'i-text') {
-            activeObj.set({ fill: color, opacity: opacity, fontSize: Math.max(16, size * 3) });
-          } else if (activeObj.type === 'path') {
-            activeObj.set({ stroke: color, strokeWidth: size, opacity: opacity });
-          } else {
-            activeObj.set({ opacity: opacity });
-          }
-          fCanvas.renderAll();
-        }
-      });
-    }
-
-    function onObjectSelected(e) {
-      deleteBtn.classList.remove('hidden');
-      const obj = e.selected[0];
-      if (obj) {
-        if (obj.fill && typeof obj.fill === 'string') propColor.value = obj.fill;
-        if (obj.opacity !== undefined) {
-          propOpacity.value = obj.opacity;
-          propOpacityVal.textContent = Math.round(obj.opacity * 100) + '%';
-        }
-      }
-    }
-
-    function onObjectCleared() {
-      deleteBtn.classList.add('hidden');
-    }
-
-    function deleteSelectedObject() {
-      state.fabricCanvases.forEach(fCanvas => {
-        const activeObj = fCanvas.getActiveObject();
-        if (activeObj) {
-          fCanvas.remove(activeObj);
-          fCanvas.discardActiveObject();
-          fCanvas.renderAll();
-        }
-      });
-    }
-
-    /**
-     * Insert Image Handler
-     */
-    function handleImageInsert(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const imgObj = new Image();
-        imgObj.src = event.target.result;
-        imgObj.onload = () => {
-          const targetCanvasIndex = Math.max(0, Math.min(state.pageNum - 1, state.fabricCanvases.length - 1));
-          const currentCanvas = state.fabricCanvases[targetCanvasIndex];
-          if (!currentCanvas) return;
-
-          const fabricImg = new fabric.Image(imgObj, {
-            left: currentCanvas.baseWidth / 4,
-            top: currentCanvas.baseHeight / 4,
-            opacity: 1.0,
-            imageSmoothing: true,
-            objectCaching: false
-          });
-
-          const targetWidth = currentCanvas.baseWidth * 0.4;
-          fabricImg.scaleToWidth(targetWidth);
-
-          currentCanvas.add(fabricImg);
-          currentCanvas.setActiveObject(fabricImg);
-          setActiveTool('view');
-        };
-      };
-      reader.readAsDataURL(file);
-      e.target.value = '';
-    }
-
-    /**
-     * Watermark Creator
-     */
-    function applyWatermark() {
-      const text = document.getElementById('wm-text').value || 'CONFIDENTIAL';
-      const color = document.getElementById('wm-color').value;
-      const size = parseInt(document.getElementById('wm-size').value) || 48;
-      const opacity = (parseInt(document.getElementById('wm-opacity').value) || 30) / 100;
-      const angle = parseInt(document.getElementById('wm-angle').value) || -45;
-      const target = document.getElementById('wm-target').value;
-
-      const applyToCanvas = (fCanvas) => {
-        const watermarkText = new fabric.Text(text, {
-          fontSize: size,
-          fill: color,
-          opacity: opacity,
-          angle: angle,
-          originX: 'center',
-          originY: 'center',
-          left: fCanvas.baseWidth / 2,
-          top: fCanvas.baseHeight / 2,
-          selectable: true
-        });
-        fCanvas.add(watermarkText);
-        fCanvas.renderAll();
-      };
-
-      if (target === 'all') {
-        state.fabricCanvases.forEach(applyToCanvas);
-      } else {
-        const activeCanvas = state.fabricCanvases[state.pageNum - 1];
-        if (activeCanvas) applyToCanvas(activeCanvas);
-      }
-
-      document.getElementById('watermark-modal').classList.add('hidden');
-    }
-
-    /**
-     * Page Navigation & Zooming Controls
-     */
-    function changePage(delta) {
-      const targetPage = state.pageNum + delta;
-      if (targetPage >= 1 && targetPage <= state.pageCount) {
-        state.pageNum = targetPage;
-        pageNumInput.value = state.pageNum;
-        scrollToPage(state.pageNum);
-      }
-    }
-
-    function scrollToPage(num) {
-      const targetEl = document.getElementById(`page-container-${num}`);
-      if (targetEl) {
-        targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }
-
-    /**
-     * Fluid Smooth Zoom
-     */
-    function setZoom(newScale) {
-      if (newScale < 0.5 || newScale > 4.0 || state.isRendering || state.fabricCanvases.length === 0) return;
-      
-      const oldScale = state.scale;
-      state.scale = newScale;
-      zoomVal.textContent = Math.round(state.scale * 100) + '%';
-      
-      const scaleRatio = state.scale / oldScale;
-
-      const container = viewportContainer;
-      const centerScrollY = container.scrollTop + container.clientHeight / 2;
-      const centerScrollX = container.scrollLeft + container.clientWidth / 2;
-
-      state.fabricCanvases.forEach((fCanvas, index) => {
-        const pageNum = index + 1;
-        const pageContainer = document.getElementById(`page-container-${pageNum}`);
-        if (!pageContainer) return;
-
-        const newWidth = fCanvas.baseWidth * state.scale;
-        const newHeight = fCanvas.baseHeight * state.scale;
-
-        pageContainer.style.width = `${newWidth}px`;
-        pageContainer.style.height = `${newHeight}px`;
-
-        const pdfCanvas = pageContainer.querySelector('.pdf-canvas-layer');
-        if (pdfCanvas) {
-          pdfCanvas.style.width = `${newWidth}px`;
-          pdfCanvas.style.height = `${newHeight}px`;
-        }
-
-        const textLayer = pageContainer.querySelector('.text-layer');
-        if (textLayer) {
-          textLayer.style.transform = `scale(${state.scale})`;
-        }
-
-        fCanvas.setDimensions({ width: newWidth, height: newHeight });
-        fCanvas.setZoom(state.scale);
-        fCanvas.calcOffset();
-        fCanvas.renderAll();
-      });
-
-      container.scrollTop = centerScrollY * scaleRatio - container.clientHeight / 2;
-      container.scrollLeft = centerScrollX * scaleRatio - container.clientWidth / 2;
-    }
-
-    /**
-     * Undo & Redo System
-     */
-    function saveHistoryState() {
-      if (state.isApplyingHistory || state.isRendering) return;
-
-      const snapshot = state.fabricCanvases.map(fc => fc.toJSON());
-      state.history = state.history.slice(0, state.historyIndex + 1);
-      state.history.push(snapshot);
-      state.historyIndex = state.history.length - 1;
-
-      updateUndoRedoUI();
-    }
-
-    function undo() {
-      if (state.historyIndex > 0) {
-        state.historyIndex--;
-        applyHistorySnapshot(state.history[state.historyIndex]);
-      }
-    }
-
-    function redo() {
-      if (state.historyIndex < state.history.length - 1) {
-        state.historyIndex++;
-        applyHistorySnapshot(state.history[state.historyIndex]);
-      }
-    }
-
-    function applyHistorySnapshot(snapshot) {
-      if (!snapshot) return;
-      state.isApplyingHistory = true;
-      let loadedCount = 0;
-
-      snapshot.forEach((jsonState, idx) => {
-        const fc = state.fabricCanvases[idx];
-        if (fc) {
-          fc.loadFromJSON(jsonState, () => {
-            fc.renderAll();
-            loadedCount++;
-            if (loadedCount === snapshot.length) {
-              state.isApplyingHistory = false;
-              updateUndoRedoUI();
-            }
-          });
-        }
-      });
-    }
-
-    function updateUndoRedoUI() {
-      document.getElementById('btn-undo').disabled = state.historyIndex <= 0;
-      document.getElementById('btn-redo').disabled = state.historyIndex >= state.history.length - 1;
-    }
-
-    function updateToolUI() {
-      toolBtns.forEach(btn => {
-        if (btn.getAttribute('data-tool') === state.activeTool) {
-          btn.classList.add('active');
-        } else {
-          btn.classList.remove('active');
-        }
-      });
-    }
-
-    /**
-     * Export & Save PDF with Layer Merging
-     */
-    async function saveExportPDF() {
-      if (!state.pdfBytes) return;
-
-      const btnSave = document.getElementById('btn-save-pdf');
-      const origContent = btnSave.innerHTML;
-      btnSave.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Processing...`;
-      btnSave.disabled = true;
-
-      try {
-        const pdfDoc = await PDFLib.PDFDocument.load(state.pdfBytes);
-        const pages = pdfDoc.getPages();
-
-        for (let i = 0; i < pages.length; i++) {
-          const page = pages[i];
-          const fCanvas = state.fabricCanvases[i];
-
-          if (fCanvas && fCanvas.getObjects().length > 0) {
-            const originalZoom = fCanvas.getZoom();
-            const originalWidth = fCanvas.width;
-            const originalHeight = fCanvas.height;
+          fCanvas.on('mouse:down', (o) => {
+            if (o.target && (o.target.type === 'textbox' || o.target.type === 'i-text')) return;
             
-            fCanvas.setZoom(1);
-            fCanvas.setDimensions({ width: fCanvas.baseWidth, height: fCanvas.baseHeight });
-            fCanvas.discardActiveObject();
-            fCanvas.renderAll();
-
-            const overlayDataUrl = fCanvas.toDataURL({ format: 'png', multiplier: 2 });
-            const pngImage = await pdfDoc.embedPng(overlayDataUrl);
-
-            fCanvas.setDimensions({ width: originalWidth, height: originalHeight });
-            fCanvas.setZoom(originalZoom);
-            fCanvas.renderAll();
-
-            const { width, height } = page.getSize();
-            page.drawImage(pngImage, {
-              x: 0,
-              y: 0,
-              width: width,
-              height: height
+            const pointer = fCanvas.getPointer(o.e); // Retrieves precise unzoomed coordinates
+            const textbox = new fabric.Textbox('Type here', {
+              left: pointer.x, top: pointer.y,
+              width: Math.max(150, size * 5), 
+              fontSize: Math.max(16, size * 2),
+              fill: color, opacity: opacity,
+              fontFamily: 'sans-serif', editable: true,
+              cursorColor: color
             });
+            fCanvas.add(textbox);
+            fCanvas.setActiveObject(textbox);
+            textbox.enterEditing();
+            textbox.selectAll();
+            fCanvas.renderAll();
+          });
+        } 
+        else if (tool === 'eraser') {
+          let isErasing = false;
+          fCanvas.on('mouse:down', (o) => { isErasing = true; if(o.target) { fCanvas.remove(o.target); HistoryManager.saveState(); } });
+          fCanvas.on('mouse:move', (o) => { if(isErasing && o.target) { fCanvas.remove(o.target); } });
+          fCanvas.on('mouse:up', () => { if(isErasing) HistoryManager.saveState(); isErasing = false; });
+        }
+
+        fCanvas.renderAll();
+      },
+      
+      /**
+       * Core Auto OCR engine (Instant, Client-Side)
+       */
+      async processBeautify(fCanvas) {
+        if (AppState.pendingStrokes.length === 0) return;
+        const strokes = [...AppState.pendingStrokes];
+        AppState.pendingStrokes = [];
+
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        strokes.forEach(p => {
+          const rect = p.getBoundingRect();
+          minX = Math.min(minX, rect.left);
+          minY = Math.min(minY, rect.top);
+          maxX = Math.max(maxX, rect.left + rect.width);
+          maxY = Math.max(maxY, rect.top + rect.height);
+        });
+
+        const pad = 40; 
+        minX -= pad; minY -= pad; maxX += pad; maxY += pad;
+        const w = maxX - minX;
+        const h = maxY - minY;
+
+        if (w <= pad * 2 + 5 || h <= pad * 2 + 5) return;
+
+        // Isolate strokes on a high-DPI temporary canvas, applying contrast thresholds
+        const tempCanvasEl = document.createElement('canvas');
+        const tempFCanvas = new fabric.StaticCanvas(tempCanvasEl, {
+          width: w * 3, height: h * 3, backgroundColor: 'white' // 3x scaling for sharp OCR
+        });
+        tempFCanvas.setZoom(3);
+
+        strokes.forEach(p => {
+          p.clone((cloned) => {
+            cloned.set({
+              left: cloned.left - minX,
+              top: cloned.top - minY,
+              stroke: 'black',
+              strokeWidth: Math.max(6, cloned.strokeWidth * 1.5) // Super thick black lines for accurate reading
+            });
+            tempFCanvas.add(cloned);
+          });
+        });
+        tempFCanvas.renderAll();
+
+        const dataUrl = tempCanvasEl.toDataURL('image/png');
+        
+        try {
+          const worker = await BeautifyEngine.workerPromise;
+          if (!worker) return;
+
+          const result = await worker.recognize(dataUrl);
+          let text = result.data.text.trim();
+          text = text.replace(/^[^\w\s]+|[^\w\s]+$/g, '');
+
+          if (text.length > 0) {
+            AppState.isApplyingHistory = true; 
+            
+            strokes.forEach(p => fCanvas.remove(p));
+
+            const color = document.getElementById('prop-color').value;
+            const opacity = parseFloat(document.getElementById('prop-opacity').value);
+            
+            // Generate clean Dancing Script text on the exact base coordinates
+            const textbox = new fabric.Textbox(text, {
+              left: minX + pad,
+              top: minY + pad,
+              width: Math.max(150, w - pad * 2),
+              fontSize: Math.max(24, h * 0.7),
+              fill: color,
+              opacity: opacity,
+              fontFamily: "'Dancing Script', cursive",
+              fontWeight: "bold",
+              editable: true
+            });
+            
+            fCanvas.add(textbox);
+            fCanvas.renderAll();
+            
+            AppState.isApplyingHistory = false;
+            HistoryManager.saveState();
+          }
+        } catch(e) {
+          console.error("OCR Error", e);
+        }
+      },
+
+      updateProps() {
+        const color = document.getElementById('prop-color').value;
+        const size = parseInt(document.getElementById('prop-size').value);
+        const opacity = parseFloat(document.getElementById('prop-opacity').value);
+        
+        AppState.activePages.forEach(pageNum => {
+          const fc = AppState.fabricInstances[pageNum];
+          if (!fc) return;
+          
+          if (fc.isDrawingMode) {
+             fc.freeDrawingBrush.color = AppState.activeTool === 'highlight' ? this.hexToRgba(color, Math.min(opacity * 0.5, 0.5)) : color;
+             fc.freeDrawingBrush.width = AppState.activeTool === 'highlight' ? size * 3 : size;
+          }
+          const obj = fc.getActiveObject();
+          if (obj) {
+            if (obj.type === 'textbox') obj.set({ fill: color, opacity, fontSize: Math.max(16, size*2) });
+            else if (obj.type === 'path') obj.set({ stroke: color, strokeWidth: size, opacity });
+            else obj.set({ opacity });
+            fc.renderAll();
+            HistoryManager.saveState();
+          }
+        });
+      },
+
+      deleteSelected() {
+        AppState.activePages.forEach(pageNum => {
+          const fc = AppState.fabricInstances[pageNum];
+          if (fc) {
+            const active = fc.getActiveObjects();
+            if (active.length) {
+              active.forEach(obj => fc.remove(obj));
+              fc.discardActiveObject();
+              HistoryManager.saveState();
+            }
+          }
+        });
+        document.getElementById('btn-delete-selected').classList.add('hidden');
+      },
+
+      hexToRgba(hex, alpha) {
+        const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r},${g},${b},${alpha})`;
+      }
+    };
+
+    /**
+     * MODULE 3 & 15: Memory Manager & Page Cache
+     */
+    const MemoryManager = {
+      observer: null,
+      
+      init() {
+        this.observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            const pageNum = parseInt(entry.target.dataset.page);
+            if (entry.isIntersecting) {
+              this.loadPage(pageNum);
+            } else {
+              this.unloadPage(pageNum);
+            }
+          });
+        }, { 
+          root: document.getElementById('viewport-container'),
+          rootMargin: "100% 0px"
+        });
+      },
+
+      observePage(element) {
+        this.observer.observe(element);
+      },
+
+      async loadPage(pageNum) {
+        if (AppState.activePages.has(pageNum)) return;
+        AppState.activePages.add(pageNum);
+        
+        const container = document.getElementById(`page-${pageNum}`);
+        if (!container) return;
+
+        if (!container.querySelector('.pdf-canvas-layer')) {
+          container.innerHTML = `
+            <canvas class="pdf-canvas-layer w-full h-full"></canvas>
+            <canvas id="fabric-${pageNum}" class="w-full h-full"></canvas>
+            <div class="text-layer text-layer-${pageNum}"></div>
+          `;
+        }
+
+        await RenderEngine.renderPDFPage(pageNum, container);
+        this.initFabricCanvas(pageNum, container);
+      },
+
+      unloadPage(pageNum) {
+        if (!AppState.activePages.has(pageNum)) return;
+        AppState.activePages.delete(pageNum);
+
+        const container = document.getElementById(`page-${pageNum}`);
+        if (!container) return;
+
+        const fCanvas = AppState.fabricInstances[pageNum];
+        if (fCanvas) {
+          AppState.pageData[pageNum] = JSON.stringify(fCanvas.toJSON());
+          fCanvas.dispose();
+          delete AppState.fabricInstances[pageNum];
+        }
+
+        const pdfCanvas = container.querySelector('.pdf-canvas-layer');
+        if (pdfCanvas) {
+          pdfCanvas.width = 0; pdfCanvas.height = 0; 
+        }
+        
+        const textLayer = container.querySelector('.text-layer');
+        if(textLayer) textLayer.innerHTML = '';
+      },
+
+      initFabricCanvas(pageNum, container) {
+        const canvasEl = container.querySelector(`#fabric-${pageNum}`);
+        const dim = AppState.pageDimensions[pageNum];
+        
+        const fCanvas = new fabric.Canvas(canvasEl, {
+          width: dim.width * AppState.scale,
+          height: dim.height * AppState.scale,
+          selection: false
+        });
+        
+        fCanvas.baseWidth = dim.width;
+        fCanvas.baseHeight = dim.height;
+        
+        // **CRITICAL FIX**: Locks logical coordinates globally to prevent shifting on viewport changes
+        fCanvas.setZoom(AppState.scale);
+        
+        AppState.fabricInstances[pageNum] = fCanvas;
+
+        fCanvas.on('selection:created', () => document.getElementById('btn-delete-selected').classList.remove('hidden'));
+        fCanvas.on('selection:cleared', () => document.getElementById('btn-delete-selected').classList.add('hidden'));
+        
+        fCanvas.on('object:added', () => { if (!AppState.isApplyingHistory && !fCanvas.isRendering) HistoryManager.saveState(); });
+        
+        fCanvas.on('mouse:down', () => {
+            document.querySelectorAll('.pdf-page-container').forEach(el => el.style.zIndex = '1');
+            container.style.zIndex = '10';
+        });
+
+        // GHOST OVERLAY LOGIC (Prevents clipping/going under other pages during drag)
+        fCanvas.on('object:moving', (e) => {
+            const obj = e.target;
+            if (!obj) return;
+            
+            let dragProxy = document.getElementById('drag-proxy-overlay');
+            if (!dragProxy) {
+                dragProxy = document.createElement('div');
+                dragProxy.id = 'drag-proxy-overlay';
+                dragProxy.style.position = 'fixed';
+                dragProxy.style.pointerEvents = 'none'; // Ensure elementsFromPoint works behind it!
+                dragProxy.style.zIndex = '999999';
+                dragProxy.style.display = 'none';
+                document.body.appendChild(dragProxy);
+            }
+            
+            // Generate snapshot of moving object if it hasn't been generated yet
+            if (dragProxy.style.display === 'none') {
+                obj.originalOpacity = obj.opacity;
+                try {
+                    const dataUrl = obj.toDataURL({ multiplier: AppState.scale });
+                    dragProxy.style.backgroundImage = `url(${dataUrl})`;
+                    dragProxy.style.backgroundSize = '100% 100%';
+                    dragProxy.style.display = 'block';
+                    // Hide original object on bounded canvas so it looks like it popped out
+                    obj.set('opacity', 0); 
+                } catch (err) {
+                    // Fail gracefully in case of Cross-Origin security errors on toDataURL
+                    console.warn("Drag proxy rendering failed", err);
+                }
+            }
+            
+            if (dragProxy.style.display === 'block') {
+                const canvasRect = fCanvas.getElement().getBoundingClientRect();
+                const objRect = obj.getBoundingRect();
+                
+                // Track proxy with the mouse visually based on viewport boundaries
+                dragProxy.style.left = (canvasRect.left + objRect.left) + 'px';
+                dragProxy.style.top = (canvasRect.top + objRect.top) + 'px';
+                dragProxy.style.width = objRect.width + 'px';
+                dragProxy.style.height = objRect.height + 'px';
+            }
+        });
+
+        fCanvas.on('mouse:up', (e) => {
+            const dragProxy = document.getElementById('drag-proxy-overlay');
+            if (dragProxy) dragProxy.style.display = 'none';
+            
+            // Restore hidden object before `object:modified` fully triggers
+            if (e.target && e.target.originalOpacity !== undefined) {
+                e.target.set('opacity', e.target.originalOpacity);
+                delete e.target.originalOpacity;
+                fCanvas.renderAll();
+            }
+        });
+
+        fCanvas.on('object:modified', (e) => {
+            const obj = e.target;
+            if (!obj) {
+                if (!AppState.isApplyingHistory && !fCanvas.isRendering) HistoryManager.saveState();
+                return;
+            }
+
+            const objRect = obj.getBoundingRect();
+            const canvasRect = fCanvas.getElement().getBoundingClientRect();
+            
+            const absoluteCenterX = canvasRect.left + objRect.left + (objRect.width / 2);
+            const absoluteCenterY = canvasRect.top + objRect.top + (objRect.height / 2);
+
+            const elements = document.elementsFromPoint(absoluteCenterX, absoluteCenterY);
+            const targetPageEl = elements ? elements.find(el => el.classList.contains('pdf-page-container')) : null;
+
+            if (targetPageEl) {
+                const targetPageNum = parseInt(targetPageEl.dataset.page);
+                if (targetPageNum !== pageNum && AppState.fabricInstances[targetPageNum]) {
+                    const targetCanvas = AppState.fabricInstances[targetPageNum];
+                    const targetRect = targetCanvas.getElement().getBoundingClientRect();
+                    
+                    const dx = (canvasRect.left - targetRect.left) / AppState.scale;
+                    const dy = (canvasRect.top - targetRect.top) / AppState.scale;
+                    
+                    obj.clone((cloned) => {
+                        AppState.isApplyingHistory = true;
+
+                        cloned.set({
+                            left: obj.left + dx,
+                            top: obj.top + dy
+                        });
+                        cloned.setCoords();
+                        
+                        fCanvas.remove(obj);
+                        fCanvas.discardActiveObject();
+                        
+                        targetCanvas.add(cloned);
+                        targetCanvas.setActiveObject(cloned);
+                        
+                        fCanvas.renderAll();
+                        targetCanvas.renderAll();
+                        
+                        AppState.isApplyingHistory = false;
+                        HistoryManager.saveState(); 
+                    });
+                    
+                    return; 
+                }
+            }
+
+            if (!AppState.isApplyingHistory && !fCanvas.isRendering) HistoryManager.saveState();
+        });
+        
+        if (AppState.pageData[pageNum]) {
+          fCanvas.isRendering = true;
+          fCanvas.loadFromJSON(AppState.pageData[pageNum], () => {
+            fCanvas.isRendering = false;
+            fCanvas.setZoom(AppState.scale); // Hard reset scale constraint on cache load
+            fCanvas.renderAll();
+          });
+        }
+
+        ToolController.applyToolToCanvas(fCanvas);
+      }
+    };
+
+    /**
+     * MODULE 4: Rendering Engine & PDF Loader
+     */
+    const RenderEngine = {
+      async loadDocument(file) {
+        MenuController.showLoading("Loading PDF...");
+        try {
+          const arrayBuffer = await file.arrayBuffer();
+          AppState.pdfBytes = arrayBuffer.slice(0); 
+          
+          const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+          AppState.pdfDoc = await loadingTask.promise;
+          AppState.numPages = AppState.pdfDoc.numPages;
+          
+          document.getElementById('page-count').textContent = AppState.numPages;
+          document.getElementById('drop-zone').classList.add('hidden');
+          
+          const wrapper = document.getElementById('document-wrapper');
+          wrapper.innerHTML = '';
+          wrapper.classList.remove('hidden');
+
+          AppState.pageDimensions = [];
+          AppState.pageData = {};
+          AppState.activePages.clear();
+          
+          for (let i = 1; i <= AppState.numPages; i++) {
+            const page = await AppState.pdfDoc.getPage(i);
+            const vp = page.getViewport({ scale: 1.0 });
+            AppState.pageDimensions[i] = { width: vp.width, height: vp.height };
+            
+            const div = document.createElement('div');
+            div.className = 'pdf-page-container';
+            div.id = `page-${i}`;
+            div.dataset.page = i;
+            div.style.width = `${vp.width * AppState.scale}px`;
+            div.style.height = `${vp.height * AppState.scale}px`;
+            wrapper.appendChild(div);
+            
+            MemoryManager.observePage(div);
+          }
+
+          HistoryManager.saveState();
+        } catch (e) {
+          console.error(e);
+          alert("Failed to load PDF.");
+        } finally {
+          MenuController.hideLoading();
+        }
+      },
+
+      async renderPDFPage(pageNum, container) {
+        const page = await AppState.pdfDoc.getPage(pageNum);
+        const viewport = page.getViewport({ scale: AppState.scale });
+        
+        const canvas = container.querySelector('.pdf-canvas-layer');
+        const textLayer = container.querySelector('.text-layer');
+        
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = viewport.width * dpr;
+        canvas.height = viewport.height * dpr;
+        const ctx = canvas.getContext('2d');
+        ctx.scale(dpr, dpr);
+
+        const renderContext = { canvasContext: ctx, viewport: viewport };
+        await page.render(renderContext).promise;
+
+        const textContent = await page.getTextContent();
+        textLayer.style.transform = `scale(${AppState.scale})`;
+        await pdfjsLib.renderTextLayer({
+          textContentSource: textContent,
+          container: textLayer,
+          viewport: page.getViewport({ scale: 1.0 }),
+          textDivs: []
+        }).promise;
+      }
+    };
+
+    /**
+     * MODULE 5: Viewport & Zoom Engine
+     */
+    const ViewportEngine = {
+      zoomTimeout: null,
+      
+      init() {
+        const vp = document.getElementById('viewport-container');
+        
+        vp.addEventListener('scroll', () => {
+          const center = vp.scrollTop + vp.clientHeight / 2;
+          for (let i of AppState.activePages) {
+            const el = document.getElementById(`page-${i}`);
+            if (el) {
+              const rect = el.getBoundingClientRect();
+              const elCenter = el.offsetTop - vp.scrollTop + el.clientHeight/2;
+              if (Math.abs(elCenter - vp.clientHeight/2) < el.clientHeight/2) {
+                document.getElementById('page-num-input').value = i;
+                break;
+              }
+            }
+          }
+        });
+
+        document.getElementById('btn-zoom-in').addEventListener('click', () => this.applyZoom(AppState.scale + 0.2));
+        document.getElementById('btn-zoom-out').addEventListener('click', () => this.applyZoom(AppState.scale - 0.2));
+
+        vp.addEventListener('wheel', (e) => {
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            const delta = e.deltaY < 0 ? 0.1 : -0.1;
+            this.handleSmoothZoom(delta);
+          }
+        }, { passive: false });
+      },
+
+      handleSmoothZoom(delta) {
+        if (AppState.numPages === 0) return;
+        
+        const targetScale = Math.min(Math.max(0.5, AppState.scale * AppState.zoomCssScale + delta), 4.0);
+        AppState.zoomCssScale = targetScale / AppState.scale;
+        
+        document.getElementById('zoom-percentage').textContent = Math.round(targetScale * 100) + '%';
+        document.getElementById('document-wrapper').style.transform = `scale(${AppState.zoomCssScale})`;
+
+        clearTimeout(this.zoomTimeout);
+        this.zoomTimeout = setTimeout(() => {
+          this.commitZoom(targetScale);
+        }, 300);
+      },
+
+      applyZoom(newScale) {
+        if (AppState.numPages === 0) return;
+        newScale = Math.min(Math.max(0.5, newScale), 4.0);
+        document.getElementById('zoom-percentage').textContent = Math.round(newScale * 100) + '%';
+        this.commitZoom(newScale);
+      },
+
+      async commitZoom(newScale) {
+        const oldScale = AppState.scale;
+        AppState.scale = newScale;
+        AppState.zoomCssScale = 1.0;
+        
+        const wrapper = document.getElementById('document-wrapper');
+        wrapper.style.transform = 'none';
+
+        const vp = document.getElementById('viewport-container');
+        const scrollRatio = newScale / oldScale;
+        vp.scrollTop = vp.scrollTop * scrollRatio;
+        vp.scrollLeft = vp.scrollLeft * scrollRatio;
+
+        for (let i = 1; i <= AppState.numPages; i++) {
+          const dim = AppState.pageDimensions[i];
+          const el = document.getElementById(`page-${i}`);
+          if (el) {
+            el.style.width = `${dim.width * AppState.scale}px`;
+            el.style.height = `${dim.height * AppState.scale}px`;
           }
         }
 
-        const modifiedPdfBytes = await pdfDoc.save();
-        download(modifiedPdfBytes, "pagecraft_edited.pdf", "application/pdf");
-      } catch (err) {
-        console.error("Error generating exported PDF: ", err);
-        alert("An error occurred while building the exported PDF. Check console for details.");
-      } finally {
-        btnSave.innerHTML = origContent;
-        btnSave.disabled = false;
+        for (let pageNum of AppState.activePages) {
+          const container = document.getElementById(`page-${pageNum}`);
+          await RenderEngine.renderPDFPage(pageNum, container);
+          
+          const fCanvas = AppState.fabricInstances[pageNum];
+          if (fCanvas) {
+            fCanvas.setDimensions({ 
+              width: fCanvas.baseWidth * AppState.scale, 
+              height: fCanvas.baseHeight * AppState.scale 
+            });
+            fCanvas.setZoom(AppState.scale);
+            fCanvas.renderAll();
+          }
+        }
+      },
+      
+      scrollToPage(num) {
+        const el = document.getElementById(`page-${num}`);
+        if(el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
-    }
+    };
+
+    /**
+     * MODULE 14: Export Engine
+     */
+    const ExportEngine = {
+      async exportPDF() {
+        if (!AppState.pdfBytes) return;
+        MenuController.showLoading("Generating High-Quality PDF...");
+        
+        try {
+          AppState.activePages.forEach(pageNum => {
+             if (AppState.fabricInstances[pageNum]) {
+                AppState.pageData[pageNum] = JSON.stringify(AppState.fabricInstances[pageNum].toJSON());
+             }
+          });
+
+          const pdfDoc = await PDFLib.PDFDocument.load(AppState.pdfBytes);
+          const pages = pdfDoc.getPages();
+
+          for (let i = 0; i < pages.length; i++) {
+            const pageNum = i + 1;
+            const stateStr = AppState.pageData[pageNum];
+            
+            if (stateStr) {
+              const stateObj = JSON.parse(stateStr);
+              if (stateObj.objects && stateObj.objects.length > 0) {
+                
+                const dim = AppState.pageDimensions[pageNum];
+                const exportScale = 3; 
+                
+                const tempCanvasEl = document.createElement('canvas');
+                tempCanvasEl.width = dim.width * exportScale;
+                tempCanvasEl.height = dim.height * exportScale;
+                
+                const exportCanvas = new fabric.StaticCanvas(tempCanvasEl, {
+                  width: dim.width * exportScale,
+                  height: dim.height * exportScale
+                });
+
+                await new Promise(resolve => exportCanvas.loadFromJSON(stateObj, resolve));
+                
+                exportCanvas.setZoom(exportScale);
+                exportCanvas.renderAll();
+
+                const pngDataUrl = exportCanvas.toDataURL({ format: 'png' });
+                const pngImage = await pdfDoc.embedPng(pngDataUrl);
+
+                const { width, height } = pages[i].getSize();
+                pages[i].drawImage(pngImage, {
+                  x: 0, y: 0,
+                  width: width, height: height
+                });
+                
+                exportCanvas.dispose();
+              }
+            }
+          }
+
+          const modifiedBytes = await pdfDoc.save();
+          download(modifiedBytes, "PageCraft_Edited.pdf", "application/pdf");
+          
+        } catch (e) {
+          console.error("Export Error:", e);
+          alert("Failed to export PDF.");
+        } finally {
+          MenuController.hideLoading();
+        }
+      }
+    };
+
+    /**
+     * Application Initialization
+     */
+    document.addEventListener('DOMContentLoaded', () => {
+      BeautifyEngine.init(); // Preload instantly
+      MenuController.init();
+      ToolController.init();
+      MemoryManager.init();
+      ViewportEngine.init();
+
+      document.getElementById('pdf-upload').addEventListener('change', e => {
+        if (e.target.files[0]) RenderEngine.loadDocument(e.target.files[0]);
+      });
+      document.getElementById('btn-save-pdf').addEventListener('click', () => ExportEngine.exportPDF());
+      
+      document.getElementById('btn-undo').addEventListener('click', () => HistoryManager.undo());
+      document.getElementById('btn-redo').addEventListener('click', () => HistoryManager.redo());
+
+      document.getElementById('btn-prev-page').addEventListener('click', () => {
+         const current = parseInt(document.getElementById('page-num-input').value);
+         if(current > 1) ViewportEngine.scrollToPage(current - 1);
+      });
+      document.getElementById('btn-next-page').addEventListener('click', () => {
+         const current = parseInt(document.getElementById('page-num-input').value);
+         if(current < AppState.numPages) ViewportEngine.scrollToPage(current + 1);
+      });
+      document.getElementById('page-num-input').addEventListener('change', (e) => {
+         let val = parseInt(e.target.value);
+         if(val >= 1 && val <= AppState.numPages) ViewportEngine.scrollToPage(val);
+      });
+
+      const dropZone = document.getElementById('drop-zone');
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev => {
+        dropZone.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); });
+      });
+      dropZone.addEventListener('drop', e => {
+        if (e.dataTransfer.files[0]?.type === 'application/pdf') {
+          RenderEngine.loadDocument(e.dataTransfer.files[0]);
+        }
+      });
+      dropZone.addEventListener('click', () => document.getElementById('pdf-upload').click());
+    });
+
   </script>
 </body>
 </html>
