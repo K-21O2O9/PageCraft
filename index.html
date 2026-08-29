@@ -103,53 +103,53 @@
 <body class="h-full flex flex-col font-sans overflow-hidden select-none">
 
   <!-- Top Navigation / Header Toolbar -->
-  <header class="h-16 bg-slate-800 border-b border-slate-700 flex items-center justify-between px-4 z-20 shrink-0">
+  <header class="min-h-16 bg-slate-800 border-b border-slate-700 flex flex-wrap sm:flex-nowrap items-center justify-between px-3 py-2 sm:py-0 sm:px-4 z-20 shrink-0 gap-2">
     <!-- Brand Logo -->
     <div class="flex items-center space-x-3">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-blue-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-        <i class="fa-solid fa-file-signature text-white text-xl"></i>
+      <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-blue-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+        <i class="fa-solid fa-file-signature text-white text-base sm:text-xl"></i>
       </div>
       <div>
-        <h1 class="text-lg font-bold tracking-wide bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">PageCraft</h1>
-        <p class="text-xs text-slate-400 font-medium">PDF Reader & Studio</p>
+        <h1 class="text-base sm:text-lg font-bold tracking-wide bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">PageCraft</h1>
+        <p class="text-[10px] sm:text-xs text-slate-400 font-medium">PDF Reader & Studio</p>
       </div>
     </div>
 
     <!-- Quick Tools / Main Actions -->
-    <div class="flex items-center space-x-2">
-      <label for="pdf-upload" class="flex items-center space-x-2 px-3.5 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold cursor-pointer transition">
+    <div class="flex items-center flex-wrap sm:flex-nowrap gap-1.5 sm:space-x-2">
+      <label for="pdf-upload" class="flex items-center space-x-1.5 px-3 py-1.5 sm:py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold cursor-pointer transition">
         <i class="fa-solid fa-folder-open text-indigo-400"></i>
-        <span class="hidden sm:inline">Open PDF</span>
+        <span>Open PDF</span>
         <input type="file" id="pdf-upload" accept="application/pdf" class="hidden">
       </label>
 
-      <div class="h-6 w-px bg-slate-700 mx-1"></div>
+      <div class="h-5 w-px bg-slate-700 mx-0.5 hidden sm:block"></div>
 
       <!-- Undo & Redo -->
-      <button id="btn-undo" title="Undo (Ctrl+Z)" class="p-2 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition">
-        <i class="fa-solid fa-rotate-left"></i>
+      <button id="btn-undo" title="Undo (Ctrl+Z)" class="p-1.5 sm:p-2 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition">
+        <i class="fa-solid fa-rotate-left text-xs sm:text-sm"></i>
       </button>
-      <button id="btn-redo" title="Redo (Ctrl+Y)" class="p-2 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition">
-        <i class="fa-solid fa-rotate-right"></i>
+      <button id="btn-redo" title="Redo (Ctrl+Y)" class="p-1.5 sm:p-2 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition">
+        <i class="fa-solid fa-rotate-right text-xs sm:text-sm"></i>
       </button>
 
-      <div class="h-6 w-px bg-slate-700 mx-1"></div>
+      <div class="h-5 w-px bg-slate-700 mx-0.5 hidden sm:block"></div>
 
       <!-- Zoom Controls -->
       <div class="flex items-center bg-slate-900/60 rounded-lg p-1 border border-slate-700">
-        <button id="btn-zoom-out" title="Zoom Out" class="p-1.5 rounded text-slate-300 hover:bg-slate-700 transition">
-          <i class="fa-solid fa-minus text-xs"></i>
+        <button id="btn-zoom-out" title="Zoom Out" class="p-1 rounded text-slate-300 hover:bg-slate-700 transition">
+          <i class="fa-solid fa-minus text-[10px]"></i>
         </button>
-        <span id="zoom-percentage" class="px-2 text-xs font-mono font-bold text-indigo-300 min-w-[50px] text-center">102%</span>
-        <button id="btn-zoom-in" title="Zoom In" class="p-1.5 rounded text-slate-300 hover:bg-slate-700 transition">
-          <i class="fa-solid fa-plus text-xs"></i>
+        <span id="zoom-percentage" class="px-1.5 text-[11px] sm:text-xs font-mono font-bold text-indigo-300 min-w-[40px] sm:min-w-[50px] text-center">102%</span>
+        <button id="btn-zoom-in" title="Zoom In" class="p-1 rounded text-slate-300 hover:bg-slate-700 transition">
+          <i class="fa-solid fa-plus text-[10px]"></i>
         </button>
       </div>
 
-      <div class="h-6 w-px bg-slate-700 mx-1"></div>
+      <div class="h-5 w-px bg-slate-700 mx-0.5 hidden sm:block"></div>
 
       <!-- Save & Export -->
-      <button id="btn-save-pdf" class="flex items-center space-x-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/30 transition">
+      <button id="btn-save-pdf" class="flex items-center space-x-1.5 px-3.5 py-1.5 sm:py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/30 transition">
         <i class="fa-solid fa-download"></i>
         <span>Save PDF</span>
       </button>
@@ -157,70 +157,70 @@
   </header>
 
   <!-- Secondary Interactive Toolbar & Editing Bar -->
-  <div class="bg-slate-800/90 backdrop-blur border-b border-slate-700/80 px-4 py-2 flex flex-wrap items-center justify-between gap-3 z-10 shrink-0">
+  <div class="bg-slate-800/90 backdrop-blur border-b border-slate-700/80 px-3 sm:px-4 py-2 flex flex-wrap items-center justify-between gap-3 z-10 shrink-0">
     <!-- Active Tool Selectors -->
-    <div class="flex items-center space-x-1 bg-slate-900/80 p-1 rounded-xl border border-slate-700/60">
-      <button data-tool="view" title="View, Pinch to Zoom & Scroll PDF" class="tool-btn active flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+    <div class="flex items-center flex-wrap gap-1 bg-slate-900/80 p-1 rounded-xl border border-slate-700/60">
+      <button data-tool="view" title="View, Pinch to Zoom & Scroll PDF" class="tool-btn active flex items-center space-x-1 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition">
         <i class="fa-solid fa-hand"></i>
         <span class="hidden md:inline">View</span>
       </button>
 
-      <button data-tool="text-select" title="Select and Copy ANY PDF Text" class="tool-btn flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition text-slate-400 hover:text-slate-200">
+      <button data-tool="text-select" title="Select and Copy ANY PDF Text" class="tool-btn flex items-center space-x-1 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition text-slate-400 hover:text-slate-200">
         <i class="fa-solid fa-i-cursor"></i>
         <span class="hidden md:inline">Text Select</span>
       </button>
 
-      <button data-tool="pen" title="Freehand Drawing Pen (Click again to toggle off & scroll)" class="tool-btn flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition text-slate-400 hover:text-slate-200">
+      <button data-tool="pen" title="Freehand Drawing Pen (Click again to toggle off & scroll)" class="tool-btn flex items-center space-x-1 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition text-slate-400 hover:text-slate-200">
         <i class="fa-solid fa-pen-nib"></i>
         <span class="hidden md:inline">Draw</span>
       </button>
 
-      <button data-tool="eraser" title="Eraser Tool" class="tool-btn flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition text-slate-400 hover:text-slate-200">
+      <button data-tool="eraser" title="Eraser Tool" class="tool-btn flex items-center space-x-1 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition text-slate-400 hover:text-slate-200">
         <i class="fa-solid fa-eraser"></i>
         <span class="hidden md:inline">Eraser</span>
       </button>
 
-      <button data-tool="textbox" title="Add Text Box (Click on page to type)" class="tool-btn flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition text-slate-400 hover:text-slate-200">
+      <button data-tool="textbox" title="Add Text Box (Click on page to type)" class="tool-btn flex items-center space-x-1 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition text-slate-400 hover:text-slate-200">
         <i class="fa-solid fa-font"></i>
         <span class="hidden md:inline">Text Box</span>
       </button>
 
-      <button data-tool="image" title="Insert Image" class="tool-btn flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition text-slate-400 hover:text-slate-200">
+      <button data-tool="image" title="Insert Image" class="tool-btn flex items-center space-x-1 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition text-slate-400 hover:text-slate-200">
         <i class="fa-regular fa-image"></i>
         <span class="hidden md:inline">Image</span>
       </button>
       <input type="file" id="image-upload" accept="image/*" class="hidden">
 
-      <button id="btn-watermark-modal" title="Add Watermark" class="tool-btn flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition text-slate-400 hover:text-slate-200">
+      <button id="btn-watermark-modal" title="Add Watermark" class="tool-btn flex items-center space-x-1 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition text-slate-400 hover:text-slate-200">
         <i class="fa-solid fa-stamp"></i>
         <span class="hidden md:inline">Watermark</span>
       </button>
 
-      <button id="btn-delete-selected" title="Delete Selected Object" class="px-2.5 py-1.5 rounded-lg text-xs font-medium text-rose-400 hover:bg-rose-500/20 transition hidden">
+      <button id="btn-delete-selected" title="Delete Selected Object" class="px-2 py-1.5 rounded-lg text-xs font-medium text-rose-400 hover:bg-rose-500/20 transition hidden">
         <i class="fa-solid fa-trash-can"></i>
       </button>
     </div>
 
     <!-- Tool Property Controls -->
-    <div class="flex items-center space-x-4 text-xs">
+    <div class="flex items-center flex-wrap gap-3 text-xs">
       <!-- Color Picker -->
-      <div class="flex items-center space-x-2">
+      <div class="flex items-center space-x-1.5">
         <span class="text-slate-400 font-medium">Color:</span>
-        <input type="color" id="prop-color" value="#ef4444" class="w-7 h-7 bg-transparent rounded cursor-pointer border-0">
+        <input type="color" id="prop-color" value="#ef4444" class="w-6 h-6 sm:w-7 sm:h-7 bg-transparent rounded cursor-pointer border-0">
       </div>
 
       <!-- Pen Thickness / Font Size / Eraser Size -->
-      <div class="flex items-center space-x-2">
+      <div class="flex items-center space-x-1.5">
         <span class="text-slate-400 font-medium" id="prop-size-label">Size:</span>
-        <input type="range" id="prop-size" min="1" max="60" value="4" class="w-24 accent-indigo-500 cursor-pointer">
+        <input type="range" id="prop-size" min="1" max="60" value="4" class="w-20 sm:w-24 accent-indigo-500 cursor-pointer">
         <span id="prop-size-val" class="w-6 text-slate-300 font-mono">4px</span>
       </div>
 
       <!-- Opacity Slider -->
-      <div class="flex items-center space-x-2">
+      <div class="flex items-center space-x-1.5">
         <span class="text-slate-400 font-medium">Opacity:</span>
-        <input type="range" id="prop-opacity" min="0.1" max="1.0" step="0.05" value="1.0" class="w-20 accent-indigo-500 cursor-pointer">
-        <span id="prop-opacity-val" class="w-8 text-slate-300 font-mono">100%</span>
+        <input type="range" id="prop-opacity" min="0.1" max="1.0" step="0.05" value="1.0" class="w-16 sm:w-20 accent-indigo-500 cursor-pointer">
+        <span id="prop-opacity-val" class="w-7 text-slate-300 font-mono">100%</span>
       </div>
     </div>
 
@@ -239,10 +239,10 @@
   </div>
 
   <!-- Main Viewport Container -->
-  <main class="flex-1 relative overflow-auto bg-slate-950 p-6 flex justify-center items-start" id="viewport-container">
+  <main class="flex-1 relative overflow-auto bg-slate-950 p-4 sm:p-6 flex justify-center items-start" id="viewport-container">
     
     <!-- Empty State Placeholder -->
-    <div id="drop-zone" class="my-auto flex flex-col items-center justify-center p-12 border-2 border-dashed border-slate-700 rounded-2xl bg-slate-900/50 hover:bg-slate-900/80 hover:border-indigo-500/50 transition cursor-pointer max-w-lg text-center shadow-2xl">
+    <div id="drop-zone" class="my-auto flex flex-col items-center justify-center p-8 sm:p-12 border-2 border-dashed border-slate-700 rounded-2xl bg-slate-900/50 hover:bg-slate-900/80 hover:border-indigo-500/50 transition cursor-pointer max-w-lg text-center shadow-2xl">
       <div class="w-16 h-16 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center mb-4 text-3xl">
         <i class="fa-solid fa-cloud-arrow-up"></i>
       </div>
@@ -610,7 +610,6 @@
 
       for (let i = 1; i <= state.pageCount; i++) {
         const page = await state.pdfDoc.getPage(i);
-        // We get base viewport (scale 1.0) for logical coordinates and scaled viewport for initial CSS styling
         const baseViewport = page.getViewport({ scale: 1.0 });
         const scaledViewport = page.getViewport({ scale: state.scale });
 
@@ -640,7 +639,6 @@
         // Text Selection Overlay Layer
         const textLayerDiv = document.createElement('div');
         textLayerDiv.className = `text-layer ${state.activeTool === 'text-select' ? 'active-select' : ''}`;
-        // Set at base dimensions, then scale visually via CSS
         textLayerDiv.style.width = `${baseViewport.width}px`;
         textLayerDiv.style.height = `${baseViewport.height}px`;
         textLayerDiv.style.transform = `scale(${state.scale})`;
@@ -678,20 +676,16 @@
           enableRetinaScaling: true
         });
 
-        // Save base dimensions to scale up and down efficiently without re-rendering
         fCanvas.baseWidth = baseViewport.width;
         fCanvas.baseHeight = baseViewport.height;
 
-        // Apply current Zoom properties
         fCanvas.setDimensions({ width: scaledViewport.width, height: scaledViewport.height });
         fCanvas.setZoom(state.scale);
 
-        // Initialize Brush
         fCanvas.freeDrawingBrush = new fabric.PencilBrush(fCanvas);
         fCanvas.freeDrawingBrush.color = propColor.value;
         fCanvas.freeDrawingBrush.width = parseInt(propSize.value) || 4;
 
-        // Track object events
         fCanvas.on('selection:created', onObjectSelected);
         fCanvas.on('selection:updated', onObjectSelected);
         fCanvas.on('selection:cleared', onObjectCleared);
@@ -725,14 +719,12 @@
     function setActiveTool(tool) {
       state.activeTool = tool;
 
-      // Lock viewport scrolling ONLY when actively using Pen, Textbox, or Eraser drawing mode
       if (tool === 'pen' || tool === 'textbox' || tool === 'eraser') {
         viewportContainer.classList.add('drawing-lock');
       } else {
         viewportContainer.classList.remove('drawing-lock');
       }
 
-      // Update Tool Buttons UI
       toolBtns.forEach(btn => {
         if (btn.getAttribute('data-tool') === tool) {
           btn.classList.add('active');
@@ -741,7 +733,6 @@
         }
       });
 
-      // Update Property label depending on tool
       const sizeLabel = document.getElementById('prop-size-label');
       if (tool === 'textbox') {
         sizeLabel.textContent = 'Font:';
@@ -751,7 +742,6 @@
         sizeLabel.textContent = 'Size:';
       }
 
-      // Update Native Text Layer pointer events
       document.querySelectorAll('.text-layer').forEach(layer => {
         if (tool === 'text-select') {
           layer.classList.add('active-select');
@@ -760,7 +750,6 @@
         }
       });
 
-      // Update Fabric Canvases & pointer-events pass-through for scrolling
       state.fabricCanvases.forEach(fCanvas => {
         fCanvas.calcOffset();
 
@@ -796,12 +785,10 @@
           fCanvas.defaultCursor = 'default';
         }
 
-        // Remove previous listeners
         fCanvas.off('mouse:down');
         fCanvas.off('mouse:move');
         fCanvas.off('mouse:up');
 
-        // Tool Mode Behaviors
         if (tool === 'textbox') {
           fCanvas.on('mouse:down', (options) => {
             if (state.activeTool === 'textbox') {
@@ -936,7 +923,6 @@
             objectCaching: false
           });
 
-          // Compute size relative to logical base width to ensure consistent insertion regardless of zoom
           const targetWidth = currentCanvas.baseWidth * 0.4;
           fabricImg.scaleToWidth(targetWidth);
 
@@ -1006,7 +992,7 @@
     }
 
     /**
-     * Fluid Smooth Zoom - Instantaneous manipulation of CSS + Canvas Properties
+     * Fluid Smooth Zoom
      */
     function setZoom(newScale) {
       if (newScale < 0.5 || newScale > 4.0 || state.isRendering || state.fabricCanvases.length === 0) return;
@@ -1017,7 +1003,6 @@
       
       const scaleRatio = state.scale / oldScale;
 
-      // Maintain scroll position centered to zoom target
       const container = viewportContainer;
       const centerScrollY = container.scrollTop + container.clientHeight / 2;
       const centerScrollX = container.scrollLeft + container.clientWidth / 2;
@@ -1027,41 +1012,35 @@
         const pageContainer = document.getElementById(`page-container-${pageNum}`);
         if (!pageContainer) return;
 
-        // Calculate newly scaled physical dimensions
         const newWidth = fCanvas.baseWidth * state.scale;
         const newHeight = fCanvas.baseHeight * state.scale;
 
-        // Scale Parent Container
         pageContainer.style.width = `${newWidth}px`;
         pageContainer.style.height = `${newHeight}px`;
 
-        // Stretch PDF Background Canvas via CSS for fluid rendering
         const pdfCanvas = pageContainer.querySelector('.pdf-canvas-layer');
         if (pdfCanvas) {
           pdfCanvas.style.width = `${newWidth}px`;
           pdfCanvas.style.height = `${newHeight}px`;
         }
 
-        // Scale overlay text-layer using CSS Transform
         const textLayer = pageContainer.querySelector('.text-layer');
         if (textLayer) {
           textLayer.style.transform = `scale(${state.scale})`;
         }
 
-        // Adjust Fabric zoom & dimension states properly
         fCanvas.setDimensions({ width: newWidth, height: newHeight });
         fCanvas.setZoom(state.scale);
         fCanvas.calcOffset();
         fCanvas.renderAll();
       });
 
-      // Adjust relative scroll position accurately
       container.scrollTop = centerScrollY * scaleRatio - container.clientHeight / 2;
       container.scrollLeft = centerScrollX * scaleRatio - container.clientWidth / 2;
     }
 
     /**
-     * Undo & Redo System (Stores scale 1.0 JSON representation)
+     * Undo & Redo System
      */
     function saveHistoryState() {
       if (state.isApplyingHistory || state.isRendering) return;
@@ -1124,7 +1103,7 @@
     }
 
     /**
-     * Export & Save PDF with Layer Merging (Using PDF-Lib)
+     * Export & Save PDF with Layer Merging
      */
     async function saveExportPDF() {
       if (!state.pdfBytes) return;
@@ -1143,8 +1122,6 @@
           const fCanvas = state.fabricCanvases[i];
 
           if (fCanvas && fCanvas.getObjects().length > 0) {
-            
-            // To ensure perfect mapping, revert scale to 1 temporarily to extract native size base coordinates overlay
             const originalZoom = fCanvas.getZoom();
             const originalWidth = fCanvas.width;
             const originalHeight = fCanvas.height;
@@ -1154,10 +1131,9 @@
             fCanvas.discardActiveObject();
             fCanvas.renderAll();
 
-            const overlayDataUrl = fCanvas.toDataURL({ format: 'png', multiplier: 2 }); // x2 resolution quality multiplier
+            const overlayDataUrl = fCanvas.toDataURL({ format: 'png', multiplier: 2 });
             const pngImage = await pdfDoc.embedPng(overlayDataUrl);
 
-            // Re-apply original active viewport sizing
             fCanvas.setDimensions({ width: originalWidth, height: originalHeight });
             fCanvas.setZoom(originalZoom);
             fCanvas.renderAll();
