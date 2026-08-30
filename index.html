@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>PageCraft</title>
+  <title>PageCraft - Adaptive PDF Editor</title>
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -29,8 +29,16 @@
   </script>
 
   <style>
+    :root {
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-left: env(safe-area-inset-left, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
+    }
+
     *, *::before, *::after {
       box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
     }
 
     html, body {
@@ -45,11 +53,22 @@
       touch-action: pan-x pan-y;
       overscroll-behavior: none;
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      background-color: #050507;
+      background-color: #040406;
     }
 
     input[type="number"], input[type="text"], select, textarea {
       font-size: 16px !important;
+    }
+
+    /* Fallback Fullscreen CSS when native API is restricted by iframe/browser */
+    body.pseudo-fullscreen {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      height: 100dvh !important;
+      z-index: 999999 !important;
     }
 
     /* Strict Fullscreen Guard: Lock zoom level to 1:1 */
@@ -70,10 +89,23 @@
 
     /* Glass Panels with Crimson Accent Border */
     .glass-panel {
-      background: rgba(12, 10, 13, 0.88);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(225, 29, 72, 0.18);
+      background: rgba(13, 10, 14, 0.92);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(225, 29, 72, 0.22);
+    }
+
+    /* Elevated Floating Toolbar for Mobile Safe Area & Navigation Bars */
+    #floating-toolbar {
+      bottom: calc(1.75rem + var(--safe-bottom));
+      margin-bottom: 2px;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    @media (max-width: 640px) {
+      #floating-toolbar {
+        bottom: calc(2rem + var(--safe-bottom));
+      }
     }
 
     /* Crimson Tool Buttons */
@@ -82,9 +114,9 @@
       white-space: nowrap; 
     }
     .tool-btn.active {
-      background: rgba(225, 29, 72, 0.22);
+      background: rgba(225, 29, 72, 0.25);
       color: #fb7185;
-      box-shadow: 0 0 0 1.5px rgba(225, 29, 72, 0.65), 0 4px 14px rgba(225, 29, 72, 0.35);
+      box-shadow: 0 0 0 1.5px rgba(225, 29, 72, 0.75), 0 4px 16px rgba(225, 29, 72, 0.4);
     }
 
     /* Virtualized Canvas Container */
@@ -98,7 +130,7 @@
       position: relative;
       margin: 0 auto 1.5rem auto; 
       background: white;
-      box-shadow: 0 14px 40px -10px rgba(0, 0, 0, 0.9), 0 0 20px rgba(159, 18, 57, 0.15);
+      box-shadow: 0 16px 45px -10px rgba(0, 0, 0, 0.95), 0 0 24px rgba(159, 18, 57, 0.18);
       border-radius: 6px;
       contain: layout paint style;
     }
@@ -143,21 +175,21 @@
     
     <!-- Left: Hamburger Trigger & PageCraft Brand -->
     <div class="flex items-center space-x-2 sm:space-x-3 shrink-0">
-      <button id="btn-open-drawer" title="Menu" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-neutral-900 hover:bg-neutral-800 active:scale-95 border border-rose-900/40 text-rose-300 flex items-center justify-center transition shadow-sm hover:border-rose-600/60">
+      <button id="btn-open-drawer" title="Menu" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-neutral-900/90 hover:bg-neutral-800 active:scale-95 border border-rose-900/40 text-rose-300 flex items-center justify-center transition shadow-sm hover:border-rose-600/60">
         <i class="fa-solid fa-bars text-sm sm:text-base"></i>
       </button>
 
       <div class="flex items-center space-x-2 sm:space-x-2.5">
-        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-rose-700 to-red-600 flex items-center justify-center shadow-lg shadow-rose-950/50 border border-rose-500/30">
+        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-rose-700 to-red-600 flex items-center justify-center shadow-lg shadow-rose-950/50 border border-rose-500/30 shrink-0">
           <i class="fa-solid fa-file-signature text-white text-xs sm:text-sm"></i>
         </div>
-        <h1 class="text-sm sm:text-base font-bold tracking-tight text-white flex items-center">
+        <h1 class="text-sm sm:text-base font-bold tracking-tight text-white flex items-center truncate">
           PageCraft
         </h1>
       </div>
     </div>
 
-    <!-- Right: Header Controls (Undo, Redo, Zoom, Fullscreen) -->
+    <!-- Right: Header Controls (Undo, Redo, Zoom, Universal Fullscreen) -->
     <div class="flex items-center space-x-1 sm:space-x-2 shrink-0">
       
       <!-- History Controls -->
@@ -181,8 +213,8 @@
         </button>
       </div>
 
-      <!-- Fullscreen Toggle -->
-      <button id="btn-fullscreen" title="Toggle Fullscreen" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-rose-400 border border-rose-950/60 hover:border-rose-600/40 flex items-center justify-center transition shadow-sm">
+      <!-- Universal Fullscreen Toggle Button -->
+      <button id="btn-fullscreen" title="Toggle Fullscreen" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-neutral-900/90 hover:bg-neutral-800 active:scale-95 text-neutral-300 hover:text-rose-400 border border-rose-950/60 hover:border-rose-600/40 flex items-center justify-center transition shadow-sm">
         <i class="fa-solid fa-expand text-xs sm:text-sm"></i>
       </button>
 
@@ -203,7 +235,7 @@
           </div>
           <div>
             <h2 class="text-sm font-bold text-white">PageCraft</h2>
-            <p class="text-[10px] text-rose-400 font-medium">Menu & Precision Tools</p>
+            <p class="text-[10px] text-rose-400 font-medium">Menu & Tools</p>
           </div>
         </div>
         <button id="btn-close-drawer" class="w-8 h-8 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-400 hover:text-rose-400 border border-neutral-800 flex items-center justify-center transition">
@@ -240,7 +272,7 @@
               <i class="fa-solid fa-ruler-combined text-rose-400 text-sm"></i>
               <div class="text-left">
                 <span class="block text-xs font-semibold text-white">Insert Precision Ruler</span>
-                <span class="block text-[10px] text-neutral-400">Draggable & rotatable; drawing directly on it snaps straight</span>
+                <span class="block text-[10px] text-neutral-400">Draggable & rotatable straightedge</span>
               </div>
             </div>
             <i class="fa-solid fa-plus text-xs text-rose-400"></i>
@@ -266,7 +298,7 @@
                 <input type="number" id="graph-cols" value="10" min="4" max="60" class="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-2 py-1 text-xs text-rose-300 font-mono focus:outline-none focus:border-rose-500">
               </div>
               <div>
-                <label class="block text-[10px] text-neutral-400 mb-1">Spacing (px)</label>
+                <label class="block text-[10px] text-neutral-400 mb-1">Spacing</label>
                 <input type="number" id="graph-spacing" value="28" min="10" max="150" step="2" class="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-2 py-1 text-xs text-rose-300 font-mono focus:outline-none focus:border-rose-500">
               </div>
             </div>
@@ -347,30 +379,30 @@
   </div>
 
   <!-- ================= MAIN VIEWPORT ================= -->
-  <main id="viewport-container" class="flex-1 relative overflow-auto bg-black p-4 sm:p-6 pb-28 sm:pb-24 flex flex-col view-mode-active">
+  <main id="viewport-container" class="flex-1 relative overflow-auto bg-black p-3 sm:p-6 pb-36 sm:pb-32 flex flex-col view-mode-active">
     
     <!-- Empty State -->
-    <div id="drop-zone" class="my-auto mx-auto flex flex-col items-center justify-center p-8 sm:p-10 border-2 border-dashed border-rose-950/80 hover:border-rose-600/60 rounded-3xl bg-neutral-950/70 transition-all cursor-pointer max-w-md text-center shadow-2xl">
-      <div class="w-16 h-16 rounded-2xl bg-rose-950/40 border border-rose-600/30 text-rose-500 flex items-center justify-center mb-4 text-3xl shadow-inner">
+    <div id="drop-zone" class="my-auto mx-auto flex flex-col items-center justify-center p-6 sm:p-10 border-2 border-dashed border-rose-950/80 hover:border-rose-600/60 rounded-3xl bg-neutral-950/80 transition-all cursor-pointer w-full max-w-sm sm:max-w-md text-center shadow-2xl">
+      <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-rose-950/40 border border-rose-600/30 text-rose-500 flex items-center justify-center mb-4 text-2xl sm:text-3xl shadow-inner">
         <i class="fa-solid fa-cloud-arrow-up"></i>
       </div>
       <h3 class="text-base sm:text-lg font-bold text-white mb-2">Open PDF Document</h3>
-      <p class="text-xs sm:text-sm text-neutral-400 mb-6 leading-relaxed">Drag & drop your PDF file here, or click to browse. Processing runs 100% in your browser.</p>
+      <p class="text-xs sm:text-sm text-neutral-400 mb-6 leading-relaxed">Drag & drop your PDF file here, or tap to browse. Runs 100% private in your browser.</p>
       <button class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-rose-700 to-red-600 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-rose-950/50 transition-all pointer-events-none">
         Browse Files
       </button>
     </div>
 
     <!-- The Virtualized Document Wrapper -->
-    <div id="document-wrapper" class="hidden flex flex-col items-center w-full"></div>
+    <div id="document-wrapper" class="hidden flex flex-col items-center w-full min-h-full"></div>
 
   </main>
 
   <!-- ================= FLOATING TOOL PALETTE ================= -->
-  <div id="floating-toolbar" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 max-w-[96vw] flex flex-col items-center gap-2 pointer-events-auto">
+  <div id="floating-toolbar" class="fixed left-1/2 -translate-x-1/2 z-40 max-w-[96vw] flex flex-col items-center gap-2 pointer-events-auto">
     
     <!-- Properties Mini-Popover -->
-    <div id="properties-popover" class="glass-panel p-2 px-3 rounded-2xl flex items-center gap-3 shadow-2xl border border-rose-900/50 transition-all opacity-0 translate-y-2 pointer-events-none">
+    <div id="properties-popover" class="glass-panel p-2 px-3 rounded-2xl flex items-center gap-3 shadow-2xl border border-rose-900/60 transition-all opacity-0 translate-y-2 pointer-events-none mb-1">
       <div class="flex items-center space-x-1.5">
         <div class="w-6 h-6 rounded-full overflow-hidden border-2 border-rose-500 relative cursor-pointer shadow-inner">
           <input type="color" id="prop-color" value="#e11d48" class="absolute -top-3 -left-3 w-12 h-12 cursor-pointer">
@@ -388,46 +420,46 @@
     </div>
 
     <!-- Main Tool Island -->
-    <nav class="glass-panel p-1.5 sm:p-2 rounded-2xl flex items-center gap-1 sm:gap-1.5 shadow-2xl shadow-black border border-rose-950/80 overflow-x-auto no-scrollbar max-w-full">
+    <nav class="glass-panel p-1.5 sm:p-2 rounded-2xl flex items-center gap-1 sm:gap-1.5 shadow-2xl shadow-black/80 border border-rose-950/80 overflow-x-auto no-scrollbar max-w-full">
       
-      <button data-tool="view" title="Pan / View Mode" class="tool-btn active w-10 h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300">
-        <i class="fa-solid fa-hand text-sm"></i>
+      <button data-tool="view" title="Pan / View Mode" class="tool-btn active w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300">
+        <i class="fa-solid fa-hand text-xs sm:text-sm"></i>
       </button>
 
-      <button data-tool="select" title="Select & Move Objects" class="tool-btn w-10 h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300">
-        <i class="fa-solid fa-arrow-pointer text-sm"></i>
-      </button>
-
-      <div class="w-px h-5 bg-rose-950/80 mx-0.5 shrink-0"></div>
-
-      <button data-tool="pen" title="Draw Pen (Straight line when drawn on ruler)" class="tool-btn w-10 h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300">
-        <i class="fa-solid fa-pen-nib text-sm"></i>
-      </button>
-
-      <button data-tool="highlight" title="Straight Line Highlighter" class="tool-btn w-10 h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300">
-        <i class="fa-solid fa-highlighter text-sm"></i>
-      </button>
-
-      <button data-tool="textbox" title="Insert Text Box" class="tool-btn w-10 h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300">
-        <i class="fa-solid fa-font text-sm"></i>
-      </button>
-
-      <button data-tool="text-select" title="Select PDF Native Text" class="tool-btn w-10 h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300">
-        <i class="fa-solid fa-i-cursor text-sm"></i>
-      </button>
-
-      <button data-tool="eraser" title="Object Eraser" class="tool-btn w-10 h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300">
-        <i class="fa-solid fa-eraser text-sm"></i>
+      <button data-tool="select" title="Select & Move Objects" class="tool-btn w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300">
+        <i class="fa-solid fa-arrow-pointer text-xs sm:text-sm"></i>
       </button>
 
       <div class="w-px h-5 bg-rose-950/80 mx-0.5 shrink-0"></div>
 
-      <button id="btn-toggle-props" title="Adjust Color & Size" class="w-10 h-10 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 flex items-center justify-center transition border border-rose-950/80 hover:border-rose-600/50">
+      <button data-tool="pen" title="Draw Pen (Straight line when drawn on ruler)" class="tool-btn w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300">
+        <i class="fa-solid fa-pen-nib text-xs sm:text-sm"></i>
+      </button>
+
+      <button data-tool="highlight" title="Straight Line Highlighter" class="tool-btn w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300">
+        <i class="fa-solid fa-highlighter text-xs sm:text-sm"></i>
+      </button>
+
+      <button data-tool="textbox" title="Insert Text Box" class="tool-btn w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300">
+        <i class="fa-solid fa-font text-xs sm:text-sm"></i>
+      </button>
+
+      <button data-tool="text-select" title="Select PDF Native Text" class="tool-btn w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300">
+        <i class="fa-solid fa-i-cursor text-xs sm:text-sm"></i>
+      </button>
+
+      <button data-tool="eraser" title="Object Eraser" class="tool-btn w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300">
+        <i class="fa-solid fa-eraser text-xs sm:text-sm"></i>
+      </button>
+
+      <div class="w-px h-5 bg-rose-950/80 mx-0.5 shrink-0"></div>
+
+      <button id="btn-toggle-props" title="Adjust Color & Size" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 flex items-center justify-center transition border border-rose-950/80 hover:border-rose-600/50">
         <div id="prop-swatch-indicator" class="w-4 h-4 rounded-full bg-rose-600 border border-white/40"></div>
       </button>
 
-      <button id="btn-delete-selected" title="Delete Selected Object" class="w-10 h-10 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 border border-rose-600/40 flex items-center justify-center transition hidden">
-        <i class="fa-solid fa-trash-can text-sm"></i>
+      <button id="btn-delete-selected" title="Delete Selected Object" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 border border-rose-600/40 flex items-center justify-center transition hidden">
+        <i class="fa-solid fa-trash-can text-xs sm:text-sm"></i>
       </button>
 
       <div class="hidden md:flex items-center space-x-1 pl-1 border-l border-rose-950/80 shrink-0 text-xs text-neutral-400">
@@ -490,6 +522,117 @@
       'hasControls',
       'hasBorders'
     ];
+
+    /**
+     * UNIVERSAL FULLSCREEN ENGINE
+     * Handles standard Fullscreen API, vendor prefixes (Safari/WebKit/Firefox/IE),
+     * and a seamless CSS pseudo-fullscreen fallback for iframe/restricted environments.
+     */
+    const FullscreenEngine = {
+      isPseudo: false,
+
+      isFullscreen() {
+        return !!(
+          document.fullscreenElement ||
+          document.webkitFullscreenElement ||
+          document.mozFullScreenElement ||
+          document.msFullscreenElement ||
+          this.isPseudo
+        );
+      },
+
+      async toggle() {
+        if (this.isFullscreen()) {
+          await this.exit();
+        } else {
+          await this.enter();
+        }
+        this.updateUI();
+      },
+
+      async enter() {
+        const el = document.documentElement;
+        const req = el.requestFullscreen ||
+                    el.webkitRequestFullscreen ||
+                    el.webkitRequestFullScreen ||
+                    el.mozRequestFullScreen ||
+                    el.msRequestFullscreen;
+
+        if (req) {
+          try {
+            await req.call(el, { navigationUI: 'hide' });
+            this.isPseudo = false;
+          } catch (err) {
+            console.warn("Native fullscreen rejected, enabling fallback pseudo-fullscreen:", err);
+            this.enablePseudo();
+          }
+        } else {
+          this.enablePseudo();
+        }
+      },
+
+      async exit() {
+        if (this.isPseudo) {
+          this.disablePseudo();
+          return;
+        }
+
+        const exit = document.exitFullscreen ||
+                     document.webkitExitFullscreen ||
+                     document.webkitCancelFullScreen ||
+                     document.mozCancelFullScreen ||
+                     document.msExitFullscreen;
+
+        if (exit && (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement)) {
+          try {
+            await exit.call(document);
+          } catch (err) {
+            this.disablePseudo();
+          }
+        } else {
+          this.disablePseudo();
+        }
+      },
+
+      enablePseudo() {
+        this.isPseudo = true;
+        document.body.classList.add('pseudo-fullscreen');
+        this.updateUI();
+      },
+
+      disablePseudo() {
+        this.isPseudo = false;
+        document.body.classList.remove('pseudo-fullscreen');
+        this.updateUI();
+      },
+
+      updateUI() {
+        const isFs = this.isFullscreen();
+        const btn = document.getElementById('btn-fullscreen');
+        if (!btn) return;
+        const icon = btn.querySelector('i');
+        if (icon) {
+          if (isFs) {
+            icon.className = 'fa-solid fa-compress text-xs sm:text-sm text-rose-400';
+            btn.title = 'Exit Fullscreen';
+          } else {
+            icon.className = 'fa-solid fa-expand text-xs sm:text-sm text-neutral-300';
+            btn.title = 'Enter Fullscreen';
+          }
+        }
+      },
+
+      init() {
+        const btn = document.getElementById('btn-fullscreen');
+        if (btn) {
+          btn.addEventListener('click', () => this.toggle());
+        }
+
+        ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(evt => {
+          document.addEventListener(evt, () => this.updateUI());
+        });
+      }
+    };
 
     /**
      * Lightweight Tesseract Engine with on-demand lazy initialization
@@ -605,7 +748,7 @@
     };
 
     /**
-     * MODULE 3: Ultra-Lightweight Undo/Redo System
+     * MODULE 3: Undo/Redo System
      */
     const HistoryManager = {
       _saveTimeout: null,
@@ -813,7 +956,6 @@
 
         const objects = [];
 
-        // Dark background base
         const background = new fabric.Rect({
           left: 0,
           top: 0,
@@ -833,7 +975,6 @@
         const originX = midCol * spacing;
         const originY = midRow * spacing;
 
-        // Grid Lines
         for (let r = 0; r <= rows; r++) {
           const y = r * spacing;
           const isAxis = (r === midRow);
@@ -864,7 +1005,6 @@
           }
         }
 
-        // Major X and Y Axes
         const xAxis = new fabric.Line([0, originY, totalWidth, originY], {
           stroke: '#fb7185',
           strokeWidth: 2,
@@ -883,7 +1023,6 @@
         });
         objects.push(yAxis);
 
-        // Numeric Markings on X Axis
         for (let c = 0; c <= cols; c++) {
           const val = c - midCol;
           if (val === 0) continue;
@@ -910,7 +1049,6 @@
           objects.push(valText);
         }
 
-        // Numeric Markings on Y Axis
         for (let r = 0; r <= rows; r++) {
           const val = midRow - r;
           if (val === 0) continue;
@@ -937,7 +1075,6 @@
           objects.push(valText);
         }
 
-        // Origin (0,0) Label
         const zeroLabel = new fabric.Text('0', {
           left: originX + 3,
           top: originY + 3,
@@ -988,7 +1125,6 @@
 
     /**
      * High-Performance Physical Ruler Dynamic Brush
-     * Efficiently caches ruler vector transformation at stroke-start to eliminate per-frame overhead
      */
     const RulerPencilBrush = fabric.util.createClass(fabric.PencilBrush, {
       _rulerCache: null,
@@ -1055,14 +1191,11 @@
         const t = dx * uUnitX + dy * uUnitY;
         const h = dx * nUnitX + dy * nUnitY;
 
-        // Check if pointer is along the ruler's length
         if (t >= -15 && t <= lenTop + 15) {
-          // Top edge drawing constraint
           if (h >= -25 && h <= Math.max(28, lenSide * 0.55)) {
             const clampedT = Math.max(0, Math.min(lenTop, t));
             return new fabric.Point(tl.x + clampedT * uUnitX, tl.y + clampedT * uUnitY);
           }
-          // Bottom edge drawing constraint
           if (h > Math.max(28, lenSide * 0.55) && h <= lenSide + 25) {
             const clampedT = Math.max(0, Math.min(lenTop, t));
             return new fabric.Point(bl.x + clampedT * uUnitX, bl.y + clampedT * uUnitY);
@@ -1628,7 +1761,7 @@
     };
 
     /**
-     * MODULE 7: Rendering Engine & PDF Loader
+     * MODULE 7: Adaptive Rendering Engine & PDF Loader
      */
     const RenderEngine = {
       async loadDocument(file) {
@@ -1681,11 +1814,20 @@
           const firstVp = firstPage.getViewport({ scale: 1.0 });
           const vpContainer = document.getElementById('viewport-container');
           
-          const availWidth = Math.max(280, (vpContainer.clientWidth || window.innerWidth) - 40);
-          const availHeight = Math.max(280, (vpContainer.clientHeight || window.innerHeight) - 60);
+          // Adaptive Mobile vs Desktop Initial Scale
+          const isMobile = window.innerWidth < 768;
+          const availWidth = Math.max(260, (vpContainer.clientWidth || window.innerWidth) - (isMobile ? 24 : 48));
           
-          let initialScale = Math.min(availWidth / firstVp.width, availHeight / firstVp.height);
-          initialScale = Math.max(0.4, Math.min(initialScale, 2.5));
+          let initialScale;
+          if (isMobile) {
+            // On mobile devices, fit-to-width provides the crispest reading experience
+            initialScale = availWidth / firstVp.width;
+          } else {
+            const availHeight = Math.max(260, (vpContainer.clientHeight || window.innerHeight) - 72);
+            initialScale = Math.min(availWidth / firstVp.width, availHeight / firstVp.height);
+          }
+          
+          initialScale = Math.max(0.35, Math.min(initialScale, 2.5));
           initialScale = Math.round(initialScale * 100) / 100;
 
           AppState.scale = initialScale;
@@ -1764,6 +1906,8 @@
      */
     const ViewportEngine = {
       zoomTimeout: null,
+      pinchStartDist: 0,
+      initialPinchScale: 1.0,
       
       init() {
         const vp = document.getElementById('viewport-container');
@@ -1800,6 +1944,49 @@
             this.handleSmoothZoom(delta);
           }
         }, { passive: false });
+
+        // Touch Pinch-to-Zoom Handler for Mobile Devices
+        vp.addEventListener('touchstart', (e) => {
+          if (e.touches.length === 2 && AppState.activeTool === 'view') {
+            this.pinchStartDist = Math.hypot(
+              e.touches[0].clientX - e.touches[1].clientX,
+              e.touches[0].clientY - e.touches[1].clientY
+            );
+            this.initialPinchScale = AppState.scale;
+          }
+        }, { passive: true });
+
+        vp.addEventListener('touchmove', (e) => {
+          if (e.touches.length === 2 && AppState.activeTool === 'view' && this.pinchStartDist > 0) {
+            const currentDist = Math.hypot(
+              e.touches[0].clientX - e.touches[1].clientX,
+              e.touches[0].clientY - e.touches[1].clientY
+            );
+            const pinchRatio = currentDist / this.pinchStartDist;
+            const newScale = Math.min(Math.max(0.35, this.initialPinchScale * pinchRatio), 3.5);
+            AppState.zoomCssScale = newScale / AppState.scale;
+            
+            document.getElementById('document-wrapper').style.transform = `scale(${AppState.zoomCssScale})`;
+            document.getElementById('zoom-percentage').textContent = Math.round(newScale * 100) + '%';
+          }
+        }, { passive: true });
+
+        vp.addEventListener('touchend', (e) => {
+          if (this.pinchStartDist > 0 && e.touches.length < 2) {
+            const finalScale = AppState.scale * AppState.zoomCssScale;
+            this.pinchStartDist = 0;
+            this.commitZoom(finalScale);
+          }
+        }, { passive: true });
+
+        // Handle Orientation Change & Screen Resize
+        let resizeDebounce = null;
+        window.addEventListener('resize', () => {
+          clearTimeout(resizeDebounce);
+          resizeDebounce = setTimeout(() => {
+            FullscreenEngine.updateUI();
+          }, 150);
+        });
       },
 
       fitToWidth() {
@@ -1807,7 +1994,8 @@
         const vp = document.getElementById('viewport-container');
         const firstDim = AppState.pageDimensions[1];
         if (firstDim) {
-          const target = Math.max(0.3, (vp.clientWidth - 40) / firstDim.width);
+          const pad = window.innerWidth < 768 ? 24 : 48;
+          const target = Math.max(0.3, (vp.clientWidth - pad) / firstDim.width);
           this.applyZoom(target);
         }
       },
@@ -1817,7 +2005,7 @@
         const vp = document.getElementById('viewport-container');
         const firstDim = AppState.pageDimensions[1];
         if (firstDim) {
-          const targetW = (vp.clientWidth - 40) / firstDim.width;
+          const targetW = (vp.clientWidth - 32) / firstDim.width;
           const targetH = (vp.clientHeight - 80) / firstDim.height;
           const target = Math.max(0.3, Math.min(targetW, targetH));
           this.applyZoom(target);
@@ -1827,7 +2015,7 @@
       handleSmoothZoom(delta) {
         if (AppState.numPages === 0) return;
         
-        const targetScale = Math.min(Math.max(0.4, AppState.scale * AppState.zoomCssScale + delta), 3.5);
+        const targetScale = Math.min(Math.max(0.35, AppState.scale * AppState.zoomCssScale + delta), 3.5);
         AppState.zoomCssScale = targetScale / AppState.scale;
         
         document.getElementById('zoom-percentage').textContent = Math.round(targetScale * 100) + '%';
@@ -1836,12 +2024,12 @@
         clearTimeout(this.zoomTimeout);
         this.zoomTimeout = setTimeout(() => {
           this.commitZoom(targetScale);
-        }, 220);
+        }, 200);
       },
 
       applyZoom(newScale) {
         if (AppState.numPages === 0) return;
-        newScale = Math.min(Math.max(0.4, newScale), 3.5);
+        newScale = Math.min(Math.max(0.35, newScale), 3.5);
         document.getElementById('zoom-percentage').textContent = Math.round(newScale * 100) + '%';
         this.commitZoom(newScale);
       },
@@ -1963,6 +2151,7 @@
      * Application Initialization
      */
     document.addEventListener('DOMContentLoaded', () => {
+      FullscreenEngine.init();
       DrawerController.init();
       ToolController.init();
       MemoryManager.init();
@@ -1974,52 +2163,6 @@
       
       document.getElementById('btn-undo').addEventListener('click', () => HistoryManager.undo());
       document.getElementById('btn-redo').addEventListener('click', () => HistoryManager.redo());
-
-      // Non-Zooming Fullscreen Controller
-      const btnFullscreen = document.getElementById('btn-fullscreen');
-      if (btnFullscreen) {
-        const toggleFullscreen = () => {
-          const doc = document;
-          const docEl = document.documentElement;
-          const isFs = doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement;
-
-          if (!isFs) {
-            const req = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.mozRequestFullScreen || docEl.msRequestFullscreen;
-            if (req) {
-              req.call(docEl, { navigationUI: 'hide' }).catch(() => {
-                if (docEl.requestFullscreen) docEl.requestFullscreen().catch(e => console.warn(e));
-              });
-            }
-          } else {
-            const exit = doc.exitFullscreen || doc.webkitExitFullscreen || doc.mozCancelFullScreen || doc.msExitFullscreen;
-            if (exit) {
-              exit.call(doc).catch(e => console.warn(e));
-            }
-          }
-        };
-
-        btnFullscreen.addEventListener('click', toggleFullscreen);
-
-        const updateFsIcon = () => {
-          const isFs = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
-          const icon = btnFullscreen.querySelector('i');
-          if (icon) {
-            if (isFs) {
-              icon.classList.remove('fa-expand');
-              icon.classList.add('fa-compress');
-              btnFullscreen.title = "Exit Fullscreen";
-            } else {
-              icon.classList.remove('fa-compress');
-              icon.classList.add('fa-expand');
-              btnFullscreen.title = "Toggle Fullscreen";
-            }
-          }
-        };
-
-        ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(evt => {
-          document.addEventListener(evt, updateFsIcon);
-        });
-      }
 
       const handlePageNav = (delta) => {
         const current = parseInt(document.getElementById('drawer-page-current').textContent) || 1;
