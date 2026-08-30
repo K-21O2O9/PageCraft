@@ -1,17 +1,19 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-slate-950 text-slate-100">
+<html lang="en" class="h-full bg-black text-neutral-100">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PageCraft - Advanced PDF Studio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>PageCraft</title>
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- Google Fonts for Beautified Writing -->
-  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   
   <!-- Core Engines -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -19,7 +21,7 @@
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
   <script src="https://unpkg.com/downloadjs@1.4.7/download.min.js"></script>
   
-  <!-- Tesseract.js for Client-Side OCR (Beautify feature) -->
+  <!-- Tesseract.js for Client-Side OCR -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
   <script>
@@ -27,45 +29,78 @@
   </script>
 
   <style>
-    /* Premium Scrollbars */
-    ::-webkit-scrollbar { width: 8px; height: 8px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; border: 2px solid #0f172a; }
-    ::-webkit-scrollbar-thumb:hover { background: #475569; }
-
-    body { overscroll-behavior-y: none; }
-
-    /* UI Animations */
-    .menu-transition { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-    .menu-collapsed { transform: translateY(-100%); margin-bottom: -120px; opacity: 0; pointer-events: none; }
-    
-    .glass-panel {
-      background: rgba(15, 23, 42, 0.75);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    *, *::before, *::after {
+      box-sizing: border-box;
     }
 
-    /* Tool Buttons */
-    .tool-btn { transition: all 0.2s ease; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+      touch-action: pan-x pan-y;
+      overscroll-behavior: none;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #050507;
+    }
+
+    input[type="number"], input[type="text"], select, textarea {
+      font-size: 16px !important;
+    }
+
+    /* Strict Fullscreen Guard: Lock zoom level to 1:1 */
+    :fullscreen, :-webkit-full-screen, :-moz-full-screen, :-ms-fullscreen {
+      width: 100vw !important;
+      height: 100vh !important;
+      height: 100dvh !important;
+      zoom: 1 !important;
+      transform: none !important;
+      -webkit-transform: none !important;
+    }
+
+    /* Crimson Scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #08080a; }
+    ::-webkit-scrollbar-thumb { background: #3b0d17; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #e11d48; }
+
+    /* Glass Panels with Crimson Accent Border */
+    .glass-panel {
+      background: rgba(12, 10, 13, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(225, 29, 72, 0.18);
+    }
+
+    /* Crimson Tool Buttons */
+    .tool-btn { 
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+      white-space: nowrap; 
+    }
     .tool-btn.active {
-      background: rgba(99, 102, 241, 0.2);
-      color: #818cf8;
-      box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.4);
+      background: rgba(225, 29, 72, 0.22);
+      color: #fb7185;
+      box-shadow: 0 0 0 1.5px rgba(225, 29, 72, 0.65), 0 4px 14px rgba(225, 29, 72, 0.35);
     }
 
     /* Virtualized Canvas Container */
     #document-wrapper {
       transform-origin: top center;
-      transition: transform 0.1s ease-out;
+      transition: transform 0.05s ease-out;
+      will-change: transform;
     }
 
     .pdf-page-container {
       position: relative;
-      margin: 0 auto 2rem auto; 
+      margin: 0 auto 1.5rem auto; 
       background: white;
-      box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.6), 0 4px 10px -5px rgba(0, 0, 0, 0.4);
-      border-radius: 4px;
+      box-shadow: 0 14px 40px -10px rgba(0, 0, 0, 0.9), 0 0 20px rgba(159, 18, 57, 0.15);
+      border-radius: 6px;
+      contain: layout paint style;
     }
 
     .pdf-canvas-layer {
@@ -79,6 +114,7 @@
       position: absolute !important;
       top: 0 !important; left: 0 !important;
       z-index: 2 !important;
+      touch-action: none !important;
     }
 
     .view-mode-active .canvas-container { pointer-events: none !important; }
@@ -90,163 +126,324 @@
     }
     .text-layer.active-select { pointer-events: auto !important; user-select: text; }
     .text-layer span { color: transparent; position: absolute; white-space: pre; cursor: text; transform-origin: 0% 0%; }
-    .text-layer.active-select ::selection { background: rgba(99, 102, 241, 0.4); color: transparent; }
+    .text-layer.active-select ::selection { background: rgba(225, 29, 72, 0.45); color: transparent; }
 
-    #loading-indicator {
-      transition: opacity 0.3s ease;
-    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    .drawer-overlay { transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .drawer-content { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
   </style>
 </head>
 
-<body class="h-full flex flex-col font-sans overflow-hidden select-none bg-slate-950">
+<body class="h-full flex flex-col font-sans overflow-hidden select-none bg-black text-neutral-100">
 
-  <!-- Floating Toggle Menu Button -->
-  <button id="btn-toggle-menu" class="absolute top-2 right-4 z-50 p-2 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 backdrop-blur shadow-lg border border-slate-600/50 transition-all opacity-0 pointer-events-none translate-y-[-20px]">
-    <i class="fa-solid fa-chevron-down text-sm"></i>
-  </button>
-
-  <!-- Header & Toolbar Container (Collapsible) -->
-  <div id="ui-header-container" class="menu-transition z-40 shrink-0 relative">
+  <!-- ================= TOP HEADER ================= -->
+  <header class="h-14 sm:h-16 glass-panel border-b border-rose-950/60 shrink-0 z-30 px-3 sm:px-5 flex items-center justify-between gap-2">
     
-    <!-- Top Navigation -->
-    <header class="h-16 glass-panel flex items-center justify-between px-4">
-      <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-blue-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-          <i class="fa-solid fa-file-signature text-white text-xl"></i>
+    <!-- Left: Hamburger Trigger & PageCraft Brand -->
+    <div class="flex items-center space-x-2 sm:space-x-3 shrink-0">
+      <button id="btn-open-drawer" title="Menu" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-neutral-900 hover:bg-neutral-800 active:scale-95 border border-rose-900/40 text-rose-300 flex items-center justify-center transition shadow-sm hover:border-rose-600/60">
+        <i class="fa-solid fa-bars text-sm sm:text-base"></i>
+      </button>
+
+      <div class="flex items-center space-x-2 sm:space-x-2.5">
+        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-rose-700 to-red-600 flex items-center justify-center shadow-lg shadow-rose-950/50 border border-rose-500/30">
+          <i class="fa-solid fa-file-signature text-white text-xs sm:text-sm"></i>
         </div>
-        <div>
-          <h1 class="text-lg font-bold tracking-wide text-white">PageCraft</h1>
-          <p class="text-xs text-indigo-300/80 font-medium tracking-wider uppercase">Studio</p>
-        </div>
+        <h1 class="text-sm sm:text-base font-bold tracking-tight text-white flex items-center">
+          PageCraft
+        </h1>
       </div>
+    </div>
 
-      <div class="flex items-center gap-2">
-        <label for="pdf-upload" class="flex items-center space-x-2 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold cursor-pointer transition border border-slate-700/50">
-          <i class="fa-solid fa-folder-open text-indigo-400"></i>
-          <span>Open</span>
-          <input type="file" id="pdf-upload" accept="application/pdf" class="hidden">
-        </label>
-
-        <div class="h-5 w-px bg-slate-700 mx-1 hidden sm:block"></div>
-
-        <button id="btn-undo" title="Undo (Ctrl+Z)" class="p-2 rounded-lg bg-slate-800/50 hover:bg-slate-700 text-slate-300 disabled:opacity-30 transition">
-          <i class="fa-solid fa-rotate-left text-sm"></i>
-        </button>
-        <button id="btn-redo" title="Redo (Ctrl+Y)" class="p-2 rounded-lg bg-slate-800/50 hover:bg-slate-700 text-slate-300 disabled:opacity-30 transition">
-          <i class="fa-solid fa-rotate-right text-sm"></i>
-        </button>
-
-        <div class="h-5 w-px bg-slate-700 mx-1 hidden sm:block"></div>
-
-        <div class="flex items-center bg-slate-900/60 rounded-lg p-1 border border-slate-700/50">
-          <button id="btn-zoom-out" class="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-700 transition"><i class="fa-solid fa-minus text-[10px]"></i></button>
-          <span id="zoom-percentage" class="px-2 text-xs font-mono font-bold text-indigo-300 w-[55px] text-center">100%</span>
-          <button id="btn-zoom-in" class="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-700 transition"><i class="fa-solid fa-plus text-[10px]"></i></button>
-        </div>
-
-        <div class="h-5 w-px bg-slate-700 mx-1 hidden sm:block"></div>
-
-        <button id="btn-save-pdf" class="flex items-center space-x-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/20 transition relative overflow-hidden group">
-          <i class="fa-solid fa-download"></i>
-          <span>Export</span>
-          <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform"></div>
-        </button>
-        
-        <!-- Minimize Menu Button -->
-        <button id="btn-minimize-menu" title="Hide Menu" class="ml-2 p-2 rounded-full bg-slate-800/50 hover:bg-slate-700 text-slate-400 hover:text-white transition">
-          <i class="fa-solid fa-chevron-up text-sm"></i>
-        </button>
-      </div>
-    </header>
-
-    <!-- Secondary Toolbar -->
-    <div class="glass-panel px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 shadow-xl shadow-black/20">
+    <!-- Right: Header Controls (Undo, Redo, Zoom, Fullscreen) -->
+    <div class="flex items-center space-x-1 sm:space-x-2 shrink-0">
       
-      <!-- Tools -->
-      <div class="flex items-center gap-1 bg-slate-900/50 p-1 rounded-xl border border-slate-700/50">
-        <button data-tool="view" title="Pan & Zoom View" class="tool-btn active flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200">
-          <i class="fa-solid fa-hand"></i><span class="hidden md:inline">View</span>
+      <!-- History Controls -->
+      <div class="flex items-center bg-neutral-950/90 p-0.5 rounded-xl border border-rose-950/60">
+        <button id="btn-undo" title="Undo (Ctrl+Z)" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg hover:bg-neutral-800 text-neutral-300 hover:text-rose-300 disabled:opacity-30 disabled:hover:bg-transparent flex items-center justify-center transition">
+          <i class="fa-solid fa-rotate-left text-xs"></i>
         </button>
-        <button data-tool="select" title="Select & Move Objects" class="tool-btn flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200">
-          <i class="fa-solid fa-arrow-pointer"></i><span class="hidden md:inline">Select</span>
-        </button>
-        <div class="w-px h-4 bg-slate-700 mx-1"></div>
-        <button data-tool="text-select" title="Highlight Native PDF Text" class="tool-btn flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200">
-          <i class="fa-solid fa-i-cursor"></i>
-        </button>
-        <button data-tool="textbox" title="Add Text" class="tool-btn flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200">
-          <i class="fa-solid fa-font"></i>
-        </button>
-        <div class="w-px h-4 bg-slate-700 mx-1"></div>
-        <button data-tool="pen" title="Draw" class="tool-btn flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200">
-          <i class="fa-solid fa-pen-nib"></i>
-        </button>
-        <button data-tool="highlight" title="Highlighter" class="tool-btn flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200">
-          <i class="fa-solid fa-highlighter"></i>
-        </button>
-        <button data-tool="eraser" title="Erase Objects" class="tool-btn flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200">
-          <i class="fa-solid fa-eraser"></i>
-        </button>
-        
-        <button id="btn-delete-selected" title="Delete Selected" class="px-2 py-1.5 rounded-lg text-xs font-medium text-rose-400 hover:bg-rose-500/20 transition hidden ml-1">
-          <i class="fa-solid fa-trash-can"></i>
+        <button id="btn-redo" title="Redo (Ctrl+Y)" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg hover:bg-neutral-800 text-neutral-300 hover:text-rose-300 disabled:opacity-30 disabled:hover:bg-transparent flex items-center justify-center transition">
+          <i class="fa-solid fa-rotate-right text-xs"></i>
         </button>
       </div>
 
-      <!-- Properties -->
-      <div class="flex items-center gap-4 bg-slate-900/50 p-1.5 px-3 rounded-xl border border-slate-700/50 text-xs">
-        <div class="flex items-center space-x-2">
-          <div class="w-6 h-6 rounded-md overflow-hidden border border-slate-600 relative">
-            <input type="color" id="prop-color" value="#ef4444" class="absolute -top-2 -left-2 w-10 h-10 cursor-pointer">
+      <!-- Zoom Controller -->
+      <div class="flex items-center bg-neutral-950/90 p-0.5 rounded-xl border border-rose-950/60">
+        <button id="btn-zoom-out" title="Zoom Out" class="w-6 h-7 sm:w-7 sm:h-8 rounded-lg hover:bg-neutral-800 text-neutral-400 hover:text-rose-300 flex items-center justify-center transition">
+          <i class="fa-solid fa-minus text-[10px]"></i>
+        </button>
+        <span id="zoom-percentage" class="px-1 text-[11px] sm:text-xs font-mono font-bold text-rose-400 min-w-[38px] sm:min-w-[46px] text-center">100%</span>
+        <button id="btn-zoom-in" title="Zoom In" class="w-6 h-7 sm:w-7 sm:h-8 rounded-lg hover:bg-neutral-800 text-neutral-400 hover:text-rose-300 flex items-center justify-center transition">
+          <i class="fa-solid fa-plus text-[10px]"></i>
+        </button>
+      </div>
+
+      <!-- Fullscreen Toggle -->
+      <button id="btn-fullscreen" title="Toggle Fullscreen" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-rose-400 border border-rose-950/60 hover:border-rose-600/40 flex items-center justify-center transition shadow-sm">
+        <i class="fa-solid fa-expand text-xs sm:text-sm"></i>
+      </button>
+
+    </div>
+  </header>
+
+  <!-- ================= HAMBURGER SLIDE-OUT DRAWER ================= -->
+  <div id="drawer-container" class="fixed inset-0 z-50 pointer-events-none">
+    <div id="drawer-backdrop" class="drawer-overlay absolute inset-0 bg-black/80 backdrop-blur-sm opacity-0 transition-opacity"></div>
+    
+    <div id="drawer-panel" class="drawer-content absolute top-0 left-0 bottom-0 w-[310px] sm:w-[350px] max-w-[88vw] bg-neutral-950 border-r border-rose-950/80 flex flex-col shadow-2xl shadow-rose-950/30 translate-x-[-100%] transition-transform">
+      
+      <!-- Drawer Header -->
+      <div class="h-16 px-4 flex items-center justify-between border-b border-rose-950/80 shrink-0">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-rose-700 to-red-600 flex items-center justify-center text-white shadow-md shadow-rose-950/50">
+            <i class="fa-solid fa-file-signature text-sm"></i>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-white">PageCraft</h2>
+            <p class="text-[10px] text-rose-400 font-medium">Menu & Precision Tools</p>
           </div>
         </div>
-        <div class="flex items-center space-x-2">
-          <i class="fa-solid fa-circle text-[8px] text-slate-500"></i>
-          <input type="range" id="prop-size" min="1" max="60" value="4" class="w-20 accent-indigo-500">
-        </div>
-        <div class="flex items-center space-x-2">
-          <i class="fa-solid fa-droplet text-[10px] text-slate-500"></i>
-          <input type="range" id="prop-opacity" min="0.1" max="1.0" step="0.05" value="1.0" class="w-20 accent-indigo-500">
-        </div>
+        <button id="btn-close-drawer" class="w-8 h-8 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-400 hover:text-rose-400 border border-neutral-800 flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
       </div>
 
-      <!-- Pagination -->
-      <div class="flex items-center space-x-2 bg-slate-900/50 rounded-xl px-3 py-1 border border-slate-700/50">
-        <button id="btn-prev-page" class="p-1 text-slate-400 hover:text-white disabled:opacity-30"><i class="fa-solid fa-chevron-left text-xs"></i></button>
-        <input type="number" id="page-num-input" value="1" min="1" class="w-12 bg-slate-800/80 text-center font-bold text-indigo-300 border border-slate-600 rounded py-0.5 text-xs focus:outline-none focus:border-indigo-500">
-        <span class="text-xs text-slate-400 font-medium">/ <span id="page-count">0</span></span>
-        <button id="btn-next-page" class="p-1 text-slate-400 hover:text-white disabled:opacity-30"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+      <!-- Drawer Scrollable Body -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-5">
+        
+        <!-- Section: Document Actions -->
+        <div class="space-y-2">
+          <span class="text-[10px] font-bold tracking-wider text-rose-400/80 uppercase">Document</span>
+          
+          <label for="pdf-upload" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl bg-neutral-900/90 hover:bg-rose-950/40 hover:border-rose-600/50 border border-neutral-800 text-neutral-200 hover:text-white cursor-pointer transition text-xs font-medium">
+            <i class="fa-solid fa-folder-open text-rose-500 text-sm"></i>
+            <span>Open PDF Document</span>
+            <input type="file" id="pdf-upload" accept="application/pdf" class="hidden">
+          </label>
+
+          <button id="btn-drawer-export" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-rose-700 to-red-600 hover:from-rose-600 hover:to-red-500 text-white shadow-lg shadow-rose-950/40 transition text-xs font-semibold text-left">
+            <i class="fa-solid fa-file-arrow-down text-white text-sm"></i>
+            <span>Export & Save PDF</span>
+          </button>
+        </div>
+
+        <!-- Section: Precision Geometric Tools (Ruler & Graph) -->
+        <div class="space-y-2.5">
+          <span class="text-[10px] font-bold tracking-wider text-rose-400/80 uppercase">Precision Inserts</span>
+          
+          <!-- Ruler Insertion Button -->
+          <button id="btn-insert-ruler" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-neutral-900/90 hover:bg-rose-950/40 border border-rose-950/70 hover:border-rose-600/50 text-neutral-200 hover:text-white transition text-xs font-medium">
+            <div class="flex items-center space-x-3">
+              <i class="fa-solid fa-ruler-combined text-rose-400 text-sm"></i>
+              <div class="text-left">
+                <span class="block text-xs font-semibold text-white">Insert Precision Ruler</span>
+                <span class="block text-[10px] text-neutral-400">Draggable & rotatable; drawing directly on it snaps straight</span>
+              </div>
+            </div>
+            <i class="fa-solid fa-plus text-xs text-rose-400"></i>
+          </button>
+
+          <!-- Graph Generation Tool Panel -->
+          <div class="p-3 rounded-xl bg-neutral-900/90 border border-rose-950/70 space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-border-all text-rose-400 text-xs"></i>
+                <span class="text-xs font-semibold text-neutral-200">Cartesian Grid Graph</span>
+              </div>
+              <span class="text-[9px] text-rose-400/70 uppercase tracking-wider font-mono">Numbered Axes</span>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 text-left">
+              <div>
+                <label class="block text-[10px] text-neutral-400 mb-1">Rows</label>
+                <input type="number" id="graph-rows" value="10" min="4" max="60" class="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-2 py-1 text-xs text-rose-300 font-mono focus:outline-none focus:border-rose-500">
+              </div>
+              <div>
+                <label class="block text-[10px] text-neutral-400 mb-1">Columns</label>
+                <input type="number" id="graph-cols" value="10" min="4" max="60" class="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-2 py-1 text-xs text-rose-300 font-mono focus:outline-none focus:border-rose-500">
+              </div>
+              <div>
+                <label class="block text-[10px] text-neutral-400 mb-1">Spacing (px)</label>
+                <input type="number" id="graph-spacing" value="28" min="10" max="150" step="2" class="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-2 py-1 text-xs text-rose-300 font-mono focus:outline-none focus:border-rose-500">
+              </div>
+            </div>
+
+            <button id="btn-create-graph" class="w-full py-2 rounded-lg bg-rose-950/60 hover:bg-rose-900/80 border border-rose-700/40 text-rose-200 text-xs font-semibold flex items-center justify-center space-x-1.5 transition active:scale-95">
+              <i class="fa-solid fa-plus text-xs"></i>
+              <span>Generate Graph to Page</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Section: Smart OCR Assistant with Warning -->
+        <div class="space-y-2">
+          <span class="text-[10px] font-bold tracking-wider text-rose-400/80 uppercase">Smart OCR Assistant</span>
+          
+          <div class="p-3 rounded-xl bg-neutral-900/90 border border-rose-950/70 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-wand-magic-sparkles text-rose-400 text-xs"></i>
+                <span class="text-xs font-semibold text-neutral-200">Beautify Pen</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="toggle-beautify" class="sr-only peer">
+                <div class="w-9 h-5 bg-neutral-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-rose-600"></div>
+              </label>
+            </div>
+            
+            <p class="text-[11px] text-neutral-400 leading-relaxed">Transcribes hand-drawn pen writing into formatted calligraphy.</p>
+            
+            <!-- Warning Notice -->
+            <div class="p-2 rounded-lg bg-rose-950/50 border border-rose-800/40 text-[10px] text-rose-300 leading-normal flex items-start space-x-1.5">
+              <i class="fa-solid fa-triangle-exclamation text-rose-400 shrink-0 mt-0.5"></i>
+              <span><strong>Warning:</strong> Experimental OCR feature. It may not always recognize messy strokes or work reliably across all hardware.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: View & Fit Modes -->
+        <div class="space-y-2">
+          <span class="text-[10px] font-bold tracking-wider text-rose-400/80 uppercase">View & Scaling</span>
+          
+          <div class="grid grid-cols-2 gap-2">
+            <button id="btn-fit-width" class="px-3 py-2 rounded-xl bg-neutral-900/90 hover:bg-neutral-800 hover:text-rose-300 border border-neutral-800 text-neutral-300 text-xs font-medium flex items-center justify-center space-x-1.5 transition">
+              <i class="fa-solid fa-arrows-left-right text-[11px]"></i>
+              <span>Fit Width</span>
+            </button>
+            <button id="btn-fit-page" class="px-3 py-2 rounded-xl bg-neutral-900/90 hover:bg-neutral-800 hover:text-rose-300 border border-neutral-800 text-neutral-300 text-xs font-medium flex items-center justify-center space-x-1.5 transition">
+              <i class="fa-solid fa-compress text-[11px]"></i>
+              <span>Fit Page</span>
+            </button>
+            <button id="btn-reset-zoom" class="px-3 py-2 rounded-xl bg-neutral-900/90 hover:bg-neutral-800 hover:text-rose-300 border border-neutral-800 text-neutral-300 text-xs font-medium flex items-center justify-center space-x-1.5 transition col-span-2">
+              <i class="fa-solid fa-rotate text-[11px]"></i>
+              <span>Reset Scale (100%)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Section: Page Navigation -->
+        <div class="space-y-2">
+          <span class="text-[10px] font-bold tracking-wider text-rose-400/80 uppercase">Page Navigation</span>
+          <div class="flex items-center justify-between p-2.5 rounded-xl bg-neutral-900/90 border border-rose-950/70">
+            <button id="drawer-prev-page" class="p-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs disabled:opacity-30"><i class="fa-solid fa-arrow-left"></i></button>
+            <div class="text-xs font-bold text-neutral-200">
+              Page <span id="drawer-page-current" class="text-rose-400">1</span> of <span id="drawer-page-total">0</span>
+            </div>
+            <button id="drawer-next-page" class="p-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs disabled:opacity-30"><i class="fa-solid fa-arrow-right"></i></button>
+          </div>
+        </div>
+
       </div>
+
+      <!-- Drawer Footer with attribution -->
+      <div class="p-3.5 border-t border-rose-950/80 text-center bg-black/95 shrink-0">
+        <p class="text-[11px] font-medium text-rose-400/90 tracking-wide">Made by k210209♤ studios</p>
+      </div>
+
     </div>
   </div>
 
-  <!-- Loading State -->
-  <div id="loading-indicator" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur flex flex-col items-center justify-center opacity-0 pointer-events-none">
-    <i class="fa-solid fa-circle-notch fa-spin text-4xl text-indigo-500 mb-4"></i>
-    <p id="loading-text" class="text-slate-300 font-medium tracking-wide">Processing Document...</p>
-  </div>
-
-  <!-- Main Viewport -->
-  <main id="viewport-container" class="flex-1 relative overflow-auto bg-slate-950 p-6 flex flex-col view-mode-active">
+  <!-- ================= MAIN VIEWPORT ================= -->
+  <main id="viewport-container" class="flex-1 relative overflow-auto bg-black p-4 sm:p-6 pb-28 sm:pb-24 flex flex-col view-mode-active">
     
     <!-- Empty State -->
-    <div id="drop-zone" class="my-auto mx-auto flex flex-col items-center justify-center p-10 border-2 border-dashed border-slate-700/60 rounded-2xl bg-slate-900/40 hover:bg-slate-800/60 hover:border-indigo-500/50 transition-all cursor-pointer max-w-lg text-center shadow-2xl">
-      <div class="w-16 h-16 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center mb-4 text-3xl">
+    <div id="drop-zone" class="my-auto mx-auto flex flex-col items-center justify-center p-8 sm:p-10 border-2 border-dashed border-rose-950/80 hover:border-rose-600/60 rounded-3xl bg-neutral-950/70 transition-all cursor-pointer max-w-md text-center shadow-2xl">
+      <div class="w-16 h-16 rounded-2xl bg-rose-950/40 border border-rose-600/30 text-rose-500 flex items-center justify-center mb-4 text-3xl shadow-inner">
         <i class="fa-solid fa-cloud-arrow-up"></i>
       </div>
-      <h3 class="text-lg font-bold text-white mb-2">Upload PDF Document</h3>
-      <p class="text-sm text-slate-400 mb-6 leading-relaxed">Drag and drop your file here, or click to browse. Fully client-side, your privacy is guaranteed.</p>
-      <button class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm shadow-lg shadow-indigo-600/20 transition-all pointer-events-none">
-        Choose File
+      <h3 class="text-base sm:text-lg font-bold text-white mb-2">Open PDF Document</h3>
+      <p class="text-xs sm:text-sm text-neutral-400 mb-6 leading-relaxed">Drag & drop your PDF file here, or click to browse. Processing runs 100% in your browser.</p>
+      <button class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-rose-700 to-red-600 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-rose-950/50 transition-all pointer-events-none">
+        Browse Files
       </button>
     </div>
 
     <!-- The Virtualized Document Wrapper -->
-    <div id="document-wrapper" class="hidden flex flex-col items-center">
-      <!-- Page Containers will be injected here dynamically by AppCore -->
-    </div>
+    <div id="document-wrapper" class="hidden flex flex-col items-center w-full"></div>
 
   </main>
+
+  <!-- ================= FLOATING TOOL PALETTE ================= -->
+  <div id="floating-toolbar" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 max-w-[96vw] flex flex-col items-center gap-2 pointer-events-auto">
+    
+    <!-- Properties Mini-Popover -->
+    <div id="properties-popover" class="glass-panel p-2 px-3 rounded-2xl flex items-center gap-3 shadow-2xl border border-rose-900/50 transition-all opacity-0 translate-y-2 pointer-events-none">
+      <div class="flex items-center space-x-1.5">
+        <div class="w-6 h-6 rounded-full overflow-hidden border-2 border-rose-500 relative cursor-pointer shadow-inner">
+          <input type="color" id="prop-color" value="#e11d48" class="absolute -top-3 -left-3 w-12 h-12 cursor-pointer">
+        </div>
+      </div>
+      <div class="flex items-center space-x-1.5">
+        <i class="fa-solid fa-circle text-[7px] text-rose-500/70"></i>
+        <input type="range" id="prop-size" min="1" max="50" value="4" class="w-20 sm:w-24 accent-rose-600 cursor-pointer">
+      </div>
+      <div class="flex items-center space-x-1.5">
+        <i class="fa-solid fa-droplet text-[9px] text-rose-500/70"></i>
+        <input type="range" id="prop-opacity" min="0.1" max="1.0" step="0.05" value="1.0" class="w-16 sm:w-20 accent-rose-600 cursor-pointer">
+      </div>
+      <button id="btn-close-props" class="p-1 text-neutral-400 hover:text-white text-xs"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <!-- Main Tool Island -->
+    <nav class="glass-panel p-1.5 sm:p-2 rounded-2xl flex items-center gap-1 sm:gap-1.5 shadow-2xl shadow-black border border-rose-950/80 overflow-x-auto no-scrollbar max-w-full">
+      
+      <button data-tool="view" title="Pan / View Mode" class="tool-btn active w-10 h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300">
+        <i class="fa-solid fa-hand text-sm"></i>
+      </button>
+
+      <button data-tool="select" title="Select & Move Objects" class="tool-btn w-10 h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300">
+        <i class="fa-solid fa-arrow-pointer text-sm"></i>
+      </button>
+
+      <div class="w-px h-5 bg-rose-950/80 mx-0.5 shrink-0"></div>
+
+      <button data-tool="pen" title="Draw Pen (Straight line when drawn on ruler)" class="tool-btn w-10 h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300">
+        <i class="fa-solid fa-pen-nib text-sm"></i>
+      </button>
+
+      <button data-tool="highlight" title="Straight Line Highlighter" class="tool-btn w-10 h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300">
+        <i class="fa-solid fa-highlighter text-sm"></i>
+      </button>
+
+      <button data-tool="textbox" title="Insert Text Box" class="tool-btn w-10 h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300">
+        <i class="fa-solid fa-font text-sm"></i>
+      </button>
+
+      <button data-tool="text-select" title="Select PDF Native Text" class="tool-btn w-10 h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300">
+        <i class="fa-solid fa-i-cursor text-sm"></i>
+      </button>
+
+      <button data-tool="eraser" title="Object Eraser" class="tool-btn w-10 h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300">
+        <i class="fa-solid fa-eraser text-sm"></i>
+      </button>
+
+      <div class="w-px h-5 bg-rose-950/80 mx-0.5 shrink-0"></div>
+
+      <button id="btn-toggle-props" title="Adjust Color & Size" class="w-10 h-10 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 flex items-center justify-center transition border border-rose-950/80 hover:border-rose-600/50">
+        <div id="prop-swatch-indicator" class="w-4 h-4 rounded-full bg-rose-600 border border-white/40"></div>
+      </button>
+
+      <button id="btn-delete-selected" title="Delete Selected Object" class="w-10 h-10 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 border border-rose-600/40 flex items-center justify-center transition hidden">
+        <i class="fa-solid fa-trash-can text-sm"></i>
+      </button>
+
+      <div class="hidden md:flex items-center space-x-1 pl-1 border-l border-rose-950/80 shrink-0 text-xs text-neutral-400">
+        <button id="btn-bottom-prev" class="p-2 hover:text-rose-300 disabled:opacity-30"><i class="fa-solid fa-chevron-left"></i></button>
+        <span class="font-mono text-[11px] font-bold px-1 text-rose-300"><span id="bottom-page-num">1</span>/<span id="bottom-page-count">0</span></span>
+        <button id="btn-bottom-next" class="p-2 hover:text-rose-300 disabled:opacity-30"><i class="fa-solid fa-chevron-right"></i></button>
+      </div>
+
+    </nav>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div id="loading-indicator" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity">
+    <i class="fa-solid fa-circle-notch fa-spin text-4xl text-rose-600 mb-4"></i>
+    <p id="loading-text" class="text-neutral-300 font-medium tracking-wide text-sm">Processing Document...</p>
+  </div>
 
   <script>
     /**
@@ -256,6 +453,7 @@
       pdfDoc: null,
       pdfBytes: null,
       numPages: 0,
+      currentPage: 1,
       pageDimensions: [], 
       
       scale: 1.0,         
@@ -269,6 +467,7 @@
       pageData: {},       
       activePages: new Set(), 
       fabricInstances: {}, 
+      pageRenderTasks: {}, 
       
       historyStack: [],
       historyIndex: -1,
@@ -276,44 +475,123 @@
     };
 
     /**
-     * Tesseract Preload Engine (For zero-latency handwriting recognition)
+     * Custom serialization whitelist guaranteeing that graphs, rulers,
+     * and annotations retain their exact interactive hitboxes and visuals.
+     */
+    const FABRIC_CUSTOM_PROPS = [
+      'customType', 
+      'isRuler', 
+      'isGraph', 
+      'strokeUniform', 
+      'selectable', 
+      'evented', 
+      'subTargetCheck', 
+      'id',
+      'hasControls',
+      'hasBorders'
+    ];
+
+    /**
+     * Lightweight Tesseract Engine with on-demand lazy initialization
      */
     const BeautifyEngine = {
       workerPromise: null,
-      init() {
-        this.workerPromise = (async () => {
-          try {
-            const worker = await Tesseract.createWorker('eng');
-            // Hard whitelist strictly to text and numbers to prevent scribbles from becoming weird symbols
-            await worker.setParameters({
-              tessedit_char_whitelist: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,!?'
-            });
-            return worker;
-          } catch (e) {
-            console.error("Failed to init BeautifyEngine", e);
-            return null;
-          }
-        })();
+      getWorker() {
+        if (!this.workerPromise) {
+          this.workerPromise = (async () => {
+            try {
+              const worker = await Tesseract.createWorker('eng');
+              await worker.setParameters({
+                tessedit_char_whitelist: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,!?'
+              });
+              return worker;
+            } catch (e) {
+              console.error("Failed to init BeautifyEngine", e);
+              return null;
+            }
+          })();
+        }
+        return this.workerPromise;
       }
     };
 
     /**
-     * MODULE 13: Menu Controller
+     * MODULE 2: Drawer & Menu Controller
      */
-    const MenuController = {
+    const DrawerController = {
+      isOpen: false,
       init() {
-        const header = document.getElementById('ui-header-container');
-        const btnMin = document.getElementById('btn-minimize-menu');
-        const btnToggle = document.getElementById('btn-toggle-menu');
+        const drawerContainer = document.getElementById('drawer-container');
+        const drawerBackdrop = document.getElementById('drawer-backdrop');
+        const drawerPanel = document.getElementById('drawer-panel');
+        const btnOpen = document.getElementById('btn-open-drawer');
+        const btnClose = document.getElementById('btn-close-drawer');
 
-        btnMin.addEventListener('click', () => {
-          header.classList.add('menu-collapsed');
-          btnToggle.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-[-20px]');
+        const openDrawer = () => {
+          this.isOpen = true;
+          drawerContainer.classList.remove('pointer-events-none');
+          drawerBackdrop.classList.remove('opacity-0');
+          drawerBackdrop.classList.add('opacity-100');
+          drawerPanel.classList.remove('translate-x-[-100%]');
+        };
+
+        const closeDrawer = () => {
+          this.isOpen = false;
+          drawerBackdrop.classList.remove('opacity-100');
+          drawerBackdrop.classList.add('opacity-0');
+          drawerPanel.classList.add('translate-x-[-100%]');
+          setTimeout(() => {
+            if (!this.isOpen) drawerContainer.classList.add('pointer-events-none');
+          }, 300);
+        };
+
+        btnOpen.addEventListener('click', openDrawer);
+        btnClose.addEventListener('click', closeDrawer);
+        drawerBackdrop.addEventListener('click', closeDrawer);
+
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && this.isOpen) closeDrawer();
         });
 
-        btnToggle.addEventListener('click', () => {
-          header.classList.remove('menu-collapsed');
-          btnToggle.classList.add('opacity-0', 'pointer-events-none', 'translate-y-[-20px]');
+        const beautifyToggle = document.getElementById('toggle-beautify');
+        beautifyToggle.addEventListener('change', (e) => {
+          AppState.beautifyWriting = e.target.checked;
+          if (AppState.beautifyWriting) {
+            BeautifyEngine.getWorker();
+          }
+        });
+
+        document.getElementById('btn-fit-width').addEventListener('click', () => {
+          ViewportEngine.fitToWidth();
+          closeDrawer();
+        });
+        document.getElementById('btn-fit-page').addEventListener('click', () => {
+          ViewportEngine.fitToPage();
+          closeDrawer();
+        });
+        document.getElementById('btn-reset-zoom').addEventListener('click', () => {
+          ViewportEngine.applyZoom(1.0);
+          closeDrawer();
+        });
+
+        document.getElementById('btn-drawer-export').addEventListener('click', () => {
+          closeDrawer();
+          ExportEngine.exportPDF();
+        });
+
+        // Insert Precision Ruler
+        document.getElementById('btn-insert-ruler').addEventListener('click', () => {
+          ShapeInsertEngine.insertRuler();
+          closeDrawer();
+        });
+
+        // Generate Custom Grid Graph
+        document.getElementById('btn-create-graph').addEventListener('click', () => {
+          const rows = parseInt(document.getElementById('graph-rows').value) || 10;
+          const cols = parseInt(document.getElementById('graph-cols').value) || 10;
+          const spacing = parseFloat(document.getElementById('graph-spacing').value) || 28;
+          ShapeInsertEngine.insertGraph(rows, cols, spacing);
+          closeDrawer();
         });
       },
       showLoading(text) {
@@ -327,26 +605,30 @@
     };
 
     /**
-     * MODULE 12: Undo/Redo System
+     * MODULE 3: Ultra-Lightweight Undo/Redo System
      */
     const HistoryManager = {
+      _saveTimeout: null,
       saveState() {
         if (AppState.isApplyingHistory) return;
         
-        AppState.activePages.forEach(pageNum => {
-          if (AppState.fabricInstances[pageNum]) {
-            AppState.pageData[pageNum] = JSON.stringify(AppState.fabricInstances[pageNum].toJSON());
-          }
-        });
+        if (this._saveTimeout) cancelAnimationFrame(this._saveTimeout);
+        this._saveTimeout = requestAnimationFrame(() => {
+          AppState.activePages.forEach(pageNum => {
+            if (AppState.fabricInstances[pageNum]) {
+              AppState.pageData[pageNum] = AppState.fabricInstances[pageNum].toJSON(FABRIC_CUSTOM_PROPS);
+            }
+          });
 
-        const snapshot = JSON.stringify(AppState.pageData);
-        
-        AppState.historyStack = AppState.historyStack.slice(0, AppState.historyIndex + 1);
-        AppState.historyStack.push(snapshot);
-        if (AppState.historyStack.length > 20) AppState.historyStack.shift(); 
-        else AppState.historyIndex++;
-        
-        this.updateUI();
+          const snapshot = JSON.stringify(AppState.pageData);
+          
+          AppState.historyStack = AppState.historyStack.slice(0, AppState.historyIndex + 1);
+          AppState.historyStack.push(snapshot);
+          if (AppState.historyStack.length > 20) AppState.historyStack.shift(); 
+          else AppState.historyIndex++;
+          
+          this.updateUI();
+        });
       },
       async applyState(snapshotStr) {
         AppState.isApplyingHistory = true;
@@ -357,8 +639,8 @@
             const fCanvas = AppState.fabricInstances[pageNum];
             if (fCanvas && AppState.pageData[pageNum]) {
               await new Promise(resolve => fCanvas.loadFromJSON(AppState.pageData[pageNum], resolve));
-              fCanvas.setZoom(AppState.scale); // Hard enforce coordinates relative to zoom state!
-              fCanvas.renderAll();
+              fCanvas.setZoom(AppState.scale);
+              fCanvas.requestRenderAll();
             } else if (fCanvas) {
               fCanvas.clear();
             }
@@ -387,7 +669,432 @@
     };
 
     /**
-     * MODULE 10/11: Selection & Tool Controller
+     * MODULE 4: Shape, Ruler & Graph Insertion Engine
+     */
+    const ShapeInsertEngine = {
+      getActiveCanvas() {
+        let cur = AppState.currentPage || 1;
+        if (!AppState.fabricInstances[cur]) {
+          const keys = Object.keys(AppState.fabricInstances).map(Number);
+          if (keys.length > 0) {
+            cur = keys.includes(AppState.currentPage) ? AppState.currentPage : keys[0];
+          }
+        }
+        return AppState.fabricInstances[cur] || null;
+      },
+
+      insertRuler() {
+        const fCanvas = this.getActiveCanvas();
+        if (!fCanvas) {
+          alert("Please open a PDF document first.");
+          return;
+        }
+
+        const width = 360;
+        const height = 54;
+        
+        const rulerBody = new fabric.Rect({
+          left: 0,
+          top: 0,
+          width: width,
+          height: height,
+          fill: 'rgba(225, 29, 72, 0.15)',
+          stroke: '#e11d48',
+          strokeWidth: 1.5,
+          strokeUniform: true,
+          rx: 4,
+          ry: 4,
+          selectable: false,
+          evented: false
+        });
+
+        const topBar = new fabric.Rect({
+          left: 0,
+          top: 0,
+          width: width,
+          height: 6,
+          fill: 'rgba(225, 29, 72, 0.65)',
+          strokeUniform: true,
+          selectable: false,
+          evented: false
+        });
+
+        const objects = [rulerBody, topBar];
+
+        for (let x = 10; x <= width - 10; x += 10) {
+          const isMajor = x % 50 === 0;
+          const isMid = x % 25 === 0;
+          const tickHeight = isMajor ? 14 : (isMid ? 10 : 6);
+          
+          const tick = new fabric.Line([x, 0, x, tickHeight], {
+            stroke: '#fb7185',
+            strokeWidth: isMajor ? 1.5 : 1,
+            strokeUniform: true,
+            selectable: false,
+            evented: false
+          });
+          objects.push(tick);
+
+          if (isMajor) {
+            const numText = new fabric.Text((x / 50).toString(), {
+              left: x - 3,
+              top: tickHeight + 2,
+              fontSize: 9,
+              fill: '#fda4af',
+              fontFamily: 'JetBrains Mono, monospace',
+              fontWeight: 'bold',
+              selectable: false,
+              evented: false
+            });
+            objects.push(numText);
+          }
+        }
+
+        const label = new fabric.Text('PAGE CRAFT • RULER', {
+          left: width / 2 - 45,
+          top: height - 16,
+          fontSize: 8,
+          fill: 'rgba(255, 255, 255, 0.75)',
+          fontFamily: 'Inter, sans-serif',
+          fontWeight: 'bold',
+          selectable: false,
+          evented: false
+        });
+        objects.push(label);
+
+        const pageDim = AppState.pageDimensions[AppState.currentPage] || { width: 600, height: 800 };
+        const initLeft = Math.max(20, (pageDim.width - width) / 2);
+        const initTop = Math.max(40, (pageDim.height - height) / 3);
+
+        const rulerGroup = new fabric.Group(objects, {
+          left: initLeft,
+          top: initTop,
+          width: width,
+          height: height,
+          originX: 'left',
+          originY: 'top',
+          selectable: true,
+          evented: true,
+          hasRotatingPoint: true,
+          transparentCorners: false,
+          cornerColor: '#e11d48',
+          cornerStrokeColor: '#ffffff',
+          cornerSize: 9,
+          cornerStyle: 'circle',
+          strokeUniform: true,
+          subTargetCheck: false,
+          objectCaching: true
+        });
+
+        rulerGroup.isRuler = true;
+        rulerGroup.customType = 'ruler';
+
+        fCanvas.add(rulerGroup);
+        fCanvas.setActiveObject(rulerGroup);
+        rulerGroup.setCoords();
+        fCanvas.requestRenderAll();
+        HistoryManager.saveState();
+        ToolController.setActiveTool('select');
+      },
+
+      insertGraph(rows, cols, spacing) {
+        const fCanvas = this.getActiveCanvas();
+        if (!fCanvas) {
+          alert("Please open a PDF document first.");
+          return;
+        }
+
+        rows = Math.min(Math.max(parseInt(rows) || 10, 4), 60);
+        cols = Math.min(Math.max(parseInt(cols) || 10, 4), 60);
+        spacing = Math.min(Math.max(parseFloat(spacing) || 28, 10), 150);
+
+        const totalWidth = cols * spacing;
+        const totalHeight = rows * spacing;
+
+        const objects = [];
+
+        // Dark background base
+        const background = new fabric.Rect({
+          left: 0,
+          top: 0,
+          width: totalWidth,
+          height: totalHeight,
+          fill: 'rgba(10, 6, 8, 0.88)',
+          stroke: '#e11d48',
+          strokeWidth: 2,
+          strokeUniform: true,
+          selectable: false,
+          evented: false
+        });
+        objects.push(background);
+
+        const midRow = Math.floor(rows / 2);
+        const midCol = Math.floor(cols / 2);
+        const originX = midCol * spacing;
+        const originY = midRow * spacing;
+
+        // Grid Lines
+        for (let r = 0; r <= rows; r++) {
+          const y = r * spacing;
+          const isAxis = (r === midRow);
+          
+          if (!isAxis && r > 0 && r < rows) {
+            objects.push(new fabric.Line([0, y, totalWidth, y], {
+              stroke: 'rgba(225, 29, 72, 0.28)',
+              strokeWidth: 1,
+              strokeUniform: true,
+              selectable: false,
+              evented: false
+            }));
+          }
+        }
+
+        for (let c = 0; c <= cols; c++) {
+          const x = c * spacing;
+          const isAxis = (c === midCol);
+          
+          if (!isAxis && c > 0 && c < cols) {
+            objects.push(new fabric.Line([x, 0, x, totalHeight], {
+              stroke: 'rgba(225, 29, 72, 0.28)',
+              strokeWidth: 1,
+              strokeUniform: true,
+              selectable: false,
+              evented: false
+            }));
+          }
+        }
+
+        // Major X and Y Axes
+        const xAxis = new fabric.Line([0, originY, totalWidth, originY], {
+          stroke: '#fb7185',
+          strokeWidth: 2,
+          strokeUniform: true,
+          selectable: false,
+          evented: false
+        });
+        objects.push(xAxis);
+
+        const yAxis = new fabric.Line([originX, 0, originX, totalHeight], {
+          stroke: '#fb7185',
+          strokeWidth: 2,
+          strokeUniform: true,
+          selectable: false,
+          evented: false
+        });
+        objects.push(yAxis);
+
+        // Numeric Markings on X Axis
+        for (let c = 0; c <= cols; c++) {
+          const val = c - midCol;
+          if (val === 0) continue;
+          
+          const x = c * spacing;
+          objects.push(new fabric.Line([x, originY - 3, x, originY + 3], {
+            stroke: '#fda4af',
+            strokeWidth: 1.5,
+            strokeUniform: true,
+            selectable: false,
+            evented: false
+          }));
+
+          const valText = new fabric.Text(val.toString(), {
+            left: x - (val < 0 ? 5 : 3),
+            top: originY + 4,
+            fontSize: 8,
+            fill: '#fda4af',
+            fontFamily: 'JetBrains Mono, monospace',
+            fontWeight: 'bold',
+            selectable: false,
+            evented: false
+          });
+          objects.push(valText);
+        }
+
+        // Numeric Markings on Y Axis
+        for (let r = 0; r <= rows; r++) {
+          const val = midRow - r;
+          if (val === 0) continue;
+          
+          const y = r * spacing;
+          objects.push(new fabric.Line([originX - 3, y, originX + 3, y], {
+            stroke: '#fda4af',
+            strokeWidth: 1.5,
+            strokeUniform: true,
+            selectable: false,
+            evented: false
+          }));
+
+          const valText = new fabric.Text(val.toString(), {
+            left: originX - (val < 0 ? 12 : 8),
+            top: y - 4,
+            fontSize: 8,
+            fill: '#fda4af',
+            fontFamily: 'JetBrains Mono, monospace',
+            fontWeight: 'bold',
+            selectable: false,
+            evented: false
+          });
+          objects.push(valText);
+        }
+
+        // Origin (0,0) Label
+        const zeroLabel = new fabric.Text('0', {
+          left: originX + 3,
+          top: originY + 3,
+          fontSize: 8,
+          fill: '#fda4af',
+          fontFamily: 'JetBrains Mono, monospace',
+          fontWeight: 'bold',
+          selectable: false,
+          evented: false
+        });
+        objects.push(zeroLabel);
+
+        const pageDim = AppState.pageDimensions[AppState.currentPage] || { width: 600, height: 800 };
+        const initLeft = Math.max(20, (pageDim.width - totalWidth) / 2);
+        const initTop = Math.max(40, (pageDim.height - totalHeight) / 3);
+
+        const graphGroup = new fabric.Group(objects, {
+          left: initLeft,
+          top: initTop,
+          width: totalWidth,
+          height: totalHeight,
+          originX: 'left',
+          originY: 'top',
+          selectable: true,
+          evented: true,
+          hasRotatingPoint: true,
+          transparentCorners: false,
+          cornerColor: '#e11d48',
+          cornerStrokeColor: '#ffffff',
+          cornerSize: 9,
+          cornerStyle: 'circle',
+          strokeUniform: true,
+          subTargetCheck: false,
+          objectCaching: true
+        });
+
+        graphGroup.isGraph = true;
+        graphGroup.customType = 'graph';
+
+        fCanvas.add(graphGroup);
+        fCanvas.setActiveObject(graphGroup);
+        graphGroup.setCoords();
+        fCanvas.requestRenderAll();
+        HistoryManager.saveState();
+        ToolController.setActiveTool('select');
+      }
+    };
+
+    /**
+     * High-Performance Physical Ruler Dynamic Brush
+     * Efficiently caches ruler vector transformation at stroke-start to eliminate per-frame overhead
+     */
+    const RulerPencilBrush = fabric.util.createClass(fabric.PencilBrush, {
+      _rulerCache: null,
+
+      _updateRulerCache: function() {
+        if (!this.canvas) {
+          this._rulerCache = null;
+          return;
+        }
+        const ruler = this.canvas.getObjects().find(o => o.isRuler || o.customType === 'ruler');
+        if (!ruler) {
+          this._rulerCache = null;
+          return;
+        }
+
+        ruler.setCoords();
+        const coords = ruler.aCoords;
+        if (!coords || !coords.tl || !coords.tr || !coords.bl) {
+          this._rulerCache = null;
+          return;
+        }
+
+        const tl = coords.tl;
+        const tr = coords.tr;
+        const bl = coords.bl;
+
+        const ux = tr.x - tl.x;
+        const uy = tr.y - tl.y;
+        const lenTop = Math.hypot(ux, uy);
+        if (lenTop === 0) {
+          this._rulerCache = null;
+          return;
+        }
+        const uUnitX = ux / lenTop;
+        const uUnitY = uy / lenTop;
+
+        const wx = bl.x - tl.x;
+        const wy = bl.y - tl.y;
+        const lenSide = Math.hypot(wx, wy);
+        if (lenSide === 0) {
+          this._rulerCache = null;
+          return;
+        }
+        const nUnitX = wx / lenSide;
+        const nUnitY = wy / lenSide;
+
+        this._rulerCache = {
+          tl, tr, bl,
+          uUnitX, uUnitY,
+          nUnitX, nUnitY,
+          lenTop, lenSide
+        };
+      },
+
+      _snapPointer: function(pointer) {
+        const cache = this._rulerCache;
+        if (!cache) {
+          return (pointer instanceof fabric.Point) ? pointer : new fabric.Point(pointer.x, pointer.y);
+        }
+
+        const { tl, bl, uUnitX, uUnitY, nUnitX, nUnitY, lenTop, lenSide } = cache;
+        const dx = pointer.x - tl.x;
+        const dy = pointer.y - tl.y;
+        const t = dx * uUnitX + dy * uUnitY;
+        const h = dx * nUnitX + dy * nUnitY;
+
+        // Check if pointer is along the ruler's length
+        if (t >= -15 && t <= lenTop + 15) {
+          // Top edge drawing constraint
+          if (h >= -25 && h <= Math.max(28, lenSide * 0.55)) {
+            const clampedT = Math.max(0, Math.min(lenTop, t));
+            return new fabric.Point(tl.x + clampedT * uUnitX, tl.y + clampedT * uUnitY);
+          }
+          // Bottom edge drawing constraint
+          if (h > Math.max(28, lenSide * 0.55) && h <= lenSide + 25) {
+            const clampedT = Math.max(0, Math.min(lenTop, t));
+            return new fabric.Point(bl.x + clampedT * uUnitX, bl.y + clampedT * uUnitY);
+          }
+        }
+
+        return (pointer instanceof fabric.Point) ? pointer : new fabric.Point(pointer.x, pointer.y);
+      },
+
+      _prepareForDrawing: function(pointer) {
+        this._updateRulerCache();
+        const snapped = this._snapPointer(pointer);
+        const p = new fabric.Point(snapped.x, snapped.y);
+        this._reset();
+        this._addPoint(p);
+        this.canvas.contextTop.moveTo(p.x, p.y);
+      },
+
+      _captureDrawingPath: function(pointer) {
+        const snapped = this._snapPointer(pointer);
+        const pointerPoint = new fabric.Point(snapped.x, snapped.y);
+        return this._addPoint(pointerPoint);
+      },
+
+      _finalizeAndAddPath: function() {
+        this._rulerCache = null;
+        this.callSuper('_finalizeAndAddPath');
+      }
+    });
+
+    /**
+     * MODULE 5: Tool Controller
      */
     const ToolController = {
       init() {
@@ -399,7 +1106,27 @@
           });
         });
 
-        document.getElementById('prop-color').addEventListener('input', this.updateProps.bind(this));
+        const btnProps = document.getElementById('btn-toggle-props');
+        const popover = document.getElementById('properties-popover');
+        const btnCloseProps = document.getElementById('btn-close-props');
+
+        btnProps.addEventListener('click', () => {
+          const isClosed = popover.classList.contains('pointer-events-none');
+          if (isClosed) {
+            popover.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none');
+          } else {
+            popover.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none');
+          }
+        });
+
+        btnCloseProps.addEventListener('click', () => {
+          popover.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none');
+        });
+
+        document.getElementById('prop-color').addEventListener('input', (e) => {
+          document.getElementById('prop-swatch-indicator').style.backgroundColor = e.target.value;
+          this.updateProps();
+        });
         document.getElementById('prop-size').addEventListener('input', this.updateProps.bind(this));
         document.getElementById('prop-opacity').addEventListener('input', this.updateProps.bind(this));
         document.getElementById('btn-delete-selected').addEventListener('click', this.deleteSelected.bind(this));
@@ -441,16 +1168,16 @@
         const size = parseInt(document.getElementById('prop-size').value);
         const opacity = parseFloat(document.getElementById('prop-opacity').value);
 
-        fCanvas.isDrawingMode = (tool === 'pen' || tool === 'highlight');
+        fCanvas.isDrawingMode = (tool === 'pen');
         fCanvas.selection = (tool === 'select');
         
         if (fCanvas.isDrawingMode) {
-          fCanvas.freeDrawingBrush = new fabric.PencilBrush(fCanvas);
-          fCanvas.freeDrawingBrush.color = tool === 'highlight' ? this.hexToRgba(color, Math.min(opacity * 0.5, 0.5)) : color;
-          fCanvas.freeDrawingBrush.width = tool === 'highlight' ? size * 3 : size;
+          fCanvas.freeDrawingBrush = new RulerPencilBrush(fCanvas);
+          fCanvas.freeDrawingBrush.color = color;
+          fCanvas.freeDrawingBrush.width = size;
           fCanvas.defaultCursor = 'crosshair';
         } else {
-          fCanvas.defaultCursor = tool === 'view' ? 'grab' : (tool === 'eraser' ? 'cell' : 'default');
+          fCanvas.defaultCursor = tool === 'view' ? 'grab' : (tool === 'eraser' ? 'cell' : (tool === 'highlight' ? 'crosshair' : 'default'));
         }
 
         if (tool !== 'select' && tool !== 'textbox') {
@@ -472,51 +1199,124 @@
         fCanvas.off('mouse:up');
         fCanvas.off('path:created'); 
 
-        // Instant OCR Handwriting trigger
+        // Pen Draw Handler
         fCanvas.on('path:created', (e) => {
+          const path = e.path;
+          
           if (AppState.activeTool === 'pen' && AppState.beautifyWriting) {
-            AppState.pendingStrokes.push(e.path);
+            AppState.pendingStrokes.push(path);
             clearTimeout(AppState.strokeTimeout);
             
             AppState.strokeTimeout = setTimeout(() => {
               this.processBeautify(fCanvas);
-            }, 800); // Trigger super-fast snapshot 800ms after user pauses pen
+            }, 750);
           }
         });
+
+        // Straight Line Highlighter Implementation
+        if (tool === 'highlight') {
+          let isHighlighting = false;
+          let highlightLine = null;
+          let startX = 0;
+          let startY = 0;
+
+          fCanvas.on('mouse:down', (o) => {
+            isHighlighting = true;
+            const pointer = fCanvas.getPointer(o.e);
+            startX = pointer.x;
+            startY = pointer.y;
+
+            highlightLine = new fabric.Line([startX, startY, startX, startY], {
+              stroke: this.hexToRgba(color, Math.min(opacity * 0.5, 0.5)),
+              strokeWidth: Math.max(12, size * 3),
+              strokeCap: 'square',
+              strokeUniform: true,
+              selectable: false,
+              evented: false,
+              originX: 'center',
+              originY: 'center'
+            });
+
+            fCanvas.add(highlightLine);
+          });
+
+          fCanvas.on('mouse:move', (o) => {
+            if (!isHighlighting || !highlightLine) return;
+            const pointer = fCanvas.getPointer(o.e);
+
+            let targetX = pointer.x;
+            let targetY = pointer.y;
+
+            if (Math.abs(targetY - startY) < 14) {
+              targetY = startY;
+            } else if (Math.abs(targetX - startX) < 14) {
+              targetX = startX;
+            }
+
+            highlightLine.set({ x2: targetX, y2: targetY });
+            fCanvas.requestRenderAll();
+          });
+
+          fCanvas.on('mouse:up', () => {
+            if (isHighlighting && highlightLine) {
+              isHighlighting = false;
+              highlightLine.setCoords();
+              highlightLine.selectable = (AppState.activeTool === 'select');
+              highlightLine.evented = (AppState.activeTool === 'select' || AppState.activeTool === 'eraser');
+              highlightLine = null;
+              HistoryManager.saveState();
+            }
+          });
+        }
 
         if (tool === 'textbox') {
           fCanvas.on('mouse:down', (o) => {
             if (o.target && (o.target.type === 'textbox' || o.target.type === 'i-text')) return;
             
-            const pointer = fCanvas.getPointer(o.e); // Retrieves precise unzoomed coordinates
+            const pointer = fCanvas.getPointer(o.e);
             const textbox = new fabric.Textbox('Type here', {
               left: pointer.x, top: pointer.y,
               width: Math.max(150, size * 5), 
               fontSize: Math.max(16, size * 2),
               fill: color, opacity: opacity,
               fontFamily: 'sans-serif', editable: true,
-              cursorColor: color
+              cursorColor: color,
+              strokeUniform: true
             });
             fCanvas.add(textbox);
             fCanvas.setActiveObject(textbox);
             textbox.enterEditing();
             textbox.selectAll();
-            fCanvas.renderAll();
+            fCanvas.requestRenderAll();
           });
         } 
         else if (tool === 'eraser') {
           let isErasing = false;
-          fCanvas.on('mouse:down', (o) => { isErasing = true; if(o.target) { fCanvas.remove(o.target); HistoryManager.saveState(); } });
-          fCanvas.on('mouse:move', (o) => { if(isErasing && o.target) { fCanvas.remove(o.target); } });
-          fCanvas.on('mouse:up', () => { if(isErasing) HistoryManager.saveState(); isErasing = false; });
+          fCanvas.on('mouse:down', (o) => { 
+            isErasing = true; 
+            if (o.target) { 
+              fCanvas.remove(o.target); 
+              fCanvas.discardActiveObject();
+              fCanvas.requestRenderAll();
+              HistoryManager.saveState(); 
+            } 
+          });
+          fCanvas.on('mouse:move', (o) => { 
+            if (isErasing && o.target) { 
+              fCanvas.remove(o.target); 
+              fCanvas.discardActiveObject();
+              fCanvas.requestRenderAll();
+            } 
+          });
+          fCanvas.on('mouse:up', () => { 
+            if (isErasing) HistoryManager.saveState(); 
+            isErasing = false; 
+          });
         }
 
-        fCanvas.renderAll();
+        fCanvas.requestRenderAll();
       },
       
-      /**
-       * Core Auto OCR engine (Instant, Client-Side)
-       */
       async processBeautify(fCanvas) {
         if (AppState.pendingStrokes.length === 0) return;
         const strokes = [...AppState.pendingStrokes];
@@ -538,12 +1338,12 @@
 
         if (w <= pad * 2 + 5 || h <= pad * 2 + 5) return;
 
-        // Isolate strokes on a high-DPI temporary canvas, applying contrast thresholds
         const tempCanvasEl = document.createElement('canvas');
         const tempFCanvas = new fabric.StaticCanvas(tempCanvasEl, {
-          width: w * 3, height: h * 3, backgroundColor: 'white' // 3x scaling for sharp OCR
+          width: w * 2, height: h * 2, backgroundColor: 'white',
+          enableRetinaScaling: false
         });
-        tempFCanvas.setZoom(3);
+        tempFCanvas.setZoom(2);
 
         strokes.forEach(p => {
           p.clone((cloned) => {
@@ -551,7 +1351,7 @@
               left: cloned.left - minX,
               top: cloned.top - minY,
               stroke: 'black',
-              strokeWidth: Math.max(6, cloned.strokeWidth * 1.5) // Super thick black lines for accurate reading
+              strokeWidth: Math.max(6, cloned.strokeWidth * 1.5)
             });
             tempFCanvas.add(cloned);
           });
@@ -559,9 +1359,10 @@
         tempFCanvas.renderAll();
 
         const dataUrl = tempCanvasEl.toDataURL('image/png');
+        tempFCanvas.dispose();
         
         try {
-          const worker = await BeautifyEngine.workerPromise;
+          const worker = await BeautifyEngine.getWorker();
           if (!worker) return;
 
           const result = await worker.recognize(dataUrl);
@@ -576,7 +1377,6 @@
             const color = document.getElementById('prop-color').value;
             const opacity = parseFloat(document.getElementById('prop-opacity').value);
             
-            // Generate clean Dancing Script text on the exact base coordinates
             const textbox = new fabric.Textbox(text, {
               left: minX + pad,
               top: minY + pad,
@@ -586,11 +1386,12 @@
               opacity: opacity,
               fontFamily: "'Dancing Script', cursive",
               fontWeight: "bold",
-              editable: true
+              editable: true,
+              strokeUniform: true
             });
             
             fCanvas.add(textbox);
-            fCanvas.renderAll();
+            fCanvas.requestRenderAll();
             
             AppState.isApplyingHistory = false;
             HistoryManager.saveState();
@@ -609,33 +1410,38 @@
           const fc = AppState.fabricInstances[pageNum];
           if (!fc) return;
           
-          if (fc.isDrawingMode) {
-             fc.freeDrawingBrush.color = AppState.activeTool === 'highlight' ? this.hexToRgba(color, Math.min(opacity * 0.5, 0.5)) : color;
-             fc.freeDrawingBrush.width = AppState.activeTool === 'highlight' ? size * 3 : size;
+          if (fc.isDrawingMode && fc.freeDrawingBrush) {
+             fc.freeDrawingBrush.color = color;
+             fc.freeDrawingBrush.width = size;
           }
           const obj = fc.getActiveObject();
           if (obj) {
             if (obj.type === 'textbox') obj.set({ fill: color, opacity, fontSize: Math.max(16, size*2) });
-            else if (obj.type === 'path') obj.set({ stroke: color, strokeWidth: size, opacity });
+            else if (obj.type === 'path' || obj.type === 'line') obj.set({ stroke: color, strokeWidth: size, opacity });
             else obj.set({ opacity });
-            fc.renderAll();
+            fc.requestRenderAll();
             HistoryManager.saveState();
           }
         });
       },
 
       deleteSelected() {
+        let deleted = false;
         AppState.activePages.forEach(pageNum => {
           const fc = AppState.fabricInstances[pageNum];
           if (fc) {
             const active = fc.getActiveObjects();
-            if (active.length) {
+            if (active && active.length) {
               active.forEach(obj => fc.remove(obj));
               fc.discardActiveObject();
-              HistoryManager.saveState();
+              fc.requestRenderAll();
+              deleted = true;
             }
           }
         });
+        if (deleted) {
+          HistoryManager.saveState();
+        }
         document.getElementById('btn-delete-selected').classList.add('hidden');
       },
 
@@ -646,7 +1452,7 @@
     };
 
     /**
-     * MODULE 3 & 15: Memory Manager & Page Cache
+     * MODULE 6: Memory Manager & Virtualization
      */
     const MemoryManager = {
       observer: null,
@@ -663,7 +1469,7 @@
           });
         }, { 
           root: document.getElementById('viewport-container'),
-          rootMargin: "100% 0px"
+          rootMargin: "60% 0px"
         });
       },
 
@@ -694,12 +1500,17 @@
         if (!AppState.activePages.has(pageNum)) return;
         AppState.activePages.delete(pageNum);
 
+        if (AppState.pageRenderTasks[pageNum]) {
+          try { AppState.pageRenderTasks[pageNum].cancel(); } catch(e) {}
+          delete AppState.pageRenderTasks[pageNum];
+        }
+
         const container = document.getElementById(`page-${pageNum}`);
         if (!container) return;
 
         const fCanvas = AppState.fabricInstances[pageNum];
         if (fCanvas) {
-          AppState.pageData[pageNum] = JSON.stringify(fCanvas.toJSON());
+          AppState.pageData[pageNum] = fCanvas.toJSON(FABRIC_CUSTOM_PROPS);
           fCanvas.dispose();
           delete AppState.fabricInstances[pageNum];
         }
@@ -720,81 +1531,32 @@
         const fCanvas = new fabric.Canvas(canvasEl, {
           width: dim.width * AppState.scale,
           height: dim.height * AppState.scale,
-          selection: false
+          selection: false,
+          enableRetinaScaling: false,
+          renderOnAddRemove: true
         });
         
         fCanvas.baseWidth = dim.width;
         fCanvas.baseHeight = dim.height;
-        
-        // **CRITICAL FIX**: Locks logical coordinates globally to prevent shifting on viewport changes
         fCanvas.setZoom(AppState.scale);
         
         AppState.fabricInstances[pageNum] = fCanvas;
 
-        fCanvas.on('selection:created', () => document.getElementById('btn-delete-selected').classList.remove('hidden'));
-        fCanvas.on('selection:cleared', () => document.getElementById('btn-delete-selected').classList.add('hidden'));
+        const showDel = () => document.getElementById('btn-delete-selected').classList.remove('hidden');
+        const hideDel = () => document.getElementById('btn-delete-selected').classList.add('hidden');
+
+        fCanvas.on('selection:created', showDel);
+        fCanvas.on('selection:updated', showDel);
+        fCanvas.on('selection:cleared', hideDel);
         
         fCanvas.on('object:added', () => { if (!AppState.isApplyingHistory && !fCanvas.isRendering) HistoryManager.saveState(); });
         
         fCanvas.on('mouse:down', () => {
+            AppState.currentPage = pageNum;
+            document.getElementById('drawer-page-current').textContent = pageNum;
+            document.getElementById('bottom-page-num').textContent = pageNum;
             document.querySelectorAll('.pdf-page-container').forEach(el => el.style.zIndex = '1');
             container.style.zIndex = '10';
-        });
-
-        // GHOST OVERLAY LOGIC (Prevents clipping/going under other pages during drag)
-        fCanvas.on('object:moving', (e) => {
-            const obj = e.target;
-            if (!obj) return;
-            
-            let dragProxy = document.getElementById('drag-proxy-overlay');
-            if (!dragProxy) {
-                dragProxy = document.createElement('div');
-                dragProxy.id = 'drag-proxy-overlay';
-                dragProxy.style.position = 'fixed';
-                dragProxy.style.pointerEvents = 'none'; // Ensure elementsFromPoint works behind it!
-                dragProxy.style.zIndex = '999999';
-                dragProxy.style.display = 'none';
-                document.body.appendChild(dragProxy);
-            }
-            
-            // Generate snapshot of moving object if it hasn't been generated yet
-            if (dragProxy.style.display === 'none') {
-                obj.originalOpacity = obj.opacity;
-                try {
-                    const dataUrl = obj.toDataURL({ multiplier: AppState.scale });
-                    dragProxy.style.backgroundImage = `url(${dataUrl})`;
-                    dragProxy.style.backgroundSize = '100% 100%';
-                    dragProxy.style.display = 'block';
-                    // Hide original object on bounded canvas so it looks like it popped out
-                    obj.set('opacity', 0); 
-                } catch (err) {
-                    // Fail gracefully in case of Cross-Origin security errors on toDataURL
-                    console.warn("Drag proxy rendering failed", err);
-                }
-            }
-            
-            if (dragProxy.style.display === 'block') {
-                const canvasRect = fCanvas.getElement().getBoundingClientRect();
-                const objRect = obj.getBoundingRect();
-                
-                // Track proxy with the mouse visually based on viewport boundaries
-                dragProxy.style.left = (canvasRect.left + objRect.left) + 'px';
-                dragProxy.style.top = (canvasRect.top + objRect.top) + 'px';
-                dragProxy.style.width = objRect.width + 'px';
-                dragProxy.style.height = objRect.height + 'px';
-            }
-        });
-
-        fCanvas.on('mouse:up', (e) => {
-            const dragProxy = document.getElementById('drag-proxy-overlay');
-            if (dragProxy) dragProxy.style.display = 'none';
-            
-            // Restore hidden object before `object:modified` fully triggers
-            if (e.target && e.target.originalOpacity !== undefined) {
-                e.target.set('opacity', e.target.originalOpacity);
-                delete e.target.originalOpacity;
-                fCanvas.renderAll();
-            }
         });
 
         fCanvas.on('object:modified', (e) => {
@@ -827,7 +1589,8 @@
 
                         cloned.set({
                             left: obj.left + dx,
-                            top: obj.top + dy
+                            top: obj.top + dy,
+                            strokeUniform: true
                         });
                         cloned.setCoords();
                         
@@ -837,12 +1600,12 @@
                         targetCanvas.add(cloned);
                         targetCanvas.setActiveObject(cloned);
                         
-                        fCanvas.renderAll();
-                        targetCanvas.renderAll();
+                        fCanvas.requestRenderAll();
+                        targetCanvas.requestRenderAll();
                         
                         AppState.isApplyingHistory = false;
                         HistoryManager.saveState(); 
-                    });
+                    }, FABRIC_CUSTOM_PROPS);
                     
                     return; 
                 }
@@ -855,8 +1618,8 @@
           fCanvas.isRendering = true;
           fCanvas.loadFromJSON(AppState.pageData[pageNum], () => {
             fCanvas.isRendering = false;
-            fCanvas.setZoom(AppState.scale); // Hard reset scale constraint on cache load
-            fCanvas.renderAll();
+            fCanvas.setZoom(AppState.scale);
+            fCanvas.requestRenderAll();
           });
         }
 
@@ -865,20 +1628,47 @@
     };
 
     /**
-     * MODULE 4: Rendering Engine & PDF Loader
+     * MODULE 7: Rendering Engine & PDF Loader
      */
     const RenderEngine = {
       async loadDocument(file) {
-        MenuController.showLoading("Loading PDF...");
+        DrawerController.showLoading("Loading PDF...");
         try {
+          Object.values(AppState.pageRenderTasks).forEach(task => {
+            try { task.cancel(); } catch(e) {}
+          });
+          AppState.pageRenderTasks = {};
+
+          Object.values(AppState.fabricInstances).forEach(fc => {
+            try {
+              fc.off();
+              fc.dispose();
+            } catch(e) {}
+          });
+          AppState.fabricInstances = {};
+          AppState.pageData = {};
+          AppState.activePages.clear();
+          AppState.historyStack = [];
+          AppState.historyIndex = -1;
+          AppState.pendingStrokes = [];
+          if (AppState.strokeTimeout) clearTimeout(AppState.strokeTimeout);
+
+          document.getElementById('btn-undo').disabled = true;
+          document.getElementById('btn-redo').disabled = true;
+          document.getElementById('btn-delete-selected').classList.add('hidden');
+
           const arrayBuffer = await file.arrayBuffer();
           AppState.pdfBytes = arrayBuffer.slice(0); 
           
           const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
           AppState.pdfDoc = await loadingTask.promise;
           AppState.numPages = AppState.pdfDoc.numPages;
+          AppState.currentPage = 1;
           
-          document.getElementById('page-count').textContent = AppState.numPages;
+          document.getElementById('drawer-page-total').textContent = AppState.numPages;
+          document.getElementById('drawer-page-current').textContent = '1';
+          document.getElementById('bottom-page-count').textContent = AppState.numPages;
+          document.getElementById('bottom-page-num').textContent = '1';
           document.getElementById('drop-zone').classList.add('hidden');
           
           const wrapper = document.getElementById('document-wrapper');
@@ -886,22 +1676,16 @@
           wrapper.classList.remove('hidden');
 
           AppState.pageDimensions = [];
-          AppState.pageData = {};
-          AppState.activePages.clear();
           
-          // Calculate auto-fit scale based on user's device viewport and first page dimensions
           const firstPage = await AppState.pdfDoc.getPage(1);
           const firstVp = firstPage.getViewport({ scale: 1.0 });
           const vpContainer = document.getElementById('viewport-container');
           
-          // Calculate available space in the viewport container
-          const availWidth = Math.max(280, (vpContainer.clientWidth || window.innerWidth) - 48);
-          const availHeight = Math.max(280, (vpContainer.clientHeight || window.innerHeight) - 48);
+          const availWidth = Math.max(280, (vpContainer.clientWidth || window.innerWidth) - 40);
+          const availHeight = Math.max(280, (vpContainer.clientHeight || window.innerHeight) - 60);
           
           let initialScale = Math.min(availWidth / firstVp.width, availHeight / firstVp.height);
-          // Clamp to supported zoom ranges (between 40% and 250%)
           initialScale = Math.max(0.4, Math.min(initialScale, 2.5));
-          // Round to 2 decimal places
           initialScale = Math.round(initialScale * 100) / 100;
 
           AppState.scale = initialScale;
@@ -929,39 +1713,54 @@
           console.error(e);
           alert("Failed to load PDF.");
         } finally {
-          MenuController.hideLoading();
+          DrawerController.hideLoading();
         }
       },
 
       async renderPDFPage(pageNum, container) {
+        if (AppState.pageRenderTasks[pageNum]) {
+          try { AppState.pageRenderTasks[pageNum].cancel(); } catch(e) {}
+          delete AppState.pageRenderTasks[pageNum];
+        }
+
         const page = await AppState.pdfDoc.getPage(pageNum);
         const viewport = page.getViewport({ scale: AppState.scale });
         
         const canvas = container.querySelector('.pdf-canvas-layer');
         const textLayer = container.querySelector('.text-layer');
         
-        const dpr = window.devicePixelRatio || 1;
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
         canvas.width = viewport.width * dpr;
         canvas.height = viewport.height * dpr;
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { alpha: false });
         ctx.scale(dpr, dpr);
 
         const renderContext = { canvasContext: ctx, viewport: viewport };
-        await page.render(renderContext).promise;
+        const renderTask = page.render(renderContext);
+        AppState.pageRenderTasks[pageNum] = renderTask;
 
-        const textContent = await page.getTextContent();
-        textLayer.style.transform = `scale(${AppState.scale})`;
-        await pdfjsLib.renderTextLayer({
-          textContentSource: textContent,
-          container: textLayer,
-          viewport: page.getViewport({ scale: 1.0 }),
-          textDivs: []
-        }).promise;
+        try {
+          await renderTask.promise;
+          delete AppState.pageRenderTasks[pageNum];
+
+          const textContent = await page.getTextContent();
+          textLayer.style.transform = `scale(${AppState.scale})`;
+          await pdfjsLib.renderTextLayer({
+            textContentSource: textContent,
+            container: textLayer,
+            viewport: page.getViewport({ scale: 1.0 }),
+            textDivs: []
+          }).promise;
+        } catch (err) {
+          if (err.name !== 'RenderingCancelledException') {
+            console.error("Render error on page " + pageNum, err);
+          }
+        }
       }
     };
 
     /**
-     * MODULE 5: Viewport & Zoom Engine
+     * MODULE 8: Smooth Viewport & Scaling Engine
      */
     const ViewportEngine = {
       zoomTimeout: null,
@@ -969,37 +1768,66 @@
       init() {
         const vp = document.getElementById('viewport-container');
         
+        let scrollTick = false;
         vp.addEventListener('scroll', () => {
-          const center = vp.scrollTop + vp.clientHeight / 2;
-          for (let i of AppState.activePages) {
-            const el = document.getElementById(`page-${i}`);
-            if (el) {
-              const rect = el.getBoundingClientRect();
-              const elCenter = el.offsetTop - vp.scrollTop + el.clientHeight/2;
-              if (Math.abs(elCenter - vp.clientHeight/2) < el.clientHeight/2) {
-                document.getElementById('page-num-input').value = i;
-                break;
+          if (!scrollTick) {
+            requestAnimationFrame(() => {
+              for (let i of AppState.activePages) {
+                const el = document.getElementById(`page-${i}`);
+                if (el) {
+                  const elCenter = el.offsetTop - vp.scrollTop + el.clientHeight/2;
+                  if (Math.abs(elCenter - vp.clientHeight/2) < el.clientHeight/2) {
+                    AppState.currentPage = i;
+                    document.getElementById('drawer-page-current').textContent = i;
+                    document.getElementById('bottom-page-num').textContent = i;
+                    break;
+                  }
+                }
               }
-            }
+              scrollTick = false;
+            });
+            scrollTick = true;
           }
-        });
+        }, { passive: true });
 
-        document.getElementById('btn-zoom-in').addEventListener('click', () => this.applyZoom(AppState.scale + 0.2));
-        document.getElementById('btn-zoom-out').addEventListener('click', () => this.applyZoom(AppState.scale - 0.2));
+        document.getElementById('btn-zoom-in').addEventListener('click', () => this.applyZoom(AppState.scale + 0.15));
+        document.getElementById('btn-zoom-out').addEventListener('click', () => this.applyZoom(AppState.scale - 0.15));
 
         vp.addEventListener('wheel', (e) => {
           if (e.ctrlKey || e.metaKey) {
             e.preventDefault();
-            const delta = e.deltaY < 0 ? 0.1 : -0.1;
+            const delta = e.deltaY < 0 ? 0.08 : -0.08;
             this.handleSmoothZoom(delta);
           }
         }, { passive: false });
       },
 
+      fitToWidth() {
+        if (!AppState.pdfDoc || AppState.numPages === 0) return;
+        const vp = document.getElementById('viewport-container');
+        const firstDim = AppState.pageDimensions[1];
+        if (firstDim) {
+          const target = Math.max(0.3, (vp.clientWidth - 40) / firstDim.width);
+          this.applyZoom(target);
+        }
+      },
+
+      fitToPage() {
+        if (!AppState.pdfDoc || AppState.numPages === 0) return;
+        const vp = document.getElementById('viewport-container');
+        const firstDim = AppState.pageDimensions[1];
+        if (firstDim) {
+          const targetW = (vp.clientWidth - 40) / firstDim.width;
+          const targetH = (vp.clientHeight - 80) / firstDim.height;
+          const target = Math.max(0.3, Math.min(targetW, targetH));
+          this.applyZoom(target);
+        }
+      },
+
       handleSmoothZoom(delta) {
         if (AppState.numPages === 0) return;
         
-        const targetScale = Math.min(Math.max(0.5, AppState.scale * AppState.zoomCssScale + delta), 4.0);
+        const targetScale = Math.min(Math.max(0.4, AppState.scale * AppState.zoomCssScale + delta), 3.5);
         AppState.zoomCssScale = targetScale / AppState.scale;
         
         document.getElementById('zoom-percentage').textContent = Math.round(targetScale * 100) + '%';
@@ -1008,12 +1836,12 @@
         clearTimeout(this.zoomTimeout);
         this.zoomTimeout = setTimeout(() => {
           this.commitZoom(targetScale);
-        }, 300);
+        }, 220);
       },
 
       applyZoom(newScale) {
         if (AppState.numPages === 0) return;
-        newScale = Math.min(Math.max(0.5, newScale), 4.0);
+        newScale = Math.min(Math.max(0.4, newScale), 3.5);
         document.getElementById('zoom-percentage').textContent = Math.round(newScale * 100) + '%';
         this.commitZoom(newScale);
       },
@@ -1051,7 +1879,7 @@
               height: fCanvas.baseHeight * AppState.scale 
             });
             fCanvas.setZoom(AppState.scale);
-            fCanvas.renderAll();
+            fCanvas.requestRenderAll();
           }
         }
       },
@@ -1063,17 +1891,17 @@
     };
 
     /**
-     * MODULE 14: Export Engine
+     * MODULE 9: Export Engine
      */
     const ExportEngine = {
       async exportPDF() {
         if (!AppState.pdfBytes) return;
-        MenuController.showLoading("Generating High-Quality PDF...");
+        DrawerController.showLoading("Generating High-Quality PDF...");
         
         try {
           AppState.activePages.forEach(pageNum => {
              if (AppState.fabricInstances[pageNum]) {
-                AppState.pageData[pageNum] = JSON.stringify(AppState.fabricInstances[pageNum].toJSON());
+                AppState.pageData[pageNum] = AppState.fabricInstances[pageNum].toJSON(FABRIC_CUSTOM_PROPS);
              }
           });
 
@@ -1082,14 +1910,13 @@
 
           for (let i = 0; i < pages.length; i++) {
             const pageNum = i + 1;
-            const stateStr = AppState.pageData[pageNum];
+            const stateObj = AppState.pageData[pageNum];
             
-            if (stateStr) {
-              const stateObj = JSON.parse(stateStr);
+            if (stateObj) {
               if (stateObj.objects && stateObj.objects.length > 0) {
                 
                 const dim = AppState.pageDimensions[pageNum];
-                const exportScale = 3; 
+                const exportScale = 2; 
                 
                 const tempCanvasEl = document.createElement('canvas');
                 tempCanvasEl.width = dim.width * exportScale;
@@ -1097,7 +1924,8 @@
                 
                 const exportCanvas = new fabric.StaticCanvas(tempCanvasEl, {
                   width: dim.width * exportScale,
-                  height: dim.height * exportScale
+                  height: dim.height * exportScale,
+                  enableRetinaScaling: false
                 });
 
                 await new Promise(resolve => exportCanvas.loadFromJSON(stateObj, resolve));
@@ -1126,7 +1954,7 @@
           console.error("Export Error:", e);
           alert("Failed to export PDF.");
         } finally {
-          MenuController.hideLoading();
+          DrawerController.hideLoading();
         }
       }
     };
@@ -1135,8 +1963,7 @@
      * Application Initialization
      */
     document.addEventListener('DOMContentLoaded', () => {
-      BeautifyEngine.init(); // Preload instantly
-      MenuController.init();
+      DrawerController.init();
       ToolController.init();
       MemoryManager.init();
       ViewportEngine.init();
@@ -1144,22 +1971,74 @@
       document.getElementById('pdf-upload').addEventListener('change', e => {
         if (e.target.files[0]) RenderEngine.loadDocument(e.target.files[0]);
       });
-      document.getElementById('btn-save-pdf').addEventListener('click', () => ExportEngine.exportPDF());
       
       document.getElementById('btn-undo').addEventListener('click', () => HistoryManager.undo());
       document.getElementById('btn-redo').addEventListener('click', () => HistoryManager.redo());
 
-      document.getElementById('btn-prev-page').addEventListener('click', () => {
-         const current = parseInt(document.getElementById('page-num-input').value);
-         if(current > 1) ViewportEngine.scrollToPage(current - 1);
-      });
-      document.getElementById('btn-next-page').addEventListener('click', () => {
-         const current = parseInt(document.getElementById('page-num-input').value);
-         if(current < AppState.numPages) ViewportEngine.scrollToPage(current + 1);
-      });
-      document.getElementById('page-num-input').addEventListener('change', (e) => {
-         let val = parseInt(e.target.value);
-         if(val >= 1 && val <= AppState.numPages) ViewportEngine.scrollToPage(val);
+      // Non-Zooming Fullscreen Controller
+      const btnFullscreen = document.getElementById('btn-fullscreen');
+      if (btnFullscreen) {
+        const toggleFullscreen = () => {
+          const doc = document;
+          const docEl = document.documentElement;
+          const isFs = doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement;
+
+          if (!isFs) {
+            const req = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.mozRequestFullScreen || docEl.msRequestFullscreen;
+            if (req) {
+              req.call(docEl, { navigationUI: 'hide' }).catch(() => {
+                if (docEl.requestFullscreen) docEl.requestFullscreen().catch(e => console.warn(e));
+              });
+            }
+          } else {
+            const exit = doc.exitFullscreen || doc.webkitExitFullscreen || doc.mozCancelFullScreen || doc.msExitFullscreen;
+            if (exit) {
+              exit.call(doc).catch(e => console.warn(e));
+            }
+          }
+        };
+
+        btnFullscreen.addEventListener('click', toggleFullscreen);
+
+        const updateFsIcon = () => {
+          const isFs = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+          const icon = btnFullscreen.querySelector('i');
+          if (icon) {
+            if (isFs) {
+              icon.classList.remove('fa-expand');
+              icon.classList.add('fa-compress');
+              btnFullscreen.title = "Exit Fullscreen";
+            } else {
+              icon.classList.remove('fa-compress');
+              icon.classList.add('fa-expand');
+              btnFullscreen.title = "Toggle Fullscreen";
+            }
+          }
+        };
+
+        ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(evt => {
+          document.addEventListener(evt, updateFsIcon);
+        });
+      }
+
+      const handlePageNav = (delta) => {
+        const current = parseInt(document.getElementById('drawer-page-current').textContent) || 1;
+        const target = current + delta;
+        if (target >= 1 && target <= AppState.numPages) {
+          ViewportEngine.scrollToPage(target);
+        }
+      };
+
+      document.getElementById('drawer-prev-page').addEventListener('click', () => handlePageNav(-1));
+      document.getElementById('drawer-next-page').addEventListener('click', () => handlePageNav(1));
+      document.getElementById('btn-bottom-prev').addEventListener('click', () => handlePageNav(-1));
+      document.getElementById('btn-bottom-next').addEventListener('click', () => handlePageNav(1));
+
+      window.addEventListener('beforeunload', (e) => {
+        if (AppState.pdfDoc) {
+          e.preventDefault();
+          e.returnValue = '';
+        }
       });
 
       const dropZone = document.getElementById('drop-zone');
@@ -1173,7 +2052,6 @@
       });
       dropZone.addEventListener('click', () => document.getElementById('pdf-upload').click());
     });
-
   </script>
 </body>
 </html>
