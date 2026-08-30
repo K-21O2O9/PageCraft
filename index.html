@@ -2,7 +2,7 @@
 <html lang="en" class="h-full bg-slate-950 text-slate-100">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=1280">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PageCraft - Advanced PDF Studio</title>
 
   <!-- Tailwind CSS -->
@@ -56,7 +56,7 @@
 
     /* Virtualized Canvas Container */
     #document-wrapper {
-      transform-origin: top left;
+      transform-origin: top center;
       transition: transform 0.1s ease-out;
     }
 
@@ -242,7 +242,7 @@
     </div>
 
     <!-- The Virtualized Document Wrapper -->
-    <div id="document-wrapper" class="hidden flex flex-col">
+    <div id="document-wrapper" class="hidden flex flex-col items-center">
       <!-- Page Containers will be injected here dynamically by AppCore -->
     </div>
 
@@ -889,8 +889,27 @@
           AppState.pageData = {};
           AppState.activePages.clear();
           
+          // Calculate auto-fit scale based on user's device viewport and first page dimensions
+          const firstPage = await AppState.pdfDoc.getPage(1);
+          const firstVp = firstPage.getViewport({ scale: 1.0 });
+          const vpContainer = document.getElementById('viewport-container');
+          
+          // Calculate available space in the viewport container
+          const availWidth = Math.max(280, (vpContainer.clientWidth || window.innerWidth) - 48);
+          const availHeight = Math.max(280, (vpContainer.clientHeight || window.innerHeight) - 48);
+          
+          let initialScale = Math.min(availWidth / firstVp.width, availHeight / firstVp.height);
+          // Clamp to supported zoom ranges (between 40% and 250%)
+          initialScale = Math.max(0.4, Math.min(initialScale, 2.5));
+          // Round to 2 decimal places
+          initialScale = Math.round(initialScale * 100) / 100;
+
+          AppState.scale = initialScale;
+          AppState.zoomCssScale = 1.0;
+          document.getElementById('zoom-percentage').textContent = Math.round(AppState.scale * 100) + '%';
+
           for (let i = 1; i <= AppState.numPages; i++) {
-            const page = await AppState.pdfDoc.getPage(i);
+            const page = (i === 1) ? firstPage : await AppState.pdfDoc.getPage(i);
             const vp = page.getViewport({ scale: 1.0 });
             AppState.pageDimensions[i] = { width: vp.width, height: vp.height };
             
