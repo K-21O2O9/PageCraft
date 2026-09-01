@@ -21,9 +21,6 @@
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
   <script src="https://unpkg.com/downloadjs@1.4.7/download.min.js"></script>
   
-  <!-- Tesseract.js for Client-Side OCR -->
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-
   <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   </script>
@@ -178,6 +175,18 @@
     .text-layer span { color: transparent; position: absolute; white-space: pre; cursor: text; transform-origin: 0% 0%; }
     .text-layer.active-select ::selection { background: rgba(225, 29, 72, 0.45); color: transparent; }
 
+    /* Accurate Write: pale reference grid overlay, purely visual (never exported/saved) */
+    .accurate-write-mode .pdf-page-container::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 6;
+      pointer-events: none;
+      background-image:
+        repeating-linear-gradient(to right, rgba(225, 29, 72, 0.16) 0, rgba(225, 29, 72, 0.16) 1px, transparent 1px, transparent 28px),
+        repeating-linear-gradient(to bottom, rgba(225, 29, 72, 0.16) 0, rgba(225, 29, 72, 0.16) 1px, transparent 1px, transparent 28px);
+    }
+
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -328,29 +337,23 @@
           </div>
         </div>
 
-        <!-- Section: Smart OCR Assistant with Warning -->
+        <!-- Section: Accurate Write Guide Grid -->
         <div class="space-y-2">
-          <span class="text-[10px] font-bold tracking-wider text-rose-400/80 uppercase">Smart OCR Assistant</span>
+          <span class="text-[10px] font-bold tracking-wider text-rose-400/80 uppercase">Writing Aid</span>
           
           <div class="p-3 rounded-xl bg-neutral-900/90 border border-rose-950/70 space-y-2.5">
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-2">
-                <i class="fa-solid fa-wand-magic-sparkles text-rose-400 text-xs"></i>
-                <span class="text-xs font-semibold text-neutral-200">Beautify Pen</span>
+                <i class="fa-solid fa-table-cells text-rose-400 text-xs"></i>
+                <span class="text-xs font-semibold text-neutral-200">Accurate Write</span>
               </div>
               <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="toggle-beautify" class="sr-only peer">
+                <input type="checkbox" id="toggle-accurate-write" class="sr-only peer">
                 <div class="w-9 h-5 bg-neutral-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-rose-600"></div>
               </label>
             </div>
             
-            <p class="text-[11px] text-neutral-400 leading-relaxed">Transcribes hand-drawn pen writing into formatted calligraphy.</p>
-            
-            <!-- Warning Notice -->
-            <div class="p-2 rounded-lg bg-rose-950/50 border border-rose-800/40 text-[10px] text-rose-300 leading-normal flex items-start space-x-1.5">
-              <i class="fa-solid fa-triangle-exclamation text-rose-400 shrink-0 mt-0.5"></i>
-              <span><strong>Warning:</strong> Experimental OCR feature. It may not always recognize messy strokes or work reliably across all hardware.</span>
-            </div>
+            <p class="text-[11px] text-neutral-400 leading-relaxed">Overlays a faint guide grid across the whole document to help you write in a straight line. Purely visual — it doesn't touch your document and is never included when you save.</p>
           </div>
         </div>
 
@@ -510,9 +513,6 @@
       zoomCssScale: 1.0,  
       
       activeTool: 'view', 
-      beautifyWriting: false,
-      pendingStrokes: [],
-      strokeTimeout: null,
 
       pageData: {},       
       activePages: new Set(), 
@@ -578,32 +578,35 @@
         const root = document.documentElement;
         let nativeTriggered = false;
 
-        // If not in an iframe, try the native Fullscreen API first
-        if (!this.isInIframe()) {
-          const req = root.requestFullscreen ||
-                      root.webkitRequestFullscreen ||
-                      root.webkitRequestFullScreen ||
-                      root.mozRequestFullScreen ||
-                      root.msRequestFullscreen;
+        // Always attempt the native Fullscreen API first, regardless of whether the
+        // page is embedded (iframe) on another website. Browsers that grant the
+        // embedding site fullscreen permission (allow="fullscreen") will honor this
+        // just like a directly-loaded page; if it's blocked, we fall back below.
+        const req = root.requestFullscreen ||
+                    root.webkitRequestFullscreen ||
+                    root.webkitRequestFullScreen ||
+                    root.mozRequestFullScreen ||
+                    root.msRequestFullscreen;
 
-          if (req) {
-            try {
-              const res = req.call(root, { navigationUI: 'hide' });
-              if (res && typeof res.then === 'function') {
-                await res;
-                this.isPseudo = false;
-                nativeTriggered = true;
-              } else {
-                this.isPseudo = false;
-                nativeTriggered = true;
-              }
-            } catch (err) {
-              nativeTriggered = false;
+        if (req) {
+          try {
+            const res = req.call(root, { navigationUI: 'hide' });
+            if (res && typeof res.then === 'function') {
+              await res;
+              this.isPseudo = false;
+              nativeTriggered = true;
+            } else {
+              this.isPseudo = false;
+              nativeTriggered = true;
             }
+          } catch (err) {
+            nativeTriggered = false;
           }
         }
 
-        // If native fullscreen was blocked, unavailable, or failed in iframe/mobile, activate pseudo-fullscreen
+        // If native fullscreen was blocked, unavailable, or failed (common when embedded
+        // on a website without fullscreen permission), activate pseudo-fullscreen so the
+        // app still takes over the full browser viewport.
         if (!nativeTriggered && !document.fullscreenElement && !document.webkitFullscreenElement) {
           this.enablePseudo();
         }
@@ -689,30 +692,6 @@
     };
 
     /**
-     * Lightweight Tesseract Engine with on-demand lazy initialization
-     */
-    const BeautifyEngine = {
-      workerPromise: null,
-      getWorker() {
-        if (!this.workerPromise) {
-          this.workerPromise = (async () => {
-            try {
-              const worker = await Tesseract.createWorker('eng');
-              await worker.setParameters({
-                tessedit_char_whitelist: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,!?'
-              });
-              return worker;
-            } catch (e) {
-              console.error("Failed to init BeautifyEngine", e);
-              return null;
-            }
-          })();
-        }
-        return this.workerPromise;
-      }
-    };
-
-    /**
      * MODULE 2: Drawer & Menu Controller
      */
     const DrawerController = {
@@ -750,12 +729,9 @@
           if (e.key === 'Escape' && this.isOpen) closeDrawer();
         });
 
-        const beautifyToggle = document.getElementById('toggle-beautify');
-        beautifyToggle.addEventListener('change', (e) => {
-          AppState.beautifyWriting = e.target.checked;
-          if (AppState.beautifyWriting) {
-            BeautifyEngine.getWorker();
-          }
+        const accurateWriteToggle = document.getElementById('toggle-accurate-write');
+        accurateWriteToggle.addEventListener('change', (e) => {
+          document.documentElement.classList.toggle('accurate-write-mode', e.target.checked);
         });
 
         document.getElementById('btn-fit-width').addEventListener('click', () => {
@@ -1384,20 +1360,6 @@
         fCanvas.off('mouse:up');
         fCanvas.off('path:created'); 
 
-        // Pen Draw Handler
-        fCanvas.on('path:created', (e) => {
-          const path = e.path;
-          
-          if (AppState.activeTool === 'pen' && AppState.beautifyWriting) {
-            AppState.pendingStrokes.push(path);
-            clearTimeout(AppState.strokeTimeout);
-            
-            AppState.strokeTimeout = setTimeout(() => {
-              this.processBeautify(fCanvas);
-            }, 750);
-          }
-        });
-
         // Straight Line Highlighter Implementation
         if (tool === 'highlight') {
           let isHighlighting = false;
@@ -1502,90 +1464,6 @@
         fCanvas.requestRenderAll();
       },
       
-      async processBeautify(fCanvas) {
-        if (AppState.pendingStrokes.length === 0) return;
-        const strokes = [...AppState.pendingStrokes];
-        AppState.pendingStrokes = [];
-
-        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-        strokes.forEach(p => {
-          const rect = p.getBoundingRect();
-          minX = Math.min(minX, rect.left);
-          minY = Math.min(minY, rect.top);
-          maxX = Math.max(maxX, rect.left + rect.width);
-          maxY = Math.max(maxY, rect.top + rect.height);
-        });
-
-        const pad = 40; 
-        minX -= pad; minY -= pad; maxX += pad; maxY += pad;
-        const w = maxX - minX;
-        const h = maxY - minY;
-
-        if (w <= pad * 2 + 5 || h <= pad * 2 + 5) return;
-
-        const tempCanvasEl = document.createElement('canvas');
-        const tempFCanvas = new fabric.StaticCanvas(tempCanvasEl, {
-          width: w * 2, height: h * 2, backgroundColor: 'white',
-          enableRetinaScaling: false
-        });
-        tempFCanvas.setZoom(2);
-
-        strokes.forEach(p => {
-          p.clone((cloned) => {
-            cloned.set({
-              left: cloned.left - minX,
-              top: cloned.top - minY,
-              stroke: 'black',
-              strokeWidth: Math.max(6, cloned.strokeWidth * 1.5)
-            });
-            tempFCanvas.add(cloned);
-          });
-        });
-        tempFCanvas.renderAll();
-
-        const dataUrl = tempCanvasEl.toDataURL('image/png');
-        tempFCanvas.dispose();
-        
-        try {
-          const worker = await BeautifyEngine.getWorker();
-          if (!worker) return;
-
-          const result = await worker.recognize(dataUrl);
-          let text = result.data.text.trim();
-          text = text.replace(/^[^\w\s]+|[^\w\s]+$/g, '');
-
-          if (text.length > 0) {
-            AppState.isApplyingHistory = true; 
-            
-            strokes.forEach(p => fCanvas.remove(p));
-
-            const color = document.getElementById('prop-color').value;
-            const opacity = parseFloat(document.getElementById('prop-opacity').value);
-            
-            const textbox = new fabric.Textbox(text, {
-              left: minX + pad,
-              top: minY + pad,
-              width: Math.max(150, w - pad * 2),
-              fontSize: Math.max(24, h * 0.7),
-              fill: color,
-              opacity: opacity,
-              fontFamily: "'Dancing Script', cursive",
-              fontWeight: "bold",
-              editable: true,
-              strokeUniform: true
-            });
-            
-            fCanvas.add(textbox);
-            fCanvas.requestRenderAll();
-            
-            AppState.isApplyingHistory = false;
-            HistoryManager.saveState();
-          }
-        } catch(e) {
-          console.error("OCR Error", e);
-        }
-      },
-
       updateProps() {
         const color = document.getElementById('prop-color').value;
         const size = parseInt(document.getElementById('prop-size').value);
