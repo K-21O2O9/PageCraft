@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en" class="h-full bg-black text-neutral-100">
 <head>
@@ -57,139 +58,75 @@
       font-size: 16px !important;
     }
 
-    /* Robust Fullscreen Fallback when native API is restricted by iframe/browser sandbox */
+    /* Robust Fullscreen Fallback */
     body.pseudo-fullscreen, html.pseudo-fullscreen {
       position: fixed !important;
-      top: 0 !important;
-      left: 0 !important;
-      right: 0 !important;
-      bottom: 0 !important;
-      width: 100vw !important;
-      height: 100vh !important;
-      height: 100dvh !important;
-      max-width: 100vw !important;
-      max-height: 100dvh !important;
-      margin: 0 !important;
-      padding: 0 !important;
-      overflow: hidden !important;
+      top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+      width: 100vw !important; height: 100vh !important; height: 100dvh !important;
+      max-width: 100vw !important; max-height: 100dvh !important;
+      margin: 0 !important; padding: 0 !important; overflow: hidden !important;
       z-index: 2147483647 !important;
     }
 
-    /* Strict Fullscreen Guard: Lock zoom level to 1:1 */
     :fullscreen, :-webkit-full-screen, :-moz-full-screen, :-ms-fullscreen {
-      width: 100vw !important;
-      height: 100vh !important;
-      height: 100dvh !important;
-      zoom: 1 !important;
-      transform: none !important;
-      -webkit-transform: none !important;
+      width: 100vw !important; height: 100vh !important; height: 100dvh !important;
+      zoom: 1 !important; transform: none !important; -webkit-transform: none !important;
     }
 
-    /* Crimson Scrollbars */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #08080a; }
     ::-webkit-scrollbar-thumb { background: #3b0d17; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #e11d48; }
 
-    /* Glass Panels with Crimson Accent Border */
     .glass-panel {
       background: rgba(13, 10, 14, 0.92);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
+      backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
       border: 1px solid rgba(225, 29, 72, 0.22);
     }
 
-    /* Elevated Floating Toolbar for Mobile Safe Area & Navigation Bars */
     #floating-toolbar {
-      bottom: calc(2.75rem + var(--safe-bottom));
-      margin-bottom: 6px;
+      bottom: calc(2.75rem + var(--safe-bottom)); margin-bottom: 6px;
       transition: transform 0.2s ease, opacity 0.2s ease;
     }
 
     @media (max-width: 640px) {
-      #floating-toolbar {
-        bottom: calc(3.75rem + var(--safe-bottom));
-        margin-bottom: 8px;
-      }
+      #floating-toolbar { bottom: calc(3.75rem + var(--safe-bottom)); margin-bottom: 8px; }
     }
 
-    /* Crimson Tool Buttons */
-    .tool-btn { 
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
-      white-space: nowrap; 
-    }
+    .tool-btn { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); white-space: nowrap; }
     .tool-btn.active {
-      background: rgba(225, 29, 72, 0.25);
-      color: #fb7185;
+      background: rgba(225, 29, 72, 0.25); color: #fb7185;
       box-shadow: 0 0 0 1.5px rgba(225, 29, 72, 0.75), 0 4px 16px rgba(225, 29, 72, 0.4);
     }
 
-    /* Document Wrapper */
-    #document-wrapper {
-      transform-origin: top center;
-      transition: transform 0.05s ease-out;
-      will-change: transform;
-    }
+    #document-wrapper { transform-origin: top center; transition: transform 0.05s ease-out; will-change: transform; }
 
     .pdf-page-container {
-      position: relative;
-      margin: 0 auto 1.75rem auto; 
-      background: white;
-      box-shadow: 0 16px 45px -10px rgba(0, 0, 0, 0.95), 0 0 24px rgba(159, 18, 57, 0.18);
-      border-radius: 4px;
-      overflow: hidden;
-      contain: layout paint style;
-      flex-shrink: 0;
+      position: relative; margin: 0 auto 1.75rem auto; 
+      background: white; box-shadow: 0 16px 45px -10px rgba(0, 0, 0, 0.95), 0 0 24px rgba(159, 18, 57, 0.18);
+      border-radius: 4px; overflow: hidden; contain: layout paint style; flex-shrink: 0;
     }
 
-    .pdf-canvas-layer {
-      position: absolute;
-      top: 0; 
-      left: 0;
-      z-index: 1;
-      pointer-events: none;
-      display: block;
-    }
-
-    .canvas-container {
-      position: absolute !important;
-      top: 0 !important; 
-      left: 0 !important;
-      z-index: 2 !important;
-      touch-action: none !important;
-    }
-
+    .pdf-canvas-layer { position: absolute; top: 0; left: 0; z-index: 1; pointer-events: none; display: block; }
+    .canvas-container { position: absolute !important; top: 0 !important; left: 0 !important; z-index: 2 !important; touch-action: none !important; }
     .view-mode-active .canvas-container { pointer-events: none !important; }
     
     .text-layer {
-      position: absolute; 
-      top: 0; 
-      left: 0; 
-      z-index: 3; 
-      pointer-events: none;
-      opacity: 1; 
-      line-height: 1.0;
-      transform-origin: 0 0;
+      position: absolute; top: 0; left: 0; z-index: 3; pointer-events: none;
+      opacity: 1; line-height: 1.0; transform-origin: 0 0;
     }
     .text-layer.active-select { pointer-events: auto !important; user-select: text; }
     .text-layer span { color: transparent; position: absolute; white-space: pre; cursor: text; transform-origin: 0% 0%; }
     .text-layer.active-select ::selection { background: rgba(225, 29, 72, 0.45); color: transparent; }
 
-    /* Accurate Write: pale reference grid overlay, purely visual (never exported/saved) */
     .accurate-write-mode .pdf-page-container::after {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      z-index: 6;
-      pointer-events: none;
-      background-image:
-        repeating-linear-gradient(to right, rgba(225, 29, 72, 0.16) 0, rgba(225, 29, 72, 0.16) 1px, transparent 1px, transparent 28px),
-        repeating-linear-gradient(to bottom, rgba(225, 29, 72, 0.16) 0, rgba(225, 29, 72, 0.16) 1px, transparent 1px, transparent 28px);
+      content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 6; pointer-events: none;
+      background-image: repeating-linear-gradient(to right, rgba(225, 29, 72, 0.16) 0, rgba(225, 29, 72, 0.16) 1px, transparent 1px, transparent 28px),
+                        repeating-linear-gradient(to bottom, rgba(225, 29, 72, 0.16) 0, rgba(225, 29, 72, 0.16) 1px, transparent 1px, transparent 28px);
     }
 
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
     .drawer-overlay { transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
     .drawer-content { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
   </style>
@@ -200,7 +137,6 @@
   <!-- ================= TOP HEADER ================= -->
   <header class="h-14 sm:h-16 glass-panel border-b border-rose-950/60 shrink-0 z-30 px-3 sm:px-5 flex items-center justify-between gap-2">
     
-    <!-- Left: Hamburger Trigger & PageCraft Brand -->
     <div class="flex items-center space-x-2 sm:space-x-3 shrink-0">
       <button id="btn-open-drawer" title="Menu" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-neutral-900/90 hover:bg-neutral-800 active:scale-95 border border-rose-900/40 text-rose-300 flex items-center justify-center transition shadow-sm hover:border-rose-600/60">
         <i class="fa-solid fa-bars text-sm sm:text-base"></i>
@@ -210,16 +146,15 @@
         <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-rose-700 to-red-600 flex items-center justify-center shadow-lg shadow-rose-950/50 border border-rose-500/30 shrink-0">
           <i class="fa-solid fa-file-signature text-white text-xs sm:text-sm"></i>
         </div>
-        <h1 class="text-sm sm:text-base font-bold tracking-tight text-white flex items-center truncate">
-          PageCraft
-        </h1>
+        <div class="flex flex-col justify-center">
+            <h1 class="text-sm sm:text-base font-bold tracking-tight text-white flex items-center truncate leading-tight">PageCraft</h1>
+            <!-- Save Status Indicator -->
+            <span id="save-status" class="text-[9px] font-medium text-rose-400/80 tracking-wide transition-opacity duration-300 opacity-0 leading-tight">Saved</span>
+        </div>
       </div>
     </div>
 
-    <!-- Right: Header Controls (Undo, Redo, Zoom, Universal Fullscreen) -->
     <div class="flex items-center space-x-1 sm:space-x-2 shrink-0">
-      
-      <!-- History Controls -->
       <div class="flex items-center bg-neutral-950/90 p-0.5 rounded-xl border border-rose-950/60">
         <button id="btn-undo" title="Undo (Ctrl+Z)" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg hover:bg-neutral-800 text-neutral-300 hover:text-rose-300 disabled:opacity-30 disabled:hover:bg-transparent flex items-center justify-center transition">
           <i class="fa-solid fa-rotate-left text-xs"></i>
@@ -229,7 +164,6 @@
         </button>
       </div>
 
-      <!-- Zoom Controller -->
       <div class="flex items-center bg-neutral-950/90 p-0.5 rounded-xl border border-rose-950/60">
         <button id="btn-zoom-out" title="Zoom Out" class="w-6 h-7 sm:w-7 sm:h-8 rounded-lg hover:bg-neutral-800 text-neutral-400 hover:text-rose-300 flex items-center justify-center transition">
           <i class="fa-solid fa-minus text-[10px]"></i>
@@ -240,11 +174,9 @@
         </button>
       </div>
 
-      <!-- Fullscreen Toggle Button (Universal Takeover) -->
       <button id="btn-fullscreen" title="Toggle Fullscreen" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-neutral-900/90 hover:bg-neutral-800 active:scale-95 text-neutral-300 hover:text-rose-400 border border-rose-950/60 hover:border-rose-600/40 flex items-center justify-center transition shadow-sm">
         <i class="fa-solid fa-expand text-xs sm:text-sm"></i>
       </button>
-
     </div>
   </header>
 
@@ -254,7 +186,6 @@
     
     <div id="drawer-panel" class="drawer-content absolute top-0 left-0 bottom-0 w-[310px] sm:w-[350px] max-w-[88vw] bg-neutral-950 border-r border-rose-950/80 flex flex-col shadow-2xl shadow-rose-950/30 translate-x-[-100%] transition-transform">
       
-      <!-- Drawer Header -->
       <div class="h-16 px-4 flex items-center justify-between border-b border-rose-950/80 shrink-0">
         <div class="flex items-center space-x-2.5">
           <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-rose-700 to-red-600 flex items-center justify-center text-white shadow-md shadow-rose-950/50">
@@ -270,10 +201,8 @@
         </button>
       </div>
 
-      <!-- Drawer Scrollable Body -->
       <div class="flex-1 overflow-y-auto p-4 space-y-5" style="padding-bottom: calc(2.5rem + var(--safe-bottom));">
         
-        <!-- Section: Document Actions -->
         <div class="space-y-2">
           <span class="text-[10px] font-bold tracking-wider text-rose-400/80 uppercase">Document</span>
           
@@ -287,13 +216,16 @@
             <i class="fa-solid fa-file-arrow-down text-white text-sm"></i>
             <span>Export & Save PDF</span>
           </button>
+          
+          <button id="btn-clear-session" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl bg-neutral-900/90 hover:bg-rose-950/40 border border-neutral-800 text-neutral-400 hover:text-rose-400 transition text-xs font-medium mt-1">
+            <i class="fa-solid fa-trash-can text-sm"></i>
+            <span>Clear Saved Session</span>
+          </button>
         </div>
 
-        <!-- Section: Precision Geometric Tools (Ruler & Graph) -->
         <div class="space-y-2.5">
           <span class="text-[10px] font-bold tracking-wider text-rose-400/80 uppercase">Precision Inserts</span>
           
-          <!-- Ruler Insertion Button -->
           <button id="btn-insert-ruler" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-neutral-900/90 hover:bg-rose-950/40 border border-rose-950/70 hover:border-rose-600/50 text-neutral-200 hover:text-white transition text-xs font-medium">
             <div class="flex items-center space-x-3">
               <i class="fa-solid fa-ruler-combined text-rose-400 text-sm"></i>
@@ -305,7 +237,6 @@
             <i class="fa-solid fa-plus text-xs text-rose-400"></i>
           </button>
 
-          <!-- Graph Generation Tool Panel -->
           <div class="p-3 rounded-xl bg-neutral-900/90 border border-rose-950/70 space-y-3">
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-2">
@@ -321,11 +252,11 @@
                 <input type="number" id="graph-rows" value="10" min="4" max="60" class="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-2 py-1 text-xs text-rose-300 font-mono focus:outline-none focus:border-rose-500">
               </div>
               <div>
-                <label class="block text-[10px] text-neutral-400 mb-1">Columns</label>
+                <label class="block text-[10px] text-neutral-400 mb-1">Cols</label>
                 <input type="number" id="graph-cols" value="10" min="4" max="60" class="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-2 py-1 text-xs text-rose-300 font-mono focus:outline-none focus:border-rose-500">
               </div>
               <div>
-                <label class="block text-[10px] text-neutral-400 mb-1">Spacing</label>
+                <label class="block text-[10px] text-neutral-400 mb-1">Space</label>
                 <input type="number" id="graph-spacing" value="28" min="10" max="150" step="2" class="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-2 py-1 text-xs text-rose-300 font-mono focus:outline-none focus:border-rose-500">
               </div>
             </div>
@@ -337,7 +268,6 @@
           </div>
         </div>
 
-        <!-- Section: Accurate Write Guide Grid -->
         <div class="space-y-2">
           <span class="text-[10px] font-bold tracking-wider text-rose-400/80 uppercase">Writing Aid</span>
           
@@ -352,32 +282,25 @@
                 <div class="w-9 h-5 bg-neutral-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-rose-600"></div>
               </label>
             </div>
-            
-            <p class="text-[11px] text-neutral-400 leading-relaxed">Overlays a faint guide grid across the whole document to help you write in a straight line. Purely visual — it doesn't touch your document and is never included when you save.</p>
+            <p class="text-[11px] text-neutral-400 leading-relaxed">Overlays a faint guide grid across the whole document. Purely visual — never exported.</p>
           </div>
         </div>
 
-        <!-- Section: View & Fit Modes -->
         <div class="space-y-2">
           <span class="text-[10px] font-bold tracking-wider text-rose-400/80 uppercase">View & Scaling</span>
-          
           <div class="grid grid-cols-2 gap-2">
             <button id="btn-fit-width" class="px-3 py-2 rounded-xl bg-neutral-900/90 hover:bg-neutral-800 hover:text-rose-300 border border-neutral-800 text-neutral-300 text-xs font-medium flex items-center justify-center space-x-1.5 transition">
-              <i class="fa-solid fa-arrows-left-right text-[11px]"></i>
-              <span>Fit Width</span>
+              <i class="fa-solid fa-arrows-left-right text-[11px]"></i><span>Fit Width</span>
             </button>
             <button id="btn-fit-page" class="px-3 py-2 rounded-xl bg-neutral-900/90 hover:bg-neutral-800 hover:text-rose-300 border border-neutral-800 text-neutral-300 text-xs font-medium flex items-center justify-center space-x-1.5 transition">
-              <i class="fa-solid fa-compress text-[11px]"></i>
-              <span>Fit Page</span>
+              <i class="fa-solid fa-compress text-[11px]"></i><span>Fit Page</span>
             </button>
             <button id="btn-reset-zoom" class="px-3 py-2 rounded-xl bg-neutral-900/90 hover:bg-neutral-800 hover:text-rose-300 border border-neutral-800 text-neutral-300 text-xs font-medium flex items-center justify-center space-x-1.5 transition col-span-2">
-              <i class="fa-solid fa-rotate text-[11px]"></i>
-              <span>Original Size (100%)</span>
+              <i class="fa-solid fa-rotate text-[11px]"></i><span>Original Size (100%)</span>
             </button>
           </div>
         </div>
 
-        <!-- Section: Page Navigation -->
         <div class="space-y-2">
           <span class="text-[10px] font-bold tracking-wider text-rose-400/80 uppercase">Page Navigation</span>
           <div class="flex items-center justify-between p-2.5 rounded-xl bg-neutral-900/90 border border-rose-950/70">
@@ -390,39 +313,38 @@
         </div>
 
       </div>
-
-      <!-- Drawer Footer with attribution & safe bottom -->
       <div class="p-3.5 border-t border-rose-950/80 text-center bg-black/95 shrink-0" style="padding-bottom: calc(1rem + var(--safe-bottom));">
         <p class="text-[11px] font-medium text-rose-400/90 tracking-wide">Made by k210209♤ studios</p>
       </div>
-
     </div>
   </div>
 
   <!-- ================= MAIN VIEWPORT ================= -->
   <main id="viewport-container" class="flex-1 relative overflow-auto bg-black p-3 sm:p-6 flex flex-col view-mode-active" style="padding-bottom: calc(9rem + var(--safe-bottom));">
     
-    <!-- Empty State -->
     <div id="drop-zone" class="my-auto mx-auto flex flex-col items-center justify-center p-6 sm:p-10 border-2 border-dashed border-rose-950/80 hover:border-rose-600/60 rounded-3xl bg-neutral-950/80 transition-all cursor-pointer w-full max-w-sm sm:max-w-md text-center shadow-2xl">
       <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-rose-950/40 border border-rose-600/30 text-rose-500 flex items-center justify-center mb-4 text-2xl sm:text-3xl shadow-inner">
         <i class="fa-solid fa-cloud-arrow-up"></i>
       </div>
       <h3 class="text-base sm:text-lg font-bold text-white mb-2">Open PDF Document</h3>
       <p class="text-xs sm:text-sm text-neutral-400 mb-6 leading-relaxed">Drag & drop your PDF file here, or tap to browse. Runs 100% private in your browser.</p>
-      <button class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-rose-700 to-red-600 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-rose-950/50 transition-all pointer-events-none">
-        Browse Files
-      </button>
+      
+      <div class="flex flex-col gap-3 w-full">
+        <button class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-rose-700 to-red-600 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-rose-950/50 transition-all pointer-events-none">
+          Browse Files
+        </button>
+        <button id="btn-restore-session" class="hidden px-5 py-2.5 rounded-xl bg-neutral-800 border border-rose-950 hover:bg-neutral-700 text-rose-300 font-semibold text-xs sm:text-sm transition-all shadow-md">
+          Restore Last Session
+        </button>
+      </div>
     </div>
 
-    <!-- The Virtualized Document Wrapper -->
     <div id="document-wrapper" class="hidden flex flex-col items-center w-full min-h-full"></div>
-
   </main>
 
   <!-- ================= FLOATING TOOL PALETTE ================= -->
   <div id="floating-toolbar" class="fixed left-1/2 -translate-x-1/2 z-40 max-w-[96vw] flex flex-col items-center gap-2 pointer-events-auto">
     
-    <!-- Properties Mini-Popover -->
     <div id="properties-popover" class="glass-panel p-2 px-3 rounded-2xl flex items-center gap-3 shadow-2xl border border-rose-900/60 transition-all opacity-0 translate-y-2 pointer-events-none mb-1">
       <div class="flex items-center space-x-1.5">
         <div class="w-6 h-6 rounded-full overflow-hidden border-2 border-rose-500 relative cursor-pointer shadow-inner">
@@ -440,80 +362,47 @@
       <button id="btn-close-props" class="p-1 text-neutral-400 hover:text-white text-xs"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
-    <!-- Main Tool Island -->
     <nav class="glass-panel p-1.5 sm:p-2 rounded-2xl flex items-center gap-1 sm:gap-1.5 shadow-2xl shadow-black/80 border border-rose-950/80 overflow-x-auto no-scrollbar max-w-full">
+      <button data-tool="view" title="Pan / View Mode" class="tool-btn active w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300"><i class="fa-solid fa-hand text-xs sm:text-sm"></i></button>
+      <button data-tool="select" title="Select & Move Objects" class="tool-btn w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300"><i class="fa-solid fa-arrow-pointer text-xs sm:text-sm"></i></button>
+      <div class="w-px h-5 bg-rose-950/80 mx-0.5 shrink-0"></div>
+      <button data-tool="pen" title="Draw Pen" class="tool-btn w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300"><i class="fa-solid fa-pen-nib text-xs sm:text-sm"></i></button>
+      <button data-tool="highlight" title="Highlighter" class="tool-btn w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300"><i class="fa-solid fa-highlighter text-xs sm:text-sm"></i></button>
+      <button data-tool="textbox" title="Insert Text Box" class="tool-btn w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300"><i class="fa-solid fa-font text-xs sm:text-sm"></i></button>
+      <button data-tool="text-select" title="Select PDF Native Text" class="tool-btn w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300"><i class="fa-solid fa-i-cursor text-xs sm:text-sm"></i></button>
+      <button data-tool="eraser" title="Object Eraser" class="tool-btn w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300"><i class="fa-solid fa-eraser text-xs sm:text-sm"></i></button>
+      <div class="w-px h-5 bg-rose-950/80 mx-0.5 shrink-0"></div>
+      <button id="btn-toggle-props" title="Adjust Color & Size" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 flex items-center justify-center transition border border-rose-950/80 hover:border-rose-600/50"><div id="prop-swatch-indicator" class="w-4 h-4 rounded-full bg-rose-600 border border-white/40"></div></button>
+      <button id="btn-delete-selected" title="Delete Selected" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 border border-rose-600/40 flex items-center justify-center transition hidden"><i class="fa-solid fa-trash-can text-xs sm:text-sm"></i></button>
       
-      <button data-tool="view" title="Pan / View Mode" class="tool-btn active w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300">
-        <i class="fa-solid fa-hand text-xs sm:text-sm"></i>
-      </button>
-
-      <button data-tool="select" title="Select & Move Objects" class="tool-btn w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300">
-        <i class="fa-solid fa-arrow-pointer text-xs sm:text-sm"></i>
-      </button>
-
-      <div class="w-px h-5 bg-rose-950/80 mx-0.5 shrink-0"></div>
-
-      <button data-tool="pen" title="Draw Pen (Straight line when drawn on ruler)" class="tool-btn w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300">
-        <i class="fa-solid fa-pen-nib text-xs sm:text-sm"></i>
-      </button>
-
-      <button data-tool="highlight" title="Straight Line Highlighter" class="tool-btn w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300">
-        <i class="fa-solid fa-highlighter text-xs sm:text-sm"></i>
-      </button>
-
-      <button data-tool="textbox" title="Insert Text Box" class="tool-btn w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300">
-        <i class="fa-solid fa-font text-xs sm:text-sm"></i>
-      </button>
-
-      <button data-tool="text-select" title="Select PDF Native Text" class="tool-btn w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300">
-        <i class="fa-solid fa-i-cursor text-xs sm:text-sm"></i>
-      </button>
-
-      <button data-tool="eraser" title="Object Eraser" class="tool-btn w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300">
-        <i class="fa-solid fa-eraser text-xs sm:text-sm"></i>
-      </button>
-
-      <div class="w-px h-5 bg-rose-950/80 mx-0.5 shrink-0"></div>
-
-      <button id="btn-toggle-props" title="Adjust Color & Size" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 flex items-center justify-center transition border border-rose-950/80 hover:border-rose-600/50">
-        <div id="prop-swatch-indicator" class="w-4 h-4 rounded-full bg-rose-600 border border-white/40"></div>
-      </button>
-
-      <button id="btn-delete-selected" title="Delete Selected Object" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 border border-rose-600/40 flex items-center justify-center transition hidden">
-        <i class="fa-solid fa-trash-can text-xs sm:text-sm"></i>
-      </button>
-
       <div class="hidden md:flex items-center space-x-1 pl-1 border-l border-rose-950/80 shrink-0 text-xs text-neutral-400">
         <button id="btn-bottom-prev" class="p-2 hover:text-rose-300 disabled:opacity-30"><i class="fa-solid fa-chevron-left"></i></button>
         <span class="font-mono text-[11px] font-bold px-1 text-rose-300"><span id="bottom-page-num">1</span>/<span id="bottom-page-count">0</span></span>
         <button id="btn-bottom-next" class="p-2 hover:text-rose-300 disabled:opacity-30"><i class="fa-solid fa-chevron-right"></i></button>
       </div>
-
     </nav>
   </div>
 
-  <!-- Loading Overlay -->
   <div id="loading-indicator" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity">
     <i class="fa-solid fa-circle-notch fa-spin text-4xl text-rose-600 mb-4"></i>
     <p id="loading-text" class="text-neutral-300 font-medium tracking-wide text-sm">Processing Document...</p>
   </div>
 
   <script>
-    /**
-     * MODULE 1: AppCore & State
-     */
+    /** Diagnostics/Debug */
+    const LOG = (msg) => { /* console.log("[PageCraft Memory/Perf] " + msg); */ };
+
+    /** MODULE 1: AppCore & State */
     const AppState = {
       pdfDoc: null,
-      pdfBytes: null,
+      pdfBlob: null,
       numPages: 0,
       currentPage: 1,
       pageDimensions: [], 
-      
       scale: 1.0,         
       zoomCssScale: 1.0,  
-      
       activeTool: 'view', 
-
+      
       pageData: {},       
       activePages: new Set(), 
       fabricInstances: {}, 
@@ -524,309 +413,273 @@
       isApplyingHistory: false
     };
 
-    /**
-     * Custom serialization whitelist guaranteeing that graphs, rulers,
-     * and annotations retain their exact interactive hitboxes and visuals.
-     */
     const FABRIC_CUSTOM_PROPS = [
-      'customType', 
-      'isRuler', 
-      'isGraph', 
-      'strokeUniform', 
-      'selectable', 
-      'evented', 
-      'subTargetCheck', 
-      'id',
-      'hasControls',
-      'hasBorders'
+      'customType', 'isRuler', 'isGraph', 'strokeUniform', 
+      'selectable', 'evented', 'subTargetCheck', 'id',
+      'hasControls', 'hasBorders'
     ];
 
-    /**
-     * FULLSCREEN ENGINE: Universal Takeover & Cross-Browser Iframe Fallback
-     */
+    /** MODULE 2: IndexedDB Storage & Autosave (NEW) */
+    const DBManager = {
+      dbName: 'PageCraftDB',
+      storeName: 'sessionStore',
+      db: null,
+      
+      async init() {
+        return new Promise((resolve, reject) => {
+          const req = indexedDB.open(this.dbName, 1);
+          req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(this.storeName)) {
+              db.createObjectStore(this.storeName);
+            }
+          };
+          req.onsuccess = (e) => { this.db = e.target.result; resolve(); };
+          req.onerror = (e) => reject(e);
+        });
+      },
+      
+      async get(key) {
+        if (!this.db) await this.init();
+        return new Promise((resolve, reject) => {
+          const tx = this.db.transaction(this.storeName, 'readonly');
+          const req = tx.objectStore(this.storeName).get(key);
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        });
+      },
+      
+      async set(key, val) {
+        if (!this.db) await this.init();
+        return new Promise((resolve, reject) => {
+          const tx = this.db.transaction(this.storeName, 'readwrite');
+          const req = tx.objectStore(this.storeName).put(val, key);
+          req.onsuccess = () => resolve();
+          req.onerror = () => reject(req.error);
+        });
+      },
+      
+      async clear() {
+        if (!this.db) await this.init();
+        return new Promise((resolve, reject) => {
+          const tx = this.db.transaction(this.storeName, 'readwrite');
+          const req = tx.objectStore(this.storeName).clear();
+          req.onsuccess = () => resolve();
+          req.onerror = () => reject(req.error);
+        });
+      },
+
+      async hasSession() {
+        try {
+          const pdf = await this.get('pdfBytes');
+          return !!pdf;
+        } catch(e) { return false; }
+      }
+    };
+
+    /** MODULE 3: Fullscreen Engine */
     const FullscreenEngine = {
       isPseudo: false,
-
       isFullscreen() {
-        return !!(
-          document.fullscreenElement ||
-          document.webkitFullscreenElement ||
-          document.mozFullScreenElement ||
-          document.msFullscreenElement ||
-          this.isPseudo
-        );
+        return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement || this.isPseudo);
       },
-
-      isInIframe() {
-        try {
-          return window.self !== window.top;
-        } catch (e) {
-          return true;
-        }
-      },
-
       async toggle() {
-        if (this.isFullscreen()) {
-          await this.exit();
-        } else {
-          await this.enter();
-        }
+        if (this.isFullscreen()) await this.exit();
+        else await this.enter();
         this.updateUI();
       },
-
       async enter() {
         const root = document.documentElement;
         let nativeTriggered = false;
-
-        // Always attempt the native Fullscreen API first, regardless of whether the
-        // page is embedded (iframe) on another website. Browsers that grant the
-        // embedding site fullscreen permission (allow="fullscreen") will honor this
-        // just like a directly-loaded page; if it's blocked, we fall back below.
-        const req = root.requestFullscreen ||
-                    root.webkitRequestFullscreen ||
-                    root.webkitRequestFullScreen ||
-                    root.mozRequestFullScreen ||
-                    root.msRequestFullscreen;
-
+        const req = root.requestFullscreen || root.webkitRequestFullscreen || root.mozRequestFullScreen || root.msRequestFullscreen;
         if (req) {
           try {
             const res = req.call(root, { navigationUI: 'hide' });
-            if (res && typeof res.then === 'function') {
-              await res;
-              this.isPseudo = false;
-              nativeTriggered = true;
-            } else {
-              this.isPseudo = false;
-              nativeTriggered = true;
-            }
-          } catch (err) {
-            nativeTriggered = false;
-          }
+            if (res && typeof res.then === 'function') await res;
+            nativeTriggered = true; this.isPseudo = false;
+          } catch (err) { nativeTriggered = false; }
         }
-
-        // If native fullscreen was blocked, unavailable, or failed (common when embedded
-        // on a website without fullscreen permission), activate pseudo-fullscreen so the
-        // app still takes over the full browser viewport.
-        if (!nativeTriggered && !document.fullscreenElement && !document.webkitFullscreenElement) {
-          this.enablePseudo();
-        }
-
+        if (!nativeTriggered && !document.fullscreenElement && !document.webkitFullscreenElement) this.enablePseudo();
         this.updateUI();
       },
-
       async exit() {
-        if (this.isPseudo) {
-          this.disablePseudo();
+        if (this.isPseudo) this.disablePseudo();
+        const exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+        if (exit && (document.fullscreenElement || document.webkitFullscreenElement)) {
+          try { await exit.call(document); } catch (err) {}
         }
-
-        const exit = document.exitFullscreen ||
-                     document.webkitExitFullscreen ||
-                     document.webkitCancelFullScreen ||
-                     document.mozCancelFullScreen ||
-                     document.msExitFullscreen;
-
-        if (exit && (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement)) {
-          try {
-            await exit.call(document);
-          } catch (err) {
-            // Ignore native exit errors if already clean
-          }
-        }
-        
         this.updateUI();
       },
-
-      enablePseudo() {
-        this.isPseudo = true;
-        document.documentElement.classList.add('pseudo-fullscreen');
-        document.body.classList.add('pseudo-fullscreen');
-        this.updateUI();
-      },
-
-      disablePseudo() {
-        this.isPseudo = false;
-        document.documentElement.classList.remove('pseudo-fullscreen');
-        document.body.classList.remove('pseudo-fullscreen');
-        this.updateUI();
-      },
-
+      enablePseudo() { this.isPseudo = true; document.documentElement.classList.add('pseudo-fullscreen'); document.body.classList.add('pseudo-fullscreen'); },
+      disablePseudo() { this.isPseudo = false; document.documentElement.classList.remove('pseudo-fullscreen'); document.body.classList.remove('pseudo-fullscreen'); },
       updateUI() {
-        const isFs = this.isFullscreen();
         const btn = document.getElementById('btn-fullscreen');
         if (!btn) return;
         const icon = btn.querySelector('i');
         if (icon) {
-          if (isFs) {
-            icon.className = 'fa-solid fa-compress text-xs sm:text-sm text-rose-400';
-            btn.title = 'Exit Fullscreen';
-          } else {
-            icon.className = 'fa-solid fa-expand text-xs sm:text-sm text-neutral-300';
-            btn.title = 'Enter Fullscreen';
-          }
+          if (this.isFullscreen()) { icon.className = 'fa-solid fa-compress text-xs sm:text-sm text-rose-400'; btn.title = 'Exit Fullscreen'; }
+          else { icon.className = 'fa-solid fa-expand text-xs sm:text-sm text-neutral-300'; btn.title = 'Enter Fullscreen'; }
         }
       },
-
       init() {
-        const btn = document.getElementById('btn-fullscreen');
-        if (btn) {
-          btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            this.toggle();
-          });
-        }
-
-        ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(evt => {
-          document.addEventListener(evt, () => {
-            if (!document.fullscreenElement && !document.webkitFullscreenElement && !this.isPseudo) {
-              this.updateUI();
-            }
-          });
-        });
-
-        window.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape' && this.isPseudo) {
-            this.exit();
-          }
-        });
+        document.getElementById('btn-fullscreen')?.addEventListener('click', (e) => { e.preventDefault(); this.toggle(); });
+        ['fullscreenchange', 'webkitfullscreenchange'].forEach(evt => document.addEventListener(evt, () => {
+          if (!document.fullscreenElement && !document.webkitFullscreenElement && !this.isPseudo) this.updateUI();
+        }));
       }
     };
 
-    /**
-     * MODULE 2: Drawer & Menu Controller
-     */
+    /** MODULE 4: Drawer & Menu Controller */
     const DrawerController = {
       isOpen: false,
       init() {
-        const drawerContainer = document.getElementById('drawer-container');
-        const drawerBackdrop = document.getElementById('drawer-backdrop');
-        const drawerPanel = document.getElementById('drawer-panel');
-        const btnOpen = document.getElementById('btn-open-drawer');
-        const btnClose = document.getElementById('btn-close-drawer');
+        const dCont = document.getElementById('drawer-container');
+        const dBack = document.getElementById('drawer-backdrop');
+        const dPanel = document.getElementById('drawer-panel');
+        
+        const openDrawer = () => { this.isOpen = true; dCont.classList.remove('pointer-events-none'); dBack.classList.remove('opacity-0'); dBack.classList.add('opacity-100'); dPanel.classList.remove('translate-x-[-100%]'); };
+        const closeDrawer = () => { this.isOpen = false; dBack.classList.remove('opacity-100'); dBack.classList.add('opacity-0'); dPanel.classList.add('translate-x-[-100%]'); setTimeout(() => { if(!this.isOpen) dCont.classList.add('pointer-events-none'); }, 300); };
 
-        const openDrawer = () => {
-          this.isOpen = true;
-          drawerContainer.classList.remove('pointer-events-none');
-          drawerBackdrop.classList.remove('opacity-0');
-          drawerBackdrop.classList.add('opacity-100');
-          drawerPanel.classList.remove('translate-x-[-100%]');
-        };
+        document.getElementById('btn-open-drawer').addEventListener('click', openDrawer);
+        document.getElementById('btn-close-drawer').addEventListener('click', closeDrawer);
+        dBack.addEventListener('click', closeDrawer);
 
-        const closeDrawer = () => {
-          this.isOpen = false;
-          drawerBackdrop.classList.remove('opacity-100');
-          drawerBackdrop.classList.add('opacity-0');
-          drawerPanel.classList.add('translate-x-[-100%]');
-          setTimeout(() => {
-            if (!this.isOpen) drawerContainer.classList.add('pointer-events-none');
-          }, 300);
-        };
-
-        btnOpen.addEventListener('click', openDrawer);
-        btnClose.addEventListener('click', closeDrawer);
-        drawerBackdrop.addEventListener('click', closeDrawer);
-
-        window.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape' && this.isOpen) closeDrawer();
+        document.getElementById('toggle-accurate-write').addEventListener('change', (e) => document.documentElement.classList.toggle('accurate-write-mode', e.target.checked));
+        document.getElementById('btn-fit-width').addEventListener('click', () => { ViewportEngine.fitToWidth(); closeDrawer(); });
+        document.getElementById('btn-fit-page').addEventListener('click', () => { ViewportEngine.fitToPage(); closeDrawer(); });
+        document.getElementById('btn-reset-zoom').addEventListener('click', () => { ViewportEngine.applyZoom(1.0); closeDrawer(); });
+        document.getElementById('btn-drawer-export').addEventListener('click', () => { closeDrawer(); ExportEngine.exportPDF(); });
+        document.getElementById('btn-clear-session').addEventListener('click', async () => {
+          if (confirm('Are you sure you want to delete the saved session? This cannot be undone.')) {
+             await DBManager.clear();
+             location.reload();
+          }
         });
-
-        const accurateWriteToggle = document.getElementById('toggle-accurate-write');
-        accurateWriteToggle.addEventListener('change', (e) => {
-          document.documentElement.classList.toggle('accurate-write-mode', e.target.checked);
-        });
-
-        document.getElementById('btn-fit-width').addEventListener('click', () => {
-          ViewportEngine.fitToWidth();
-          closeDrawer();
-        });
-        document.getElementById('btn-fit-page').addEventListener('click', () => {
-          ViewportEngine.fitToPage();
-          closeDrawer();
-        });
-        document.getElementById('btn-reset-zoom').addEventListener('click', () => {
-          ViewportEngine.applyZoom(1.0);
-          closeDrawer();
-        });
-
-        document.getElementById('btn-drawer-export').addEventListener('click', () => {
-          closeDrawer();
-          ExportEngine.exportPDF();
-        });
-
-        // Insert Precision Ruler
-        document.getElementById('btn-insert-ruler').addEventListener('click', () => {
-          ShapeInsertEngine.insertRuler();
-          closeDrawer();
-        });
-
-        // Generate Custom Grid Graph
+        document.getElementById('btn-insert-ruler').addEventListener('click', () => { ShapeInsertEngine.insertRuler(); closeDrawer(); });
         document.getElementById('btn-create-graph').addEventListener('click', () => {
-          const rows = parseInt(document.getElementById('graph-rows').value) || 10;
-          const cols = parseInt(document.getElementById('graph-cols').value) || 10;
-          const spacing = parseFloat(document.getElementById('graph-spacing').value) || 28;
-          ShapeInsertEngine.insertGraph(rows, cols, spacing);
+          const r = parseInt(document.getElementById('graph-rows').value) || 10;
+          const c = parseInt(document.getElementById('graph-cols').value) || 10;
+          const s = parseFloat(document.getElementById('graph-spacing').value) || 28;
+          ShapeInsertEngine.insertGraph(r, c, s);
           closeDrawer();
         });
       },
-      showLoading(text) {
-        const ind = document.getElementById('loading-indicator');
-        document.getElementById('loading-text').textContent = text;
-        ind.classList.remove('opacity-0', 'pointer-events-none');
-      },
-      hideLoading() {
-        document.getElementById('loading-indicator').classList.add('opacity-0', 'pointer-events-none');
-      }
+      showLoading(text) { document.getElementById('loading-text').textContent = text; document.getElementById('loading-indicator').classList.remove('opacity-0', 'pointer-events-none'); },
+      hideLoading() { document.getElementById('loading-indicator').classList.add('opacity-0', 'pointer-events-none'); }
     };
 
-    /**
-     * MODULE 3: Undo/Redo System
-     */
+    /** MODULE 5: Memory-Optimized Undo/Redo & Autosave System */
     const HistoryManager = {
       _saveTimeout: null,
+      _dbSaveTimeout: null,
+      
       saveState() {
         if (AppState.isApplyingHistory) return;
         
         if (this._saveTimeout) cancelAnimationFrame(this._saveTimeout);
         this._saveTimeout = requestAnimationFrame(() => {
+          // Serialize currently active canvases to memory
+          const pageUpdates = {};
           AppState.activePages.forEach(pageNum => {
-            if (AppState.fabricInstances[pageNum]) {
-              AppState.pageData[pageNum] = AppState.fabricInstances[pageNum].toJSON(FABRIC_CUSTOM_PROPS);
+            const fc = AppState.fabricInstances[pageNum];
+            if (fc) {
+              const json = fc.toJSON(FABRIC_CUSTOM_PROPS);
+              // Only save if it has actually changed, avoid saving empty pages
+              if (json.objects.length === 0) {
+                 delete AppState.pageData[pageNum];
+                 pageUpdates[pageNum] = { objects: [] }; // record deletion
+              } else {
+                 AppState.pageData[pageNum] = json;
+                 pageUpdates[pageNum] = json;
+              }
             }
           });
-
-          const snapshot = JSON.stringify(AppState.pageData);
           
-          AppState.historyStack = AppState.historyStack.slice(0, AppState.historyIndex + 1);
-          AppState.historyStack.push(snapshot);
-          if (AppState.historyStack.length > 20) AppState.historyStack.shift(); 
-          else AppState.historyIndex++;
+          // Action-delta based history: only push pages that changed in this step
+          if (Object.keys(pageUpdates).length > 0) {
+              AppState.historyStack = AppState.historyStack.slice(0, AppState.historyIndex + 1);
+              // Stringify only the delta to save RAM
+              AppState.historyStack.push(JSON.stringify(pageUpdates));
+              if (AppState.historyStack.length > 20) AppState.historyStack.shift(); 
+              else AppState.historyIndex++;
+              this.updateUI();
+          }
           
-          this.updateUI();
+          this.triggerAutosave();
         });
       },
+
+      triggerAutosave() {
+        const ind = document.getElementById('save-status');
+        ind.textContent = 'Saving...';
+        ind.classList.remove('opacity-0');
+        
+        if (this._dbSaveTimeout) clearTimeout(this._dbSaveTimeout);
+        this._dbSaveTimeout = setTimeout(async () => {
+           try {
+              // Extract pure state
+              const stateToSave = JSON.parse(JSON.stringify(AppState.pageData));
+              await DBManager.set('pageData', stateToSave);
+              ind.textContent = 'Saved';
+              setTimeout(() => ind.classList.add('opacity-0'), 2000);
+           } catch(e) {
+              console.error("Autosave failed", e);
+              ind.textContent = 'Save Failed';
+           }
+        }, 8000); // 8-second debounce
+      },
+
       async applyState(snapshotStr) {
         AppState.isApplyingHistory = true;
         try {
-          AppState.pageData = JSON.parse(snapshotStr);
+          const delta = JSON.parse(snapshotStr);
           
-          for (let pageNum of AppState.activePages) {
-            const fCanvas = AppState.fabricInstances[pageNum];
-            if (fCanvas && AppState.pageData[pageNum]) {
-              await new Promise(resolve => fCanvas.loadFromJSON(AppState.pageData[pageNum], resolve));
-              fCanvas.setZoom(AppState.scale);
-              fCanvas.requestRenderAll();
-            } else if (fCanvas) {
-              fCanvas.clear();
+          for (const [pageNumStr, state] of Object.entries(delta)) {
+            const pageNum = parseInt(pageNumStr);
+            AppState.pageData[pageNum] = state; // Update memory record
+            
+            if (AppState.activePages.has(pageNum) && AppState.fabricInstances[pageNum]) {
+              const fCanvas = AppState.fabricInstances[pageNum];
+              if (state && state.objects && state.objects.length > 0) {
+                await new Promise(resolve => fCanvas.loadFromJSON(state, resolve));
+                fCanvas.setZoom(AppState.scale);
+                fCanvas.requestRenderAll();
+              } else {
+                fCanvas.clear();
+              }
             }
           }
+          this.triggerAutosave();
         } finally {
           AppState.isApplyingHistory = false;
           this.updateUI();
         }
       },
       undo() {
-        if (AppState.historyIndex > 0) {
+        if (AppState.historyIndex >= 0) {
+          // Need to fetch previous states for the pages that changed in the CURRENT step
+          const currentDelta = JSON.parse(AppState.historyStack[AppState.historyIndex]);
+          const pagesToRevert = Object.keys(currentDelta);
+          
+          // Construct a reversal delta
+          const reverseDelta = {};
+          
+          // Walk backwards from current index - 1 to find the last known state of these pages
+          for (let p of pagesToRevert) {
+             let found = false;
+             for (let i = AppState.historyIndex - 1; i >= 0; i--) {
+                const pastDelta = JSON.parse(AppState.historyStack[i]);
+                if (pastDelta[p]) {
+                   reverseDelta[p] = pastDelta[p];
+                   found = true;
+                   break;
+                }
+             }
+             if (!found) reverseDelta[p] = { objects: [] }; // Revert to empty
+          }
+          
           AppState.historyIndex--;
-          this.applyState(AppState.historyStack[AppState.historyIndex]);
+          this.applyState(JSON.stringify(reverseDelta));
         }
       },
       redo() {
@@ -836,723 +689,255 @@
         }
       },
       updateUI() {
-        document.getElementById('btn-undo').disabled = AppState.historyIndex <= 0;
+        document.getElementById('btn-undo').disabled = AppState.historyIndex < 0;
         document.getElementById('btn-redo').disabled = AppState.historyIndex >= AppState.historyStack.length - 1;
       }
     };
 
-    /**
-     * MODULE 4: Shape, Ruler & Graph Insertion Engine
-     */
+    /** MODULE 6: Shape, Ruler & Graph */
     const ShapeInsertEngine = {
       getActiveCanvas() {
         let cur = AppState.currentPage || 1;
         if (!AppState.fabricInstances[cur]) {
           const keys = Object.keys(AppState.fabricInstances).map(Number);
-          if (keys.length > 0) {
-            cur = keys.includes(AppState.currentPage) ? AppState.currentPage : keys[0];
-          }
+          if (keys.length > 0) cur = keys.includes(AppState.currentPage) ? AppState.currentPage : keys[0];
         }
         return AppState.fabricInstances[cur] || null;
       },
-
       insertRuler() {
         const fCanvas = this.getActiveCanvas();
-        if (!fCanvas) {
-          return;
-        }
-
-        const width = 360;
-        const height = 54;
-        
-        const rulerBody = new fabric.Rect({
-          left: 0,
-          top: 0,
-          width: width,
-          height: height,
-          fill: 'rgba(225, 29, 72, 0.15)',
-          stroke: '#e11d48',
-          strokeWidth: 1.5,
-          strokeUniform: true,
-          rx: 4,
-          ry: 4,
-          selectable: false,
-          evented: false
-        });
-
-        const topBar = new fabric.Rect({
-          left: 0,
-          top: 0,
-          width: width,
-          height: 6,
-          fill: 'rgba(225, 29, 72, 0.65)',
-          strokeUniform: true,
-          selectable: false,
-          evented: false
-        });
-
-        const objects = [rulerBody, topBar];
-
+        if (!fCanvas) return;
+        const width = 360, height = 54;
+        const objects = [
+          new fabric.Rect({ left: 0, top: 0, width: width, height: height, fill: 'rgba(225, 29, 72, 0.15)', stroke: '#e11d48', strokeWidth: 1.5, rx: 4, ry: 4, selectable: false, evented: false }),
+          new fabric.Rect({ left: 0, top: 0, width: width, height: 6, fill: 'rgba(225, 29, 72, 0.65)', selectable: false, evented: false })
+        ];
         for (let x = 10; x <= width - 10; x += 10) {
-          const isMajor = x % 50 === 0;
-          const isMid = x % 25 === 0;
+          const isMajor = x % 50 === 0, isMid = x % 25 === 0;
           const tickHeight = isMajor ? 14 : (isMid ? 10 : 6);
-          
-          const tick = new fabric.Line([x, 0, x, tickHeight], {
-            stroke: '#fb7185',
-            strokeWidth: isMajor ? 1.5 : 1,
-            strokeUniform: true,
-            selectable: false,
-            evented: false
-          });
-          objects.push(tick);
-
-          if (isMajor) {
-            const numText = new fabric.Text((x / 50).toString(), {
-              left: x - 3,
-              top: tickHeight + 2,
-              fontSize: 9,
-              fill: '#fda4af',
-              fontFamily: 'JetBrains Mono, monospace',
-              fontWeight: 'bold',
-              selectable: false,
-              evented: false
-            });
-            objects.push(numText);
-          }
+          objects.push(new fabric.Line([x, 0, x, tickHeight], { stroke: '#fb7185', strokeWidth: isMajor ? 1.5 : 1, selectable: false, evented: false }));
+          if (isMajor) objects.push(new fabric.Text((x / 50).toString(), { left: x - 3, top: tickHeight + 2, fontSize: 9, fill: '#fda4af', fontFamily: 'JetBrains Mono, monospace', fontWeight: 'bold', selectable: false, evented: false }));
         }
-
-        const label = new fabric.Text('PAGE CRAFT • RULER', {
-          left: width / 2 - 45,
-          top: height - 16,
-          fontSize: 8,
-          fill: 'rgba(255, 255, 255, 0.75)',
-          fontFamily: 'Inter, sans-serif',
-          fontWeight: 'bold',
-          selectable: false,
-          evented: false
-        });
-        objects.push(label);
-
-        const pageDim = AppState.pageDimensions[AppState.currentPage] || { width: 600, height: 800 };
-        const initLeft = Math.max(20, (pageDim.width - width) / 2);
-        const initTop = Math.max(40, (pageDim.height - height) / 3);
-
+        objects.push(new fabric.Text('PAGE CRAFT • RULER', { left: width / 2 - 45, top: height - 16, fontSize: 8, fill: 'rgba(255, 255, 255, 0.75)', fontFamily: 'Inter, sans-serif', fontWeight: 'bold', selectable: false, evented: false }));
+        
+        const dim = AppState.pageDimensions[AppState.currentPage] || { width: 600, height: 800 };
         const rulerGroup = new fabric.Group(objects, {
-          left: initLeft,
-          top: initTop,
-          width: width,
-          height: height,
-          originX: 'left',
-          originY: 'top',
-          selectable: true,
-          evented: true,
-          hasRotatingPoint: true,
-          transparentCorners: false,
-          cornerColor: '#e11d48',
-          cornerStrokeColor: '#ffffff',
-          cornerSize: 9,
-          cornerStyle: 'circle',
-          strokeUniform: true,
-          subTargetCheck: false,
-          objectCaching: true
+          left: Math.max(20, (dim.width - width) / 2), top: Math.max(40, (dim.height - height) / 3),
+          originX: 'left', originY: 'top', selectable: true, evented: true, hasRotatingPoint: true,
+          transparentCorners: false, cornerColor: '#e11d48', cornerStrokeColor: '#ffffff', cornerSize: 9, cornerStyle: 'circle'
         });
-
-        rulerGroup.isRuler = true;
-        rulerGroup.customType = 'ruler';
-
-        fCanvas.add(rulerGroup);
-        fCanvas.setActiveObject(rulerGroup);
-        rulerGroup.setCoords();
-        fCanvas.requestRenderAll();
-        HistoryManager.saveState();
-        ToolController.setActiveTool('select');
+        rulerGroup.isRuler = true; rulerGroup.customType = 'ruler';
+        fCanvas.add(rulerGroup); fCanvas.setActiveObject(rulerGroup); rulerGroup.setCoords();
+        fCanvas.requestRenderAll(); HistoryManager.saveState(); ToolController.setActiveTool('select');
       },
-
       insertGraph(rows, cols, spacing) {
         const fCanvas = this.getActiveCanvas();
-        if (!fCanvas) {
-          return;
-        }
-
-        rows = Math.min(Math.max(parseInt(rows) || 10, 4), 60);
-        cols = Math.min(Math.max(parseInt(cols) || 10, 4), 60);
-        spacing = Math.min(Math.max(parseFloat(spacing) || 28, 10), 150);
-
-        const totalWidth = cols * spacing;
-        const totalHeight = rows * spacing;
-
-        const objects = [];
-
-        const background = new fabric.Rect({
-          left: 0,
-          top: 0,
-          width: totalWidth,
-          height: totalHeight,
-          fill: 'rgba(10, 6, 8, 0.88)',
-          stroke: '#e11d48',
-          strokeWidth: 2,
-          strokeUniform: true,
-          selectable: false,
-          evented: false
-        });
-        objects.push(background);
-
-        const midRow = Math.floor(rows / 2);
-        const midCol = Math.floor(cols / 2);
-        const originX = midCol * spacing;
-        const originY = midRow * spacing;
-
-        for (let r = 0; r <= rows; r++) {
-          const y = r * spacing;
-          const isAxis = (r === midRow);
-          
-          if (!isAxis && r > 0 && r < rows) {
-            objects.push(new fabric.Line([0, y, totalWidth, y], {
-              stroke: 'rgba(225, 29, 72, 0.28)',
-              strokeWidth: 1,
-              strokeUniform: true,
-              selectable: false,
-              evented: false
-            }));
-          }
-        }
-
+        if (!fCanvas) return;
+        rows = Math.min(Math.max(rows, 4), 60); cols = Math.min(Math.max(cols, 4), 60); spacing = Math.min(Math.max(spacing, 10), 150);
+        const w = cols * spacing, h = rows * spacing;
+        const objects = [new fabric.Rect({ left: 0, top: 0, width: w, height: h, fill: 'rgba(10, 6, 8, 0.88)', stroke: '#e11d48', strokeWidth: 2, selectable: false, evented: false })];
+        const mR = Math.floor(rows / 2), mC = Math.floor(cols / 2), oX = mC * spacing, oY = mR * spacing;
+        
+        for (let r = 1; r < rows; r++) if (r !== mR) objects.push(new fabric.Line([0, r*spacing, w, r*spacing], { stroke: 'rgba(225, 29, 72, 0.28)', strokeWidth: 1, selectable: false, evented: false }));
+        for (let c = 1; c < cols; c++) if (c !== mC) objects.push(new fabric.Line([c*spacing, 0, c*spacing, h], { stroke: 'rgba(225, 29, 72, 0.28)', strokeWidth: 1, selectable: false, evented: false }));
+        objects.push(new fabric.Line([0, oY, w, oY], { stroke: '#fb7185', strokeWidth: 2, selectable: false, evented: false }));
+        objects.push(new fabric.Line([oX, 0, oX, h], { stroke: '#fb7185', strokeWidth: 2, selectable: false, evented: false }));
+        
         for (let c = 0; c <= cols; c++) {
-          const x = c * spacing;
-          const isAxis = (c === midCol);
-          
-          if (!isAxis && c > 0 && c < cols) {
-            objects.push(new fabric.Line([x, 0, x, totalHeight], {
-              stroke: 'rgba(225, 29, 72, 0.28)',
-              strokeWidth: 1,
-              strokeUniform: true,
-              selectable: false,
-              evented: false
-            }));
-          }
+          const val = c - mC; if (val === 0) continue;
+          objects.push(new fabric.Line([c*spacing, oY - 3, c*spacing, oY + 3], { stroke: '#fda4af', strokeWidth: 1.5, selectable: false, evented: false }));
+          objects.push(new fabric.Text(val.toString(), { left: c*spacing - (val < 0 ? 5 : 3), top: oY + 4, fontSize: 8, fill: '#fda4af', fontFamily: 'JetBrains Mono, monospace', fontWeight: 'bold', selectable: false, evented: false }));
         }
-
-        const xAxis = new fabric.Line([0, originY, totalWidth, originY], {
-          stroke: '#fb7185',
-          strokeWidth: 2,
-          strokeUniform: true,
-          selectable: false,
-          evented: false
-        });
-        objects.push(xAxis);
-
-        const yAxis = new fabric.Line([originX, 0, originX, totalHeight], {
-          stroke: '#fb7185',
-          strokeWidth: 2,
-          strokeUniform: true,
-          selectable: false,
-          evented: false
-        });
-        objects.push(yAxis);
-
-        for (let c = 0; c <= cols; c++) {
-          const val = c - midCol;
-          if (val === 0) continue;
-          
-          const x = c * spacing;
-          objects.push(new fabric.Line([x, originY - 3, x, originY + 3], {
-            stroke: '#fda4af',
-            strokeWidth: 1.5,
-            strokeUniform: true,
-            selectable: false,
-            evented: false
-          }));
-
-          const valText = new fabric.Text(val.toString(), {
-            left: x - (val < 0 ? 5 : 3),
-            top: originY + 4,
-            fontSize: 8,
-            fill: '#fda4af',
-            fontFamily: 'JetBrains Mono, monospace',
-            fontWeight: 'bold',
-            selectable: false,
-            evented: false
-          });
-          objects.push(valText);
-        }
-
         for (let r = 0; r <= rows; r++) {
-          const val = midRow - r;
-          if (val === 0) continue;
-          
-          const y = r * spacing;
-          objects.push(new fabric.Line([originX - 3, y, originX + 3, y], {
-            stroke: '#fda4af',
-            strokeWidth: 1.5,
-            strokeUniform: true,
-            selectable: false,
-            evented: false
-          }));
-
-          const valText = new fabric.Text(val.toString(), {
-            left: originX - (val < 0 ? 12 : 8),
-            top: y - 4,
-            fontSize: 8,
-            fill: '#fda4af',
-            fontFamily: 'JetBrains Mono, monospace',
-            fontWeight: 'bold',
-            selectable: false,
-            evented: false
-          });
-          objects.push(valText);
+          const val = mR - r; if (val === 0) continue;
+          objects.push(new fabric.Line([oX - 3, r*spacing, oX + 3, r*spacing], { stroke: '#fda4af', strokeWidth: 1.5, selectable: false, evented: false }));
+          objects.push(new fabric.Text(val.toString(), { left: oX - (val < 0 ? 12 : 8), top: r*spacing - 4, fontSize: 8, fill: '#fda4af', fontFamily: 'JetBrains Mono, monospace', fontWeight: 'bold', selectable: false, evented: false }));
         }
-
-        const zeroLabel = new fabric.Text('0', {
-          left: originX + 3,
-          top: originY + 3,
-          fontSize: 8,
-          fill: '#fda4af',
-          fontFamily: 'JetBrains Mono, monospace',
-          fontWeight: 'bold',
-          selectable: false,
-          evented: false
-        });
-        objects.push(zeroLabel);
-
-        const pageDim = AppState.pageDimensions[AppState.currentPage] || { width: 600, height: 800 };
-        const initLeft = Math.max(20, (pageDim.width - totalWidth) / 2);
-        const initTop = Math.max(40, (pageDim.height - totalHeight) / 3);
-
-        const graphGroup = new fabric.Group(objects, {
-          left: initLeft,
-          top: initTop,
-          width: totalWidth,
-          height: totalHeight,
-          originX: 'left',
-          originY: 'top',
-          selectable: true,
-          evented: true,
-          hasRotatingPoint: true,
-          transparentCorners: false,
-          cornerColor: '#e11d48',
-          cornerStrokeColor: '#ffffff',
-          cornerSize: 9,
-          cornerStyle: 'circle',
-          strokeUniform: true,
-          subTargetCheck: false,
-          objectCaching: true
-        });
-
-        graphGroup.isGraph = true;
-        graphGroup.customType = 'graph';
-
-        fCanvas.add(graphGroup);
-        fCanvas.setActiveObject(graphGroup);
-        graphGroup.setCoords();
-        fCanvas.requestRenderAll();
-        HistoryManager.saveState();
-        ToolController.setActiveTool('select');
+        objects.push(new fabric.Text('0', { left: oX + 3, top: oY + 3, fontSize: 8, fill: '#fda4af', fontFamily: 'JetBrains Mono, monospace', fontWeight: 'bold', selectable: false, evented: false }));
+        
+        const dim = AppState.pageDimensions[AppState.currentPage] || { width: 600, height: 800 };
+        const gGroup = new fabric.Group(objects, { left: Math.max(20, (dim.width - w) / 2), top: Math.max(40, (dim.height - h) / 3), originX: 'left', originY: 'top', selectable: true, evented: true, hasRotatingPoint: true, transparentCorners: false, cornerColor: '#e11d48', cornerStrokeColor: '#ffffff', cornerSize: 9, cornerStyle: 'circle' });
+        gGroup.isGraph = true; gGroup.customType = 'graph';
+        fCanvas.add(gGroup); fCanvas.setActiveObject(gGroup); gGroup.setCoords();
+        fCanvas.requestRenderAll(); HistoryManager.saveState(); ToolController.setActiveTool('select');
       }
     };
 
-    /**
-     * High-Performance Physical Ruler Dynamic Brush
-     */
+    /** Ruler Brush */
     const RulerPencilBrush = fabric.util.createClass(fabric.PencilBrush, {
       _rulerCache: null,
-
       _updateRulerCache: function() {
-        if (!this.canvas) {
-          this._rulerCache = null;
-          return;
-        }
-        const ruler = this.canvas.getObjects().find(o => o.isRuler || o.customType === 'ruler');
-        if (!ruler) {
-          this._rulerCache = null;
-          return;
-        }
-
-        ruler.setCoords();
-        const coords = ruler.aCoords;
-        if (!coords || !coords.tl || !coords.tr || !coords.bl) {
-          this._rulerCache = null;
-          return;
-        }
-
-        const tl = coords.tl;
-        const tr = coords.tr;
-        const bl = coords.bl;
-
-        const ux = tr.x - tl.x;
-        const uy = tr.y - tl.y;
-        const lenTop = Math.hypot(ux, uy);
-        if (lenTop === 0) {
-          this._rulerCache = null;
-          return;
-        }
-        const uUnitX = ux / lenTop;
-        const uUnitY = uy / lenTop;
-
-        const wx = bl.x - tl.x;
-        const wy = bl.y - tl.y;
-        const lenSide = Math.hypot(wx, wy);
-        if (lenSide === 0) {
-          this._rulerCache = null;
-          return;
-        }
-        const nUnitX = wx / lenSide;
-        const nUnitY = wy / lenSide;
-
-        this._rulerCache = {
-          tl, tr, bl,
-          uUnitX, uUnitY,
-          nUnitX, nUnitY,
-          lenTop, lenSide
-        };
+        if (!this.canvas) { this._rulerCache = null; return; }
+        const r = this.canvas.getObjects().find(o => o.isRuler || o.customType === 'ruler');
+        if (!r) { this._rulerCache = null; return; }
+        r.setCoords(); const c = r.aCoords; if (!c || !c.tl || !c.tr || !c.bl) { this._rulerCache = null; return; }
+        const ux = c.tr.x - c.tl.x, uy = c.tr.y - c.tl.y, lT = Math.hypot(ux, uy); if (lT === 0) return;
+        const wx = c.bl.x - c.tl.x, wy = c.bl.y - c.tl.y, lS = Math.hypot(wx, wy); if (lS === 0) return;
+        this._rulerCache = { tl: c.tl, bl: c.bl, uX: ux/lT, uY: uy/lT, nX: wx/lS, nY: wy/lS, lT, lS };
       },
-
-      _snapPointer: function(pointer) {
-        const cache = this._rulerCache;
-        if (!cache) {
-          return (pointer instanceof fabric.Point) ? pointer : new fabric.Point(pointer.x, pointer.y);
+      _snapPointer: function(pt) {
+        const c = this._rulerCache; if (!c) return new fabric.Point(pt.x, pt.y);
+        const dx = pt.x - c.tl.x, dy = pt.y - c.tl.y;
+        const t = dx * c.uX + dy * c.uY, h = dx * c.nX + dy * c.nY;
+        if (t >= -15 && t <= c.lT + 15) {
+          if (h >= -25 && h <= Math.max(28, c.lS * 0.55)) { const cT = Math.max(0, Math.min(c.lT, t)); return new fabric.Point(c.tl.x + cT * c.uX, c.tl.y + cT * c.uY); }
+          if (h > Math.max(28, c.lS * 0.55) && h <= c.lS + 25) { const cT = Math.max(0, Math.min(c.lT, t)); return new fabric.Point(c.bl.x + cT * c.uX, c.bl.y + cT * c.uY); }
         }
-
-        const { tl, bl, uUnitX, uUnitY, nUnitX, nUnitY, lenTop, lenSide } = cache;
-        const dx = pointer.x - tl.x;
-        const dy = pointer.y - tl.y;
-        const t = dx * uUnitX + dy * uUnitY;
-        const h = dx * nUnitX + dy * nUnitY;
-
-        if (t >= -15 && t <= lenTop + 15) {
-          if (h >= -25 && h <= Math.max(28, lenSide * 0.55)) {
-            const clampedT = Math.max(0, Math.min(lenTop, t));
-            return new fabric.Point(tl.x + clampedT * uUnitX, tl.y + clampedT * uUnitY);
-          }
-          if (h > Math.max(28, lenSide * 0.55) && h <= lenSide + 25) {
-            const clampedT = Math.max(0, Math.min(lenTop, t));
-            return new fabric.Point(bl.x + clampedT * uUnitX, bl.y + clampedT * uUnitY);
-          }
-        }
-
-        return (pointer instanceof fabric.Point) ? pointer : new fabric.Point(pointer.x, pointer.y);
+        return new fabric.Point(pt.x, pt.y);
       },
-
-      _prepareForDrawing: function(pointer) {
-        this._updateRulerCache();
-        const snapped = this._snapPointer(pointer);
-        const p = new fabric.Point(snapped.x, snapped.y);
-        this._reset();
-        this._addPoint(p);
-        this.canvas.contextTop.moveTo(p.x, p.y);
+      _prepareForDrawing: function(pt) {
+        this._updateRulerCache(); const s = this._snapPointer(pt); const p = new fabric.Point(s.x, s.y);
+        this._reset(); this._addPoint(p); this.canvas.contextTop.moveTo(p.x, p.y);
       },
-
-      _captureDrawingPath: function(pointer) {
-        const snapped = this._snapPointer(pointer);
-        const pointerPoint = new fabric.Point(snapped.x, snapped.y);
-        return this._addPoint(pointerPoint);
-      },
-
-      _finalizeAndAddPath: function() {
-        this._rulerCache = null;
-        this.callSuper('_finalizeAndAddPath');
-      }
+      _captureDrawingPath: function(pt) { return this._addPoint(this._snapPointer(pt)); },
+      _finalizeAndAddPath: function() { this._rulerCache = null; this.callSuper('_finalizeAndAddPath'); }
     });
 
-    /**
-     * MODULE 5: Tool Controller
-     */
+    /** MODULE 7: Tool Controller */
     const ToolController = {
       init() {
-        const btns = document.querySelectorAll('.tool-btn[data-tool]');
-        btns.forEach(btn => {
-          btn.addEventListener('click', () => {
-            const tool = btn.getAttribute('data-tool');
-            this.setActiveTool(tool);
-          });
-        });
-
-        const btnProps = document.getElementById('btn-toggle-props');
+        document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => btn.addEventListener('click', () => this.setActiveTool(btn.dataset.tool)));
         const popover = document.getElementById('properties-popover');
-        const btnCloseProps = document.getElementById('btn-close-props');
-
-        btnProps.addEventListener('click', () => {
-          const isClosed = popover.classList.contains('pointer-events-none');
-          if (isClosed) {
-            popover.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none');
-          } else {
-            popover.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none');
-          }
-        });
-
-        btnCloseProps.addEventListener('click', () => {
-          popover.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none');
-        });
-
-        document.getElementById('prop-color').addEventListener('input', (e) => {
-          document.getElementById('prop-swatch-indicator').style.backgroundColor = e.target.value;
-          this.updateProps();
-        });
-        document.getElementById('prop-size').addEventListener('input', this.updateProps.bind(this));
-        document.getElementById('prop-opacity').addEventListener('input', this.updateProps.bind(this));
-        document.getElementById('btn-delete-selected').addEventListener('click', this.deleteSelected.bind(this));
+        document.getElementById('btn-toggle-props').addEventListener('click', () => popover.classList.toggle('opacity-0') | popover.classList.toggle('pointer-events-none'));
+        document.getElementById('btn-close-props').addEventListener('click', () => popover.classList.add('opacity-0', 'pointer-events-none'));
         
-        window.addEventListener('keydown', (e) => {
-          if ((e.key === 'Delete' || e.key === 'Backspace') && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-            this.deleteSelected();
-          }
-        });
+        document.getElementById('prop-color').addEventListener('input', (e) => { document.getElementById('prop-swatch-indicator').style.backgroundColor = e.target.value; this.updateProps(); });
+        ['prop-size', 'prop-opacity'].forEach(id => document.getElementById(id).addEventListener('input', () => this.updateProps()));
+        document.getElementById('btn-delete-selected').addEventListener('click', () => this.deleteSelected());
+        window.addEventListener('keydown', (e) => { if ((e.key === 'Delete' || e.key === 'Backspace') && !['INPUT','TEXTAREA'].includes(e.target.tagName)) this.deleteSelected(); });
       },
-
       setActiveTool(tool) {
         AppState.activeTool = tool;
-        
-        document.querySelectorAll('.tool-btn[data-tool]').forEach(b => {
-          b.classList.toggle('active', b.getAttribute('data-tool') === tool);
-        });
-
-        const viewport = document.getElementById('viewport-container');
-        if (tool === 'view' || tool === 'text-select') {
-          viewport.classList.add('view-mode-active');
-        } else {
-          viewport.classList.remove('view-mode-active');
-        }
-
-        document.querySelectorAll('.text-layer').forEach(layer => {
-          layer.classList.toggle('active-select', tool === 'text-select');
-        });
-
-        AppState.activePages.forEach(pageNum => {
-          this.applyToolToCanvas(AppState.fabricInstances[pageNum]);
-        });
+        document.querySelectorAll('.tool-btn[data-tool]').forEach(b => b.classList.toggle('active', b.dataset.tool === tool));
+        const vp = document.getElementById('viewport-container');
+        vp.classList.toggle('view-mode-active', tool === 'view' || tool === 'text-select');
+        document.querySelectorAll('.text-layer').forEach(l => l.classList.toggle('active-select', tool === 'text-select'));
+        AppState.activePages.forEach(p => this.applyToolToCanvas(AppState.fabricInstances[p]));
       },
-
-      applyToolToCanvas(fCanvas) {
-        if (!fCanvas) return;
-        const tool = AppState.activeTool;
-        const color = document.getElementById('prop-color').value;
-        const size = parseInt(document.getElementById('prop-size').value);
-        const opacity = parseFloat(document.getElementById('prop-opacity').value);
-
-        fCanvas.isDrawingMode = (tool === 'pen');
-        fCanvas.selection = (tool === 'select');
+      applyToolToCanvas(fc) {
+        if (!fc) return; const tool = AppState.activeTool;
+        const color = document.getElementById('prop-color').value, size = parseInt(document.getElementById('prop-size').value), op = parseFloat(document.getElementById('prop-opacity').value);
         
-        if (fCanvas.isDrawingMode) {
-          fCanvas.freeDrawingBrush = new RulerPencilBrush(fCanvas);
-          fCanvas.freeDrawingBrush.color = color;
-          fCanvas.freeDrawingBrush.width = size;
-          fCanvas.defaultCursor = 'crosshair';
-        } else {
-          fCanvas.defaultCursor = tool === 'view' ? 'grab' : (tool === 'eraser' ? 'cell' : (tool === 'highlight' ? 'crosshair' : 'default'));
-        }
-
-        if (tool !== 'select' && tool !== 'textbox') {
-            fCanvas.discardActiveObject();
-        }
-
-        fCanvas.forEachObject(obj => {
-          if (tool === 'textbox' && (obj.type === 'textbox' || obj.type === 'i-text')) {
-              obj.selectable = true;
-              obj.evented = true;
-          } else {
-              obj.selectable = (tool === 'select');
-              obj.evented = (tool === 'select' || tool === 'eraser');
-          }
+        fc.isDrawingMode = (tool === 'pen'); fc.selection = (tool === 'select');
+        if (fc.isDrawingMode) { fc.freeDrawingBrush = new RulerPencilBrush(fc); fc.freeDrawingBrush.color = color; fc.freeDrawingBrush.width = size; fc.defaultCursor = 'crosshair'; }
+        else fc.defaultCursor = tool === 'view' ? 'grab' : (tool === 'eraser' ? 'cell' : (tool === 'highlight' ? 'crosshair' : 'default'));
+        
+        if (tool !== 'select' && tool !== 'textbox') fc.discardActiveObject();
+        fc.forEachObject(obj => {
+          if (tool === 'textbox' && (obj.type === 'textbox' || obj.type === 'i-text')) { obj.selectable = true; obj.evented = true; }
+          else { obj.selectable = (tool === 'select'); obj.evented = (tool === 'select' || tool === 'eraser'); }
         });
-
-        fCanvas.off('mouse:down');
-        fCanvas.off('mouse:move');
-        fCanvas.off('mouse:up');
-        fCanvas.off('path:created'); 
-
-        // Straight Line Highlighter Implementation
+        
+        fc.off('mouse:down'); fc.off('mouse:move'); fc.off('mouse:up');
+        
         if (tool === 'highlight') {
-          let isHighlighting = false;
-          let highlightLine = null;
-          let startX = 0;
-          let startY = 0;
-
-          fCanvas.on('mouse:down', (o) => {
-            isHighlighting = true;
-            const pointer = fCanvas.getPointer(o.e);
-            startX = pointer.x;
-            startY = pointer.y;
-
-            highlightLine = new fabric.Line([startX, startY, startX, startY], {
-              stroke: this.hexToRgba(color, Math.min(opacity * 0.5, 0.5)),
-              strokeWidth: Math.max(12, size * 3),
-              strokeCap: 'square',
-              strokeUniform: true,
-              selectable: false,
-              evented: false,
-              originX: 'center',
-              originY: 'center'
-            });
-
-            fCanvas.add(highlightLine);
+          let hl = null, start = null, isHL = false;
+          fc.on('mouse:down', o => {
+            isHL = true; start = fc.getPointer(o.e);
+            hl = new fabric.Line([start.x, start.y, start.x, start.y], { stroke: this.hexToRgba(color, Math.min(op * 0.5, 0.5)), strokeWidth: Math.max(12, size * 3), strokeCap: 'square', selectable: false, evented: false });
+            fc.add(hl);
           });
-
-          fCanvas.on('mouse:move', (o) => {
-            if (!isHighlighting || !highlightLine) return;
-            const pointer = fCanvas.getPointer(o.e);
-
-            let targetX = pointer.x;
-            let targetY = pointer.y;
-
-            if (Math.abs(targetY - startY) < 14) {
-              targetY = startY;
-            } else if (Math.abs(targetX - startX) < 14) {
-              targetX = startX;
-            }
-
-            highlightLine.set({ x2: targetX, y2: targetY });
-            fCanvas.requestRenderAll();
+          fc.on('mouse:move', o => {
+            if (!isHL || !hl) return;
+            let pt = fc.getPointer(o.e), tx = pt.x, ty = pt.y;
+            if (Math.abs(ty - start.y) < 14) ty = start.y; else if (Math.abs(tx - start.x) < 14) tx = start.x;
+            hl.set({ x2: tx, y2: ty }); fc.requestRenderAll();
           });
-
-          fCanvas.on('mouse:up', () => {
-            if (isHighlighting && highlightLine) {
-              isHighlighting = false;
-              highlightLine.setCoords();
-              highlightLine.selectable = (AppState.activeTool === 'select');
-              highlightLine.evented = (AppState.activeTool === 'select' || AppState.activeTool === 'eraser');
-              highlightLine = null;
-              HistoryManager.saveState();
-            }
+          fc.on('mouse:up', () => { if (isHL && hl) { isHL = false; hl.setCoords(); hl.selectable = (AppState.activeTool === 'select'); hl.evented = true; hl = null; HistoryManager.saveState(); } });
+        }
+        else if (tool === 'textbox') {
+          fc.on('mouse:down', o => {
+            if (o.target && (o.target.type === 'textbox' || o.target.type === 'i-text')) return;
+            const pt = fc.getPointer(o.e);
+            const tb = new fabric.Textbox('Type here', { left: pt.x, top: pt.y, width: Math.max(150, size * 5), fontSize: Math.max(16, size * 2), fill: color, opacity: op, fontFamily: 'sans-serif', editable: true });
+            fc.add(tb); fc.setActiveObject(tb); tb.enterEditing(); tb.selectAll(); fc.requestRenderAll();
           });
         }
-
-        if (tool === 'textbox') {
-          fCanvas.on('mouse:down', (o) => {
-            if (o.target && (o.target.type === 'textbox' || o.target.type === 'i-text')) return;
-            
-            const pointer = fCanvas.getPointer(o.e);
-            const textbox = new fabric.Textbox('Type here', {
-              left: pointer.x, top: pointer.y,
-              width: Math.max(150, size * 5), 
-              fontSize: Math.max(16, size * 2),
-              fill: color, opacity: opacity,
-              fontFamily: 'sans-serif', editable: true,
-              cursorColor: color,
-              strokeUniform: true
-            });
-            fCanvas.add(textbox);
-            fCanvas.setActiveObject(textbox);
-            textbox.enterEditing();
-            textbox.selectAll();
-            fCanvas.requestRenderAll();
-          });
-        } 
         else if (tool === 'eraser') {
           let isErasing = false;
-          fCanvas.on('mouse:down', (o) => { 
-            isErasing = true; 
-            if (o.target) { 
-              fCanvas.remove(o.target); 
-              fCanvas.discardActiveObject();
-              fCanvas.requestRenderAll();
-              HistoryManager.saveState(); 
-            } 
-          });
-          fCanvas.on('mouse:move', (o) => { 
-            if (isErasing && o.target) { 
-              fCanvas.remove(o.target); 
-              fCanvas.discardActiveObject();
-              fCanvas.requestRenderAll();
-            } 
-          });
-          fCanvas.on('mouse:up', () => { 
-            if (isErasing) HistoryManager.saveState(); 
-            isErasing = false; 
-          });
+          fc.on('mouse:down', o => { isErasing = true; if(o.target) { fc.remove(o.target); fc.discardActiveObject(); fc.requestRenderAll(); HistoryManager.saveState(); } });
+          fc.on('mouse:move', o => { if(isErasing && o.target) { fc.remove(o.target); fc.discardActiveObject(); fc.requestRenderAll(); } });
+          fc.on('mouse:up', () => { if(isErasing) HistoryManager.saveState(); isErasing = false; });
         }
-
-        fCanvas.requestRenderAll();
+        fc.requestRenderAll();
       },
-      
       updateProps() {
-        const color = document.getElementById('prop-color').value;
-        const size = parseInt(document.getElementById('prop-size').value);
-        const opacity = parseFloat(document.getElementById('prop-opacity').value);
-        
-        AppState.activePages.forEach(pageNum => {
-          const fc = AppState.fabricInstances[pageNum];
-          if (!fc) return;
-          
-          if (fc.isDrawingMode && fc.freeDrawingBrush) {
-             fc.freeDrawingBrush.color = color;
-             fc.freeDrawingBrush.width = size;
-          }
+        const c = document.getElementById('prop-color').value, s = parseInt(document.getElementById('prop-size').value), op = parseFloat(document.getElementById('prop-opacity').value);
+        AppState.activePages.forEach(p => {
+          const fc = AppState.fabricInstances[p]; if (!fc) return;
+          if (fc.isDrawingMode && fc.freeDrawingBrush) { fc.freeDrawingBrush.color = c; fc.freeDrawingBrush.width = s; }
           const obj = fc.getActiveObject();
           if (obj) {
-            if (obj.type === 'textbox') obj.set({ fill: color, opacity, fontSize: Math.max(16, size*2) });
-            else if (obj.type === 'path' || obj.type === 'line') obj.set({ stroke: color, strokeWidth: size, opacity });
-            else obj.set({ opacity });
-            fc.requestRenderAll();
-            HistoryManager.saveState();
+            if (obj.type === 'textbox') obj.set({ fill: c, opacity: op, fontSize: Math.max(16, s*2) });
+            else if (obj.type === 'path' || obj.type === 'line') obj.set({ stroke: c, strokeWidth: s, opacity: op });
+            else obj.set({ opacity: op });
+            fc.requestRenderAll(); HistoryManager.saveState();
           }
         });
       },
-
       deleteSelected() {
         let deleted = false;
-        AppState.activePages.forEach(pageNum => {
-          const fc = AppState.fabricInstances[pageNum];
-          if (fc) {
-            const active = fc.getActiveObjects();
-            if (active && active.length) {
-              active.forEach(obj => fc.remove(obj));
-              fc.discardActiveObject();
-              fc.requestRenderAll();
-              deleted = true;
-            }
-          }
+        AppState.activePages.forEach(p => {
+          const fc = AppState.fabricInstances[p];
+          if (fc) { const act = fc.getActiveObjects(); if (act && act.length) { act.forEach(o => fc.remove(o)); fc.discardActiveObject(); fc.requestRenderAll(); deleted = true; } }
         });
-        if (deleted) {
-          HistoryManager.saveState();
-        }
+        if (deleted) HistoryManager.saveState();
         document.getElementById('btn-delete-selected').classList.add('hidden');
       },
-
-      hexToRgba(hex, alpha) {
-        const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
-        return `rgba(${r},${g},${b},${alpha})`;
-      }
+      hexToRgba(hex, alpha) { const r = parseInt(hex.slice(1,3), 16), g = parseInt(hex.slice(3,5), 16), b = parseInt(hex.slice(5,7), 16); return `rgba(${r},${g},${b},${alpha})`; }
     };
 
-    /**
-     * MODULE 6: Memory Manager & Virtualization
-     */
+    /** MODULE 8: Adaptive Memory Manager & Virtualization (OPTIMIZED FOR 3GB) */
     const MemoryManager = {
       observer: null,
+      maxActivePages: 2, 
       
       init() {
+        // Detect memory to set limits (3GB target -> use conservative strategy)
+        const deviceMemory = navigator.deviceMemory || 4;
+        this.maxActivePages = deviceMemory <= 3 ? 2 : (deviceMemory >= 8 ? 6 : 4);
+        LOG(`Device Memory: ~${deviceMemory}GB. Max active pages set to ${this.maxActivePages}`);
+
+        // IntersectionObserver strictly tracking viewport entry/exit with a 0px margin
         this.observer = new IntersectionObserver((entries) => {
           entries.forEach(entry => {
             const pageNum = parseInt(entry.target.dataset.page);
             if (entry.isIntersecting) {
               this.loadPage(pageNum);
             } else {
+              // The exact millisecond a page scrolls out of the visible screen area,
+              // aggressively clear and unload it to free up RAM.
               this.unloadPage(pageNum);
             }
           });
-        }, { 
-          root: document.getElementById('viewport-container'),
-          rootMargin: "60% 0px"
-        });
+        }, { root: document.getElementById('viewport-container'), rootMargin: "0px" });
       },
 
-      observePage(element) {
-        this.observer.observe(element);
-      },
+      observePage(element) { this.observer.observe(element); },
 
       async loadPage(pageNum) {
         if (AppState.activePages.has(pageNum)) return;
+        
+        // Eviction Policy: Enforce RAM limits
+        if (AppState.activePages.size >= this.maxActivePages) {
+           let furthestPage = -1; let maxDist = -1;
+           for (let p of AppState.activePages) {
+               const dist = Math.abs(p - AppState.currentPage);
+               if (dist > maxDist) { maxDist = dist; furthestPage = p; }
+           }
+           if (furthestPage !== -1 && furthestPage !== pageNum) {
+               this.unloadPage(furthestPage);
+           }
+        }
+
+        LOG(`Loading page ${pageNum}`);
         AppState.activePages.add(pageNum);
         
         const container = document.getElementById(`page-${pageNum}`);
         if (!container) return;
 
         if (!container.querySelector('.pdf-canvas-layer')) {
-          container.innerHTML = `
-            <canvas class="pdf-canvas-layer"></canvas>
-            <canvas id="fabric-${pageNum}"></canvas>
-            <div class="text-layer text-layer-${pageNum}"></div>
-          `;
+          container.innerHTML = `<canvas class="pdf-canvas-layer"></canvas><canvas id="fabric-${pageNum}"></canvas><div class="text-layer text-layer-${pageNum}"></div>`;
         }
 
         await RenderEngine.renderPDFPage(pageNum, container);
@@ -1561,6 +946,7 @@
 
       unloadPage(pageNum) {
         if (!AppState.activePages.has(pageNum)) return;
+        LOG(`Unloading page ${pageNum} to save RAM`);
         AppState.activePages.delete(pageNum);
 
         if (AppState.pageRenderTasks[pageNum]) {
@@ -1573,14 +959,21 @@
 
         const fCanvas = AppState.fabricInstances[pageNum];
         if (fCanvas) {
-          AppState.pageData[pageNum] = fCanvas.toJSON(FABRIC_CUSTOM_PROPS);
+          const state = fCanvas.toJSON(FABRIC_CUSTOM_PROPS);
+          if (state.objects.length > 0) AppState.pageData[pageNum] = state;
+          else delete AppState.pageData[pageNum];
+          
+          fCanvas.off(); // Strip event listeners
           fCanvas.dispose();
           delete AppState.fabricInstances[pageNum];
         }
 
+        // Wipe Canvas Contexts instantly
         const pdfCanvas = container.querySelector('.pdf-canvas-layer');
         if (pdfCanvas) {
-          pdfCanvas.width = 0; pdfCanvas.height = 0; 
+           const ctx = pdfCanvas.getContext('2d');
+           if (ctx) ctx.clearRect(0,0, pdfCanvas.width, pdfCanvas.height);
+           pdfCanvas.width = 0; pdfCanvas.height = 0; 
         }
         
         const textLayer = container.querySelector('.text-layer');
@@ -1593,141 +986,90 @@
         const scaledWidth = Math.round(dim.width * AppState.scale);
         const scaledHeight = Math.round(dim.height * AppState.scale);
         
-        const fCanvas = new fabric.Canvas(canvasEl, {
-          width: scaledWidth,
-          height: scaledHeight,
-          selection: false,
-          enableRetinaScaling: false,
-          renderOnAddRemove: true
-        });
-        
-        fCanvas.baseWidth = dim.width;
-        fCanvas.baseHeight = dim.height;
-        fCanvas.setDimensions({ width: scaledWidth, height: scaledHeight });
-        fCanvas.setZoom(AppState.scale);
+        const fCanvas = new fabric.Canvas(canvasEl, { width: scaledWidth, height: scaledHeight, selection: false, enableRetinaScaling: false, renderOnAddRemove: true });
+        fCanvas.baseWidth = dim.width; fCanvas.baseHeight = dim.height;
+        fCanvas.setDimensions({ width: scaledWidth, height: scaledHeight }); fCanvas.setZoom(AppState.scale);
         
         AppState.fabricInstances[pageNum] = fCanvas;
 
-        const showDel = () => document.getElementById('btn-delete-selected').classList.remove('hidden');
-        const hideDel = () => document.getElementById('btn-delete-selected').classList.add('hidden');
-
-        fCanvas.on('selection:created', showDel);
-        fCanvas.on('selection:updated', showDel);
-        fCanvas.on('selection:cleared', hideDel);
+        const toggleDel = () => {
+           const act = fCanvas.getActiveObjects();
+           document.getElementById('btn-delete-selected').classList.toggle('hidden', !act || act.length === 0);
+        };
+        fCanvas.on('selection:created', toggleDel); fCanvas.on('selection:updated', toggleDel); fCanvas.on('selection:cleared', toggleDel);
         
         fCanvas.on('object:added', () => { if (!AppState.isApplyingHistory && !fCanvas.isRendering) HistoryManager.saveState(); });
-        
-        fCanvas.on('mouse:down', () => {
-            AppState.currentPage = pageNum;
-            document.getElementById('drawer-page-current').textContent = pageNum;
-            document.getElementById('bottom-page-num').textContent = pageNum;
-            document.querySelectorAll('.pdf-page-container').forEach(el => el.style.zIndex = '1');
-            container.style.zIndex = '10';
-        });
-
+        fCanvas.on('mouse:down', () => { AppState.currentPage = pageNum; document.getElementById('drawer-page-current').textContent = pageNum; document.getElementById('bottom-page-num').textContent = pageNum; document.querySelectorAll('.pdf-page-container').forEach(el => el.style.zIndex = '1'); container.style.zIndex = '10'; });
         fCanvas.on('object:modified', (e) => {
             const obj = e.target;
-            if (!obj) {
-                if (!AppState.isApplyingHistory && !fCanvas.isRendering) HistoryManager.saveState();
-                return;
-            }
-
-            const objRect = obj.getBoundingRect();
-            const canvasRect = fCanvas.getElement().getBoundingClientRect();
-            
-            const absoluteCenterX = canvasRect.left + objRect.left + (objRect.width / 2);
-            const absoluteCenterY = canvasRect.top + objRect.top + (objRect.height / 2);
-
-            const elements = document.elementsFromPoint(absoluteCenterX, absoluteCenterY);
-            const targetPageEl = elements ? elements.find(el => el.classList.contains('pdf-page-container')) : null;
-
+            if (!obj) { if (!AppState.isApplyingHistory && !fCanvas.isRendering) HistoryManager.saveState(); return; }
+            // Basic cross-page drop handler
+            const objRect = obj.getBoundingRect(), canvasRect = fCanvas.getElement().getBoundingClientRect();
+            const absX = canvasRect.left + objRect.left + (objRect.width/2), absY = canvasRect.top + objRect.top + (objRect.height/2);
+            const els = document.elementsFromPoint(absX, absY);
+            const targetPageEl = els ? els.find(el => el.classList.contains('pdf-page-container')) : null;
             if (targetPageEl) {
-                const targetPageNum = parseInt(targetPageEl.dataset.page);
-                if (targetPageNum !== pageNum && AppState.fabricInstances[targetPageNum]) {
-                    const targetCanvas = AppState.fabricInstances[targetPageNum];
-                    const targetRect = targetCanvas.getElement().getBoundingClientRect();
-                    
-                    const dx = (canvasRect.left - targetRect.left) / AppState.scale;
-                    const dy = (canvasRect.top - targetRect.top) / AppState.scale;
-                    
+                const targetNum = parseInt(targetPageEl.dataset.page);
+                if (targetNum !== pageNum && AppState.fabricInstances[targetNum]) {
+                    const targetCanvas = AppState.fabricInstances[targetNum], targetRect = targetCanvas.getElement().getBoundingClientRect();
                     obj.clone((cloned) => {
                         AppState.isApplyingHistory = true;
-
-                        cloned.set({
-                            left: obj.left + dx,
-                            top: obj.top + dy,
-                            strokeUniform: true
-                        });
-                        cloned.setCoords();
-                        
-                        fCanvas.remove(obj);
-                        fCanvas.discardActiveObject();
-                        
-                        targetCanvas.add(cloned);
-                        targetCanvas.setActiveObject(cloned);
-                        
-                        fCanvas.requestRenderAll();
-                        targetCanvas.requestRenderAll();
-                        
-                        AppState.isApplyingHistory = false;
-                        HistoryManager.saveState(); 
+                        cloned.set({ left: obj.left + (canvasRect.left - targetRect.left)/AppState.scale, top: obj.top + (canvasRect.top - targetRect.top)/AppState.scale, strokeUniform: true });
+                        cloned.setCoords(); fCanvas.remove(obj); fCanvas.discardActiveObject();
+                        targetCanvas.add(cloned); targetCanvas.setActiveObject(cloned);
+                        fCanvas.requestRenderAll(); targetCanvas.requestRenderAll();
+                        AppState.isApplyingHistory = false; HistoryManager.saveState(); 
                     }, FABRIC_CUSTOM_PROPS);
-                    
                     return; 
                 }
             }
-
             if (!AppState.isApplyingHistory && !fCanvas.isRendering) HistoryManager.saveState();
         });
         
-        if (AppState.pageData[pageNum]) {
+        if (AppState.pageData[pageNum] && AppState.pageData[pageNum].objects && AppState.pageData[pageNum].objects.length > 0) {
           fCanvas.isRendering = true;
           fCanvas.loadFromJSON(AppState.pageData[pageNum], () => {
-            fCanvas.isRendering = false;
-            fCanvas.setDimensions({ width: scaledWidth, height: scaledHeight });
-            fCanvas.setZoom(AppState.scale);
-            fCanvas.requestRenderAll();
+            fCanvas.isRendering = false; fCanvas.setDimensions({ width: scaledWidth, height: scaledHeight });
+            fCanvas.setZoom(AppState.scale); fCanvas.requestRenderAll();
           });
         }
-
         ToolController.applyToolToCanvas(fCanvas);
+      },
+
+      // Crucial optimization before heavy tasks
+      emergencyCleanup() {
+         LOG("Executing emergency cleanup");
+         for (let p of AppState.activePages) {
+             if (p !== AppState.currentPage) this.unloadPage(p);
+         }
       }
     };
 
-    /**
-     * MODULE 7: Exact-Size PDF Rendering Engine & Document Loader
-     */
+    /** MODULE 9: Render Engine */
     const RenderEngine = {
-      async loadDocument(file) {
+      async loadDocument(fileOrArrayBuffer, isRestore = false) {
         DrawerController.showLoading("Loading PDF...");
         try {
-          Object.values(AppState.pageRenderTasks).forEach(task => {
-            try { task.cancel(); } catch(e) {}
-          });
+          Object.values(AppState.pageRenderTasks).forEach(t => { try { t.cancel(); } catch(e){} });
           AppState.pageRenderTasks = {};
-
-          Object.values(AppState.fabricInstances).forEach(fc => {
-            try {
-              fc.off();
-              fc.dispose();
-            } catch(e) {}
-          });
-          AppState.fabricInstances = {};
-          AppState.pageData = {};
-          AppState.activePages.clear();
-          AppState.historyStack = [];
-          AppState.historyIndex = -1;
-          AppState.pendingStrokes = [];
-          if (AppState.strokeTimeout) clearTimeout(AppState.strokeTimeout);
-
-          document.getElementById('btn-undo').disabled = true;
-          document.getElementById('btn-redo').disabled = true;
-          document.getElementById('btn-delete-selected').classList.add('hidden');
-
-          const arrayBuffer = await file.arrayBuffer();
-          AppState.pdfBytes = arrayBuffer.slice(0); 
           
-          const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+          // Thorough teardown
+          for (const key in AppState.fabricInstances) { MemoryManager.unloadPage(parseInt(key)); }
+          
+          if (!isRestore) {
+             AppState.pageData = {}; AppState.historyStack = []; AppState.historyIndex = -1;
+          }
+          document.getElementById('btn-undo').disabled = true; document.getElementById('btn-redo').disabled = true;
+
+          const pdfBlob = fileOrArrayBuffer instanceof File 
+            ? fileOrArrayBuffer 
+            : new Blob([fileOrArrayBuffer], { type: 'application/pdf' });
+          
+          AppState.pdfBlob = pdfBlob; 
+          
+          const blobUrl = URL.createObjectURL(pdfBlob);
+          const loadingTask = pdfjsLib.getDocument(blobUrl);
+          
           AppState.pdfDoc = await loadingTask.promise;
           AppState.numPages = AppState.pdfDoc.numPages;
           AppState.currentPage = 1;
@@ -1739,14 +1081,10 @@
           document.getElementById('drop-zone').classList.add('hidden');
           
           const wrapper = document.getElementById('document-wrapper');
-          wrapper.innerHTML = '';
-          wrapper.classList.remove('hidden');
+          wrapper.innerHTML = ''; wrapper.classList.remove('hidden');
 
           AppState.pageDimensions = [];
-          
-          // Maintain 1:1 original PDF size by default (100% Scale)
-          AppState.scale = 1.0;
-          AppState.zoomCssScale = 1.0;
+          AppState.scale = 1.0; AppState.zoomCssScale = 1.0;
           document.getElementById('zoom-percentage').textContent = '100%';
 
           for (let i = 1; i <= AppState.numPages; i++) {
@@ -1755,22 +1093,19 @@
             AppState.pageDimensions[i] = { width: vp.width, height: vp.height };
             
             const div = document.createElement('div');
-            div.className = 'pdf-page-container';
-            div.id = `page-${i}`;
-            div.dataset.page = i;
-            div.style.width = `${Math.round(vp.width * AppState.scale)}px`;
-            div.style.height = `${Math.round(vp.height * AppState.scale)}px`;
+            div.className = 'pdf-page-container'; div.id = `page-${i}`; div.dataset.page = i;
+            div.style.width = `${Math.round(vp.width)}px`; div.style.height = `${Math.round(vp.height)}px`;
             wrapper.appendChild(div);
-            
             MemoryManager.observePage(div);
           }
-
-          HistoryManager.saveState();
-        } catch (e) {
-          console.error(e);
-        } finally {
-          DrawerController.hideLoading();
-        }
+          
+          // Initial persistent save
+          await DBManager.set('pdfBytes', await AppState.pdfBlob.arrayBuffer());
+          await DBManager.set('pageData', AppState.pageData);
+          document.getElementById('save-status').textContent = 'Saved';
+          
+        } catch (e) { console.error(e); alert("Failed to load PDF."); }
+        finally { DrawerController.hideLoading(); }
       },
 
       async renderPDFPage(pageNum, container) {
@@ -1780,287 +1115,158 @@
         }
 
         const page = await AppState.pdfDoc.getPage(pageNum);
-        const viewport = page.getViewport({ scale: AppState.scale });
-        
+        const vp = page.getViewport({ scale: AppState.scale });
         const canvas = container.querySelector('.pdf-canvas-layer');
         const textLayer = container.querySelector('.text-layer');
         if (!canvas) return;
         
-        const dpr = Math.min(window.devicePixelRatio || 1, 2);
-        
-        // Exact pixel dimensions matching page bounds
-        canvas.width = Math.round(viewport.width * dpr);
-        canvas.height = Math.round(viewport.height * dpr);
-        canvas.style.width = `${Math.round(viewport.width)}px`;
-        canvas.style.height = `${Math.round(viewport.height)}px`;
+        const dpr = Math.min(window.devicePixelRatio || 1, 2); // Cap at 2 to save memory
+        canvas.width = Math.round(vp.width * dpr); canvas.height = Math.round(vp.height * dpr);
+        canvas.style.width = `${Math.round(vp.width)}px`; canvas.style.height = `${Math.round(vp.height)}px`;
 
-        const ctx = canvas.getContext('2d', { alpha: false });
-        ctx.scale(dpr, dpr);
-
-        const renderContext = { canvasContext: ctx, viewport: viewport };
-        const renderTask = page.render(renderContext);
-        AppState.pageRenderTasks[pageNum] = renderTask;
+        const ctx = canvas.getContext('2d', { alpha: false }); ctx.scale(dpr, dpr);
+        const task = page.render({ canvasContext: ctx, viewport: vp });
+        AppState.pageRenderTasks[pageNum] = task;
 
         try {
-          await renderTask.promise;
+          await task.promise;
           delete AppState.pageRenderTasks[pageNum];
-
           if (textLayer) {
-            textLayer.innerHTML = '';
-            textLayer.style.width = `${Math.round(viewport.width)}px`;
-            textLayer.style.height = `${Math.round(viewport.height)}px`;
-            textLayer.style.transform = `scale(${AppState.scale})`;
-            
+            textLayer.innerHTML = ''; textLayer.style.width = `${Math.round(vp.width)}px`; textLayer.style.height = `${Math.round(vp.height)}px`; textLayer.style.transform = `scale(${AppState.scale})`;
             const textContent = await page.getTextContent();
-            await pdfjsLib.renderTextLayer({
-              textContentSource: textContent,
-              container: textLayer,
-              viewport: page.getViewport({ scale: 1.0 }),
-              textDivs: []
-            }).promise;
+            await pdfjsLib.renderTextLayer({ textContentSource: textContent, container: textLayer, viewport: page.getViewport({ scale: 1.0 }), textDivs: [] }).promise;
           }
-        } catch (err) {
-          if (err.name !== 'RenderingCancelledException') {
-            console.error("Render error on page " + pageNum, err);
-          }
-        }
+        } catch (err) { if (err.name !== 'RenderingCancelledException') console.error("Render err page " + pageNum, err); }
       }
     };
 
-    /**
-     * MODULE 8: Smooth Viewport & Scaling Engine
-     */
+    /** MODULE 10: Smooth Viewport */
     const ViewportEngine = {
-      zoomTimeout: null,
-      pinchStartDist: 0,
-      initialPinchScale: 1.0,
-      
+      zoomTimeout: null, pinchStartDist: 0, initialPinchScale: 1.0,
       init() {
         const vp = document.getElementById('viewport-container');
-        
         let scrollTick = false;
         vp.addEventListener('scroll', () => {
           if (!scrollTick) {
             requestAnimationFrame(() => {
               for (let i of AppState.activePages) {
                 const el = document.getElementById(`page-${i}`);
-                if (el) {
-                  const elCenter = el.offsetTop - vp.scrollTop + el.clientHeight/2;
-                  if (Math.abs(elCenter - vp.clientHeight/2) < el.clientHeight/2) {
-                    AppState.currentPage = i;
-                    document.getElementById('drawer-page-current').textContent = i;
-                    document.getElementById('bottom-page-num').textContent = i;
-                    break;
-                  }
+                if (el && Math.abs((el.offsetTop - vp.scrollTop + el.clientHeight/2) - vp.clientHeight/2) < el.clientHeight/2) {
+                  AppState.currentPage = i; document.getElementById('drawer-page-current').textContent = i; document.getElementById('bottom-page-num').textContent = i; break;
                 }
               }
               scrollTick = false;
-            });
-            scrollTick = true;
+            }); scrollTick = true;
           }
         }, { passive: true });
 
         document.getElementById('btn-zoom-in').addEventListener('click', () => this.applyZoom(AppState.scale + 0.15));
         document.getElementById('btn-zoom-out').addEventListener('click', () => this.applyZoom(AppState.scale - 0.15));
 
-        vp.addEventListener('wheel', (e) => {
-          if (e.ctrlKey || e.metaKey) {
-            e.preventDefault();
-            const delta = e.deltaY < 0 ? 0.08 : -0.08;
-            this.handleSmoothZoom(delta);
-          }
-        }, { passive: false });
-
-        // Touch Pinch-to-Zoom Handler for Mobile Devices
-        vp.addEventListener('touchstart', (e) => {
-          if (e.touches.length === 2 && AppState.activeTool === 'view') {
-            this.pinchStartDist = Math.hypot(
-              e.touches[0].clientX - e.touches[1].clientX,
-              e.touches[0].clientY - e.touches[1].clientY
-            );
-            this.initialPinchScale = AppState.scale;
-          }
-        }, { passive: true });
-
+        vp.addEventListener('wheel', (e) => { if (e.ctrlKey || e.metaKey) { e.preventDefault(); this.handleSmoothZoom(e.deltaY < 0 ? 0.08 : -0.08); } }, { passive: false });
+        vp.addEventListener('touchstart', (e) => { if (e.touches.length === 2 && AppState.activeTool === 'view') { this.pinchStartDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); this.initialPinchScale = AppState.scale; } }, { passive: true });
         vp.addEventListener('touchmove', (e) => {
           if (e.touches.length === 2 && AppState.activeTool === 'view' && this.pinchStartDist > 0) {
-            const currentDist = Math.hypot(
-              e.touches[0].clientX - e.touches[1].clientX,
-              e.touches[0].clientY - e.touches[1].clientY
-            );
-            const pinchRatio = currentDist / this.pinchStartDist;
-            const newScale = Math.min(Math.max(0.35, this.initialPinchScale * pinchRatio), 3.5);
-            AppState.zoomCssScale = newScale / AppState.scale;
-            
-            document.getElementById('document-wrapper').style.transform = `scale(${AppState.zoomCssScale})`;
-            document.getElementById('zoom-percentage').textContent = Math.round(newScale * 100) + '%';
+            const nS = Math.min(Math.max(0.35, this.initialPinchScale * (Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY) / this.pinchStartDist)), 3.5);
+            AppState.zoomCssScale = nS / AppState.scale;
+            document.getElementById('document-wrapper').style.transform = `scale(${AppState.zoomCssScale})`; document.getElementById('zoom-percentage').textContent = Math.round(nS * 100) + '%';
           }
         }, { passive: true });
-
-        vp.addEventListener('touchend', (e) => {
-          if (this.pinchStartDist > 0 && e.touches.length < 2) {
-            const finalScale = AppState.scale * AppState.zoomCssScale;
-            this.pinchStartDist = 0;
-            this.commitZoom(finalScale);
-          }
-        }, { passive: true });
-
-        // Handle Orientation Change & Screen Resize
-        let resizeDebounce = null;
-        window.addEventListener('resize', () => {
-          clearTimeout(resizeDebounce);
-          resizeDebounce = setTimeout(() => {
-            FullscreenEngine.updateUI();
-          }, 150);
-        });
-      },
-
-      fitToWidth() {
-        if (!AppState.pdfDoc || AppState.numPages === 0) return;
-        const vp = document.getElementById('viewport-container');
-        const firstDim = AppState.pageDimensions[1];
-        if (firstDim) {
-          const pad = window.innerWidth < 768 ? 24 : 48;
-          const target = Math.max(0.3, (vp.clientWidth - pad) / firstDim.width);
-          this.applyZoom(target);
-        }
-      },
-
-      fitToPage() {
-        if (!AppState.pdfDoc || AppState.numPages === 0) return;
-        const vp = document.getElementById('viewport-container');
-        const firstDim = AppState.pageDimensions[1];
-        if (firstDim) {
-          const targetW = (vp.clientWidth - 32) / firstDim.width;
-          const targetH = (vp.clientHeight - 80) / firstDim.height;
-          const target = Math.max(0.3, Math.min(targetW, targetH));
-          this.applyZoom(target);
-        }
-      },
-
-      handleSmoothZoom(delta) {
-        if (AppState.numPages === 0) return;
+        vp.addEventListener('touchend', (e) => { if (this.pinchStartDist > 0 && e.touches.length < 2) { const finalScale = AppState.scale * AppState.zoomCssScale; this.pinchStartDist = 0; this.commitZoom(finalScale); } }, { passive: true });
         
-        const targetScale = Math.min(Math.max(0.35, AppState.scale * AppState.zoomCssScale + delta), 3.5);
-        AppState.zoomCssScale = targetScale / AppState.scale;
-        
-        document.getElementById('zoom-percentage').textContent = Math.round(targetScale * 100) + '%';
-        document.getElementById('document-wrapper').style.transform = `scale(${AppState.zoomCssScale})`;
-
-        clearTimeout(this.zoomTimeout);
-        this.zoomTimeout = setTimeout(() => {
-          this.commitZoom(targetScale);
-        }, 200);
+        let rDebounce = null; window.addEventListener('resize', () => { clearTimeout(rDebounce); rDebounce = setTimeout(() => FullscreenEngine.updateUI(), 150); });
       },
-
-      applyZoom(newScale) {
-        if (AppState.numPages === 0) return;
-        newScale = Math.min(Math.max(0.35, newScale), 3.5);
-        document.getElementById('zoom-percentage').textContent = Math.round(newScale * 100) + '%';
-        this.commitZoom(newScale);
-      },
-
-      async commitZoom(newScale) {
-        const oldScale = AppState.scale;
-        AppState.scale = newScale;
-        AppState.zoomCssScale = 1.0;
+      fitToWidth() { if (!AppState.pdfDoc) return; const vp = document.getElementById('viewport-container'); const firstDim = AppState.pageDimensions[1]; if (firstDim) this.applyZoom(Math.max(0.3, (vp.clientWidth - (window.innerWidth < 768 ? 24 : 48)) / firstDim.width)); },
+      fitToPage() { if (!AppState.pdfDoc) return; const vp = document.getElementById('viewport-container'); const firstDim = AppState.pageDimensions[1]; if (firstDim) this.applyZoom(Math.max(0.3, Math.min((vp.clientWidth - 32) / firstDim.width, (vp.clientHeight - 80) / firstDim.height))); },
+      handleSmoothZoom(delta) { if (!AppState.pdfDoc) return; const tS = Math.min(Math.max(0.35, AppState.scale * AppState.zoomCssScale + delta), 3.5); AppState.zoomCssScale = tS / AppState.scale; document.getElementById('zoom-percentage').textContent = Math.round(tS * 100) + '%'; document.getElementById('document-wrapper').style.transform = `scale(${AppState.zoomCssScale})`; clearTimeout(this.zoomTimeout); this.zoomTimeout = setTimeout(() => this.commitZoom(tS), 200); },
+      applyZoom(nS) { if (!AppState.pdfDoc) return; nS = Math.min(Math.max(0.35, nS), 3.5); document.getElementById('zoom-percentage').textContent = Math.round(nS * 100) + '%'; this.commitZoom(nS); },
+      async commitZoom(nS) {
+        const oS = AppState.scale; AppState.scale = nS; AppState.zoomCssScale = 1.0;
+        const wrapper = document.getElementById('document-wrapper'); wrapper.style.transform = 'none';
+        const vp = document.getElementById('viewport-container'); const sr = nS / oS; vp.scrollTop *= sr; vp.scrollLeft *= sr;
         
-        const wrapper = document.getElementById('document-wrapper');
-        wrapper.style.transform = 'none';
-
-        const vp = document.getElementById('viewport-container');
-        const scrollRatio = newScale / oldScale;
-        vp.scrollTop = vp.scrollTop * scrollRatio;
-        vp.scrollLeft = vp.scrollLeft * scrollRatio;
-
         for (let i = 1; i <= AppState.numPages; i++) {
-          const dim = AppState.pageDimensions[i];
-          const el = document.getElementById(`page-${i}`);
-          if (el && dim) {
-            const scaledW = Math.round(dim.width * AppState.scale);
-            const scaledH = Math.round(dim.height * AppState.scale);
-            el.style.width = `${scaledW}px`;
-            el.style.height = `${scaledH}px`;
-          }
+          const dim = AppState.pageDimensions[i], el = document.getElementById(`page-${i}`);
+          if (el && dim) { el.style.width = `${Math.round(dim.width * nS)}px`; el.style.height = `${Math.round(dim.height * nS)}px`; }
         }
-
-        for (let pageNum of AppState.activePages) {
-          const container = document.getElementById(`page-${pageNum}`);
+        for (let p of AppState.activePages) {
+          const container = document.getElementById(`page-${p}`);
           if (container) {
-            await RenderEngine.renderPDFPage(pageNum, container);
-            
-            const fCanvas = AppState.fabricInstances[pageNum];
-            if (fCanvas) {
-              const scaledW = Math.round(fCanvas.baseWidth * AppState.scale);
-              const scaledH = Math.round(fCanvas.baseHeight * AppState.scale);
-              fCanvas.setDimensions({ width: scaledW, height: scaledH });
-              fCanvas.setZoom(AppState.scale);
-              fCanvas.requestRenderAll();
-            }
+            await RenderEngine.renderPDFPage(p, container);
+            const fc = AppState.fabricInstances[p];
+            if (fc) { fc.setDimensions({ width: Math.round(fc.baseWidth * nS), height: Math.round(fc.baseHeight * nS) }); fc.setZoom(nS); fc.requestRenderAll(); }
           }
         }
       },
-      
-      scrollToPage(num) {
-        const el = document.getElementById(`page-${num}`);
-        if(el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+      scrollToPage(num) { const el = document.getElementById(`page-${num}`); if(el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
     };
 
-    /**
-     * MODULE 9: Export Engine
-     */
+    /** MODULE 11: Optimized Export Engine (LOW RAM) */
     const ExportEngine = {
       async exportPDF() {
-        if (!AppState.pdfBytes) return;
+        if (!AppState.pdfBlob) return;
         DrawerController.showLoading("Generating High-Quality PDF...");
         
         try {
-          AppState.activePages.forEach(pageNum => {
-             if (AppState.fabricInstances[pageNum]) {
-                AppState.pageData[pageNum] = AppState.fabricInstances[pageNum].toJSON(FABRIC_CUSTOM_PROPS);
+          // 1. Force state serialization for safety
+          AppState.activePages.forEach(p => {
+             if (AppState.fabricInstances[p]) {
+                AppState.pageData[p] = AppState.fabricInstances[p].toJSON(FABRIC_CUSTOM_PROPS);
              }
           });
 
-          const pdfDoc = await PDFLib.PDFDocument.load(AppState.pdfBytes);
+          // 2. Emergency Cleanup: Dump non-essential live canvases to survive peak RAM
+          MemoryManager.emergencyCleanup();
+
+          const exportBuffer = await AppState.pdfBlob.arrayBuffer();
+          const pdfDoc = await PDFLib.PDFDocument.load(exportBuffer);
           const pages = pdfDoc.getPages();
 
+          // 3. Sequential page processing
           for (let i = 0; i < pages.length; i++) {
             const pageNum = i + 1;
             const stateObj = AppState.pageData[pageNum];
             
-            if (stateObj) {
-              if (stateObj.objects && stateObj.objects.length > 0) {
-                
+            if (stateObj && stateObj.objects && stateObj.objects.length > 0) {
                 const dim = AppState.pageDimensions[pageNum];
-                const exportScale = 2; 
+                
+                // Adaptive Scale: Restrict max canvas size on low RAM (approx max 8 Megapixels)
+                let exportScale = 2; 
+                if (dim.width * dim.height * exportScale * exportScale > 8000000) {
+                    exportScale = Math.sqrt(8000000 / (dim.width * dim.height));
+                }
+                const eW = Math.round(dim.width * exportScale);
+                const eH = Math.round(dim.height * exportScale);
                 
                 const tempCanvasEl = document.createElement('canvas');
-                tempCanvasEl.width = dim.width * exportScale;
-                tempCanvasEl.height = dim.height * exportScale;
+                tempCanvasEl.width = eW; tempCanvasEl.height = eH;
                 
                 const exportCanvas = new fabric.StaticCanvas(tempCanvasEl, {
-                  width: dim.width * exportScale,
-                  height: dim.height * exportScale,
-                  enableRetinaScaling: false
+                  width: eW, height: eH, enableRetinaScaling: false
                 });
 
                 await new Promise(resolve => exportCanvas.loadFromJSON(stateObj, resolve));
-                
                 exportCanvas.setZoom(exportScale);
                 exportCanvas.renderAll();
 
-                const pngDataUrl = exportCanvas.toDataURL({ format: 'png' });
-                const pngImage = await pdfDoc.embedPng(pngDataUrl);
-
-                const { width, height } = pages[i].getSize();
-                pages[i].drawImage(pngImage, {
-                  x: 0, y: 0,
-                  width: width, height: height
+                // Memory Hack: Use toBlob instead of toDataURL to prevent massive Base64 String duplication
+                const blob = await new Promise(res => {
+                   // Accessing internal HTMLCanvasElement
+                   exportCanvas.getElement().toBlob(res, 'image/png');
                 });
                 
+                const arrayBuf = await blob.arrayBuffer();
+                const pngImage = await pdfDoc.embedPng(arrayBuf);
+
+                const { width, height } = pages[i].getSize();
+                pages[i].drawImage(pngImage, { x: 0, y: 0, width: width, height: height });
+                
+                // CRITICAL: Explicitly release all temporary memory immediately
                 exportCanvas.dispose();
-              }
+                tempCanvasEl.width = 0; tempCanvasEl.height = 0;
+                
+                // Yield to Event Loop & Garbage Collector between pages
+                await new Promise(r => setTimeout(r, 300));
             }
           }
 
@@ -2069,59 +1275,60 @@
           
         } catch (e) {
           console.error("Export Error:", e);
+          alert("Export failed, possibly due to memory limits. Your work is still saved locally.");
         } finally {
           DrawerController.hideLoading();
         }
       }
     };
 
-    /**
-     * Application Initialization
-     */
-    document.addEventListener('DOMContentLoaded', () => {
+    /** INITIALIZATION */
+    document.addEventListener('DOMContentLoaded', async () => {
       FullscreenEngine.init();
       DrawerController.init();
       ToolController.init();
       MemoryManager.init();
       ViewportEngine.init();
 
-      document.getElementById('pdf-upload').addEventListener('change', e => {
-        if (e.target.files[0]) RenderEngine.loadDocument(e.target.files[0]);
-      });
-      
+      // Check for saved session
+      await DBManager.init();
+      if (await DBManager.hasSession()) {
+         const btnRestore = document.getElementById('btn-restore-session');
+         btnRestore.classList.remove('hidden');
+         btnRestore.addEventListener('click', async () => {
+             DrawerController.showLoading("Restoring Previous Session...");
+             try {
+                const savedPdf = await DBManager.get('pdfBytes');
+                const savedData = await DBManager.get('pageData');
+                if (savedData) AppState.pageData = savedData;
+                await RenderEngine.loadDocument(savedPdf, true);
+             } catch(e) {
+                alert("Failed to restore session.");
+             }
+         });
+      }
+
+      document.getElementById('pdf-upload').addEventListener('change', e => { if (e.target.files[0]) RenderEngine.loadDocument(e.target.files[0]); });
       document.getElementById('btn-undo').addEventListener('click', () => HistoryManager.undo());
       document.getElementById('btn-redo').addEventListener('click', () => HistoryManager.redo());
 
       const handlePageNav = (delta) => {
         const current = parseInt(document.getElementById('drawer-page-current').textContent) || 1;
         const target = current + delta;
-        if (target >= 1 && target <= AppState.numPages) {
-          ViewportEngine.scrollToPage(target);
-        }
+        if (target >= 1 && target <= AppState.numPages) ViewportEngine.scrollToPage(target);
       };
-
       document.getElementById('drawer-prev-page').addEventListener('click', () => handlePageNav(-1));
       document.getElementById('drawer-next-page').addEventListener('click', () => handlePageNav(1));
       document.getElementById('btn-bottom-prev').addEventListener('click', () => handlePageNav(-1));
       document.getElementById('btn-bottom-next').addEventListener('click', () => handlePageNav(1));
 
-      window.addEventListener('beforeunload', (e) => {
-        if (AppState.pdfDoc) {
-          e.preventDefault();
-          e.returnValue = '';
-        }
-      });
+      window.addEventListener('beforeunload', (e) => { if (AppState.pdfDoc) { e.preventDefault(); e.returnValue = ''; } });
+      window.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden' && AppState.pdfDoc) HistoryManager.triggerAutosave(); });
 
       const dropZone = document.getElementById('drop-zone');
-      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev => {
-        dropZone.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); });
-      });
-      dropZone.addEventListener('drop', e => {
-        if (e.dataTransfer.files[0]?.type === 'application/pdf') {
-          RenderEngine.loadDocument(e.dataTransfer.files[0]);
-        }
-      });
-      dropZone.addEventListener('click', () => document.getElementById('pdf-upload').click());
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); }));
+      dropZone.addEventListener('drop', e => { if (e.dataTransfer.files[0]?.type === 'application/pdf') RenderEngine.loadDocument(e.dataTransfer.files[0]); });
+      dropZone.addEventListener('click', (e) => { if (e.target.id !== 'btn-restore-session') document.getElementById('pdf-upload').click(); });
     });
   </script>
 </body>
