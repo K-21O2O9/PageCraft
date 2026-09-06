@@ -144,6 +144,37 @@
         <button id="btn-zoom-in" title="Zoom In" class="w-6 h-7 sm:w-7 sm:h-8 rounded-lg hover:bg-neutral-800 text-neutral-400 hover:text-rose-300 flex items-center justify-center transition"><i class="fa-solid fa-plus text-[10px]"></i></button>
       </div>
 
+      <!--
+        ================================================================
+        WRITING + PEN UNDO / REDO (added feature)
+        ----------------------------------------------------------------
+        These two buttons are a SEPARATE, independent undo/redo control
+        that only reverses TEXT ("writing") changes made with the
+        Textbox tool (adding a text box, typing/editing its content,
+        moving/resizing it, or deleting it) AND freehand strokes made
+        with the Pen tool (drawing, moving, or deleting a stroke).
+        They are intentionally placed right next to the zoom controls
+        above, and are visible on every screen size (unlike the
+        original "btn-undo"/"btn-redo" pair above, which is hidden on
+        small/mobile screens via "hidden sm:flex").
+        They do NOT touch, replace, or interfere with the existing
+        "btn-undo"/"btn-redo" buttons or the existing HistoryManager
+        object above (that global undo/redo system is left completely
+        untouched and keeps working exactly as it did before).
+        See the "WriteHistory" script object for the actual logic.
+        ================================================================
+      -->
+      <div id="write-history-controls" class="flex items-center bg-neutral-950/90 p-0.5 rounded-xl border border-rose-950/60 space-x-0.5">
+        <!-- Undo last writing/pen action. Disabled automatically when there is nothing to undo. -->
+        <button id="btn-write-undo" title="Undo Writing/Pen" disabled class="w-6 h-7 sm:w-7 sm:h-8 rounded-lg hover:bg-neutral-800 text-neutral-400 hover:text-rose-300 disabled:opacity-30 flex items-center justify-center transition">
+          <i class="fa-solid fa-rotate-left text-[10px]"></i>
+        </button>
+        <!-- Redo the last undone writing/pen action. Disabled automatically when there is nothing to redo. -->
+        <button id="btn-write-redo" title="Redo Writing/Pen" disabled class="w-6 h-7 sm:w-7 sm:h-8 rounded-lg hover:bg-neutral-800 text-neutral-400 hover:text-rose-300 disabled:opacity-30 flex items-center justify-center transition">
+          <i class="fa-solid fa-rotate-right text-[10px]"></i>
+        </button>
+      </div>
+
       <button id="btn-open-right-drawer" title="Tools" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-r from-rose-900/40 to-neutral-900/90 hover:bg-neutral-800 active:scale-95 border border-rose-600/40 text-rose-300 flex items-center justify-center transition shadow-sm hover:border-rose-500/60">
         <i class="fa-solid fa-pen-ruler text-sm sm:text-base"></i>
       </button>
@@ -570,6 +601,266 @@
       updateUI() { document.getElementById('btn-undo').disabled = AppState.historyIndex < 0; document.getElementById('btn-redo').disabled = AppState.historyIndex >= AppState.historyStack.length - 1; }
     };
 
+    /**
+     * =====================================================================
+     *  WriteHistory  —  UNDO / REDO FOR "WRITING" + "PEN" ONLY (added feature)
+     * =====================================================================
+     *  This is a brand-new, fully independent undo/redo system. It is kept
+     *  completely separate from "HistoryManager" above on purpose:
+     *    - HistoryManager (existing code, untouched) undoes/redoes EVERY
+     *      kind of edit on the whole canvas (drawings, highlights, shapes,
+     *      images, watermarks, erasing, etc).
+     *    - WriteHistory (this new object) ONLY ever looks at, saves, and
+     *      restores fabric.js "Textbox" objects (typed TEXT / the "writing"
+     *      tool) AND fabric.js "Path" objects (freehand strokes made with
+     *      the "Pen" tool). It never reads, changes, adds, or removes any
+     *      other kind of object (shapes, images, highlights, rulers,
+     *      graphs, watermarks, etc.) — those are always left completely
+     *      alone, exactly as the user requested.
+     *
+     *  How it works, in plain terms:
+     *    1. Every time a text box is added/typed into/moved/resized/
+     *       deleted, OR a pen stroke is drawn/moved/deleted, we take a
+     *       "snapshot" of ONLY the text boxes + pen strokes currently on
+     *       that page and push that snapshot onto a small history list.
+     *    2. That history list is capped at 5 entries ("max 5 actions"),
+     *       just like a real undo stack — once a 6th action happens, the
+     *       oldest remembered snapshot is dropped so we never keep more
+     *       than the last 5 actions in memory.
+     *    3. Undo moves one step back through that list and re-creates the
+     *       text boxes + pen strokes exactly as they were at that step.
+     *       Redo moves one step forward again. Both operations ONLY touch
+     *       text-box and pen-stroke objects on the canvas — every other
+     *       object on the page is left untouched.
+     * =====================================================================
+     */
+    const WriteHistory = {
+      // The list of remembered "snapshots". Each entry looks like:
+      //   { page: <page number>, texts: [ {...serialized object...}, ... ] }
+      // ("texts" keeps its original name for simplicity, but now holds
+      // BOTH text-box snapshots AND pen-stroke snapshots.)
+      stack: [],
+
+      // Pointer into "stack" representing the snapshot currently shown on
+      // the canvas. -1 means "no writing/pen action has been recorded yet".
+      index: -1,
+
+      // HARD CAP requested by the user: remember at most 5 actions.
+      maxSize: 5,
+
+      // Optional "before any tracked edit" snapshot per page, captured once
+      // when a page first finishes loading, so that undoing all the way
+      // back never deletes text or pen strokes that already existed in the
+      // document (e.g. restored from a previous saved session) — it only
+      // ever removes/reverts things that WERE added or changed during this
+      // system's tracking.
+      baseline: {},
+
+      // Guard flag so that when WE rebuild the canvas during undo/redo, we
+      // don't accidentally record that rebuild as a brand-new action.
+      isApplying: false,
+
+      // Small delay so that a fast burst of keystrokes/pen-drag-points is
+      // grouped into ONE undo step, instead of one step per tiny change
+      // (which would make undo nearly useless with only 5 slots).
+      _debounceTimer: null,
+      DEBOUNCE_MS: 500,
+      // Remembers which page a pending (not-yet-committed) debounced
+      // capture belongs to, so "flush()" below knows what to commit.
+      _pendingPage: null,
+
+      /**
+       * Decides whether a given fabric object counts as "writing" (a text
+       * box) or "pen" (a freehand stroke) — the ONLY two kinds of objects
+       * this whole system is allowed to look at, save, or touch. Every
+       * other type (rect, image, group/ruler, group/graph, watermark
+       * text, highlighter rect, etc.) returns false here and is therefore
+       * completely ignored everywhere in this object.
+       */
+      _isTracked(o) {
+        return o.type === 'textbox' || o.type === 'i-text' || o.type === 'path';
+      },
+
+      /**
+       * Reads only the tracked ("writing" + "pen") objects on a given
+       * page's canvas and turns them into serialized snapshots we can
+       * store and later restore. Every other object type is deliberately
+       * ignored. We use fabric's own toObject() serializer (instead of
+       * hand-picking properties) so this works correctly for BOTH text
+       * boxes (which need properties like text/fontSize) and pen strokes
+       * (which need the drawn path data) without extra per-type code.
+       */
+      _readTextSnapshot(pageNum) {
+        const fc = AppState.fabricInstances[pageNum];
+        if (!fc) return [];
+        return fc.getObjects()
+          .filter(o => this._isTracked(o))
+          .map(o => {
+            // Give every tracked object a private, stable id (once) so the
+            // same object can be matched up again across snapshots.
+            if (!o._wid) o._wid = 'w_' + Math.random().toString(36).slice(2, 11);
+            // toObject(['_wid']) = fabric's full standard serialization for
+            // this object's actual type, PLUS our extra custom '_wid' field.
+            return o.toObject(['_wid']);
+          });
+      },
+
+      /**
+       * Captures the "starting point" writing/pen state for a page the
+       * first time that page is opened/loaded, so Undo never has to guess
+       * what to do once the tracked history for that page runs out.
+       */
+      captureBaseline(pageNum) {
+        if (this.baseline[pageNum] !== undefined) return; // only capture once per page
+        this.baseline[pageNum] = this._readTextSnapshot(pageNum);
+      },
+
+      /**
+       * Call this whenever a WRITING action happens (text added, typed
+       * into, moved, resized, or deleted). It debounces rapid-fire calls
+       * (like individual keystrokes) into a single recorded action.
+       */
+      capture(pageNum) {
+        if (this.isApplying) return; // ignore changes caused by our own undo/redo
+        this._pendingPage = pageNum; // remember which page this pending action belongs to
+        if (this._debounceTimer) clearTimeout(this._debounceTimer);
+        this._debounceTimer = setTimeout(() => this._commit(pageNum), this.DEBOUNCE_MS);
+      },
+
+      /**
+       * Actually records a snapshot of the given page's text boxes onto the
+       * undo stack. This is the shared logic used both by the normal
+       * debounced path above AND by flush() below, so both paths behave
+       * identically.
+       */
+      _commit(pageNum) {
+        this._debounceTimer = null;
+        this._pendingPage = null;
+        this.captureBaseline(pageNum); // make sure we have a safe fallback state
+        const texts = this._readTextSnapshot(pageNum);
+        // Throw away any "redo" entries once a brand new action happens.
+        this.stack = this.stack.slice(0, this.index + 1);
+        this.stack.push({ page: pageNum, texts });
+        // Enforce the "max 5 actions" cap: drop the oldest entry instead
+        // of growing the list forever.
+        if (this.stack.length > this.maxSize) this.stack.shift();
+        else this.index++;
+        this.updateUI();
+      },
+
+      /**
+       * FIX: guarantees the most recently performed writing action is
+       * always undoable. Because capture() above waits a short moment
+       * (DEBOUNCE_MS) before actually recording an action — so a burst of
+       * keystrokes counts as one step — clicking Undo/Redo immediately
+       * after typing could otherwise happen BEFORE that pending action was
+       * ever recorded, making it look like Undo "skipped" the last thing
+       * the user did. Calling flush() first cancels the pending timer and
+       * immediately commits that action right now, so "any action
+       * previously done" is guaranteed to be in the stack before we try to
+       * undo/redo anything. If nothing is pending, this does nothing.
+       */
+      flush() {
+        if (!this._debounceTimer) return; // nothing pending — already up to date
+        clearTimeout(this._debounceTimer);
+        const pageNum = this._pendingPage;
+        this._debounceTimer = null;
+        this._pendingPage = null;
+        if (pageNum !== null && pageNum !== undefined) this._commit(pageNum);
+      },
+
+      /**
+       * Rebuilds ONLY the text boxes + pen strokes on a page's canvas to
+       * match a given snapshot. Every other object already on that canvas
+       * (shapes, images, highlights, rulers, graphs, watermarks, etc.) is
+       * left completely untouched. Uses fabric's own "enlivenObjects"
+       * helper to correctly reconstruct EITHER object type (Textbox or
+       * Path) from its serialized data — this is what lets pen strokes
+       * restore correctly alongside text boxes without extra per-type code.
+       */
+      _applyTextSnapshot(pageNum, texts) {
+        const fc = AppState.fabricInstances[pageNum];
+        if (!fc) return; // page isn't currently loaded/visible — nothing we can safely change
+        this.isApplying = true;
+        // Remove ONLY existing tracked (writing + pen) objects. Shapes,
+        // images, highlights, rulers, graphs, watermarks, etc. are never
+        // touched or removed here.
+        fc.getObjects().filter(o => this._isTracked(o)).forEach(o => fc.remove(o));
+        if (!texts || texts.length === 0) {
+          // Nothing to re-create (e.g. undoing back to a blank state).
+          fc.requestRenderAll();
+          this.isApplying = false;
+          return;
+        }
+        // Ask fabric to reconstruct real Textbox/Path instances from the
+        // stored serialized data, then add each one back to the canvas.
+        try {
+          fabric.util.enlivenObjects(texts, (objs) => {
+            objs.forEach((obj, i) => {
+              obj._wid = texts[i]._wid; // keep the same stable id for future matching
+              fc.add(obj);
+            });
+            fc.requestRenderAll();
+            this.isApplying = false;
+          });
+        } catch (e) {
+          console.error('WriteHistory restore failed', e);
+          this.isApplying = false; // never leave this flag stuck "true" on failure
+        }
+      },
+
+      /** Steps one writing-action backwards. */
+      undo() {
+        // FIX: commit any not-yet-recorded pending action first, so that
+        // whatever the user just did is guaranteed to be undoable — never
+        // silently skipped just because its debounce timer hadn't fired yet.
+        this.flush();
+        if (this.index < 0) return; // nothing recorded yet
+        if (this.index === 0) {
+          // Stepping back past the very first tracked action: restore the
+          // page to its original ("baseline") text state instead of
+          // guessing an empty state.
+          const entry = this.stack[0];
+          const base = this.baseline[entry.page] || [];
+          this._applyTextSnapshot(entry.page, base);
+          this.index = -1;
+        } else {
+          this.index--;
+          const entry = this.stack[this.index];
+          this._applyTextSnapshot(entry.page, entry.texts);
+        }
+        this.updateUI();
+      },
+
+      /** Steps one writing-action forwards (re-applies an undone change). */
+      redo() {
+        // FIX: also flush here for consistency — normally a no-op since
+        // nothing should be pending right after an undo, but this keeps
+        // undo/redo behaving predictably in every situation.
+        this.flush();
+        if (this.index >= this.stack.length - 1) return; // nothing to redo
+        this.index++;
+        const entry = this.stack[this.index];
+        this._applyTextSnapshot(entry.page, entry.texts);
+        this.updateUI();
+      },
+
+      /** Clears all remembered writing history (used when a new document is loaded). */
+      reset() {
+        this.stack = []; this.index = -1; this.baseline = {};
+        if (this._debounceTimer) { clearTimeout(this._debounceTimer); this._debounceTimer = null; }
+        this.updateUI();
+      },
+
+      /** Enables/disables the two writing undo/redo buttons based on current position. */
+      updateUI() {
+        const u = document.getElementById('btn-write-undo');
+        const r = document.getElementById('btn-write-redo');
+        if (u) u.disabled = this.index < 0;
+        if (r) r.disabled = this.index >= this.stack.length - 1;
+      }
+    };
+
     /** Shape/Insert Engine */
     const ShapeInsertEngine = {
       getActiveCanvas() {
@@ -587,7 +878,7 @@
           if (isMaj) objs.push(new fabric.Text((x / 50).toString(), { left: x, top: th + 2, originX: 'center', originY: 'top', fontSize: 9, fill: '#fda4af', fontFamily: 'monospace', fontWeight: 'bold', selectable: false }));
         }
         const dim = AppState.pageDimensions[AppState.currentPage] || { width: 600, height: 800 };
-        const grp = new fabric.Group(objs, { left: Math.max(20, (dim.width-w)/2), top: Math.max(40, (dim.height-h)/3), originX: 'center', originY: 'center', selectable: true, hasRotatingPoint: true, transparentCorners: false, cornerColor: '#e11d48', cornerStrokeColor: '#ffffff', borderColor: '#e11d48', cornerSize: 22, padding: 12, lockScalingX: true, lockScalingY: true, lockSkewingX: true, lockSkewingY: true, subTargetCheck: false });
+        const grp = new fabric.Group(objs, { left: Math.max(20, (dim.width-w)/2), top: Math.max(40, (dim.height-h)/3), originX: 'center', originY: 'center', selectable: true, hasRotatingPoint: true, transparentCorners: false, cornerColor: '#e11d48', cornerStrokeColor: '#ffffff', borderColor: '#e11d48', cornerSize: 22, padding: 0, lockScalingX: true, lockScalingY: true, lockSkewingX: true, lockSkewingY: true, subTargetCheck: false });
         grp.setControlsVisibility({ mt: false, mb: false, ml: false, mr: false, bl: false, br: false, tl: false, tr: false, mtr: true });
         grp.isRuler = true; grp.customType = 'ruler'; fCanvas.add(grp); fCanvas.setActiveObject(grp);
         HistoryManager.saveState(); ToolController.setActiveTool('select');
@@ -642,82 +933,49 @@
           else { obj.selectable = (tool === 'select'); obj.evented = (tool === 'select' || tool === 'eraser'); }
           
           if (obj.isRuler) {
-            obj.set({ lockScalingX: true, lockScalingY: true, lockSkewingX: true, lockSkewingY: true, cornerSize: 22, padding: 12, borderColor: '#e11d48', cornerColor: '#e11d48', cornerStrokeColor: '#ffffff', transparentCorners: false });
+            obj.set({ lockScalingX: true, lockScalingY: true, lockSkewingX: true, lockSkewingY: true, cornerSize: 22, padding: 0, borderColor: '#e11d48', cornerColor: '#e11d48', cornerStrokeColor: '#ffffff', transparentCorners: false });
             obj.setControlsVisibility({ mt: false, mb: false, ml: false, mr: false, bl: false, br: false, tl: false, tr: false, mtr: true });
           }
         });
         
         fc.off('mouse:down'); fc.off('mouse:move'); fc.off('mouse:up');
-        if (fc.__rulerCaptureHandler) {
-          fc.upperCanvasEl.removeEventListener('mousedown', fc.__rulerCaptureHandler, true);
-          fc.upperCanvasEl.removeEventListener('touchstart', fc.__rulerCaptureHandler, true);
-          fc.__rulerCaptureHandler = null;
-        }
         
         if (tool === 'pen') {
-          // ---- Physical ruler-guided writing -----------------------------
-          // A stateless brush that draws nothing at all. Swapping the canvas's
-          // freeDrawingBrush to this for the duration of a ruler-guided stroke
-          // stops Fabric's normal freehand pencil from ever marking the page,
-          // without touching fc.isDrawingMode - so Fabric's own drawing-mode
-          // event handling (including its mobile touch-scroll prevention)
-          // stays active and consistent for the whole gesture.
-          if (!fc.__rulerGhostBrush) {
-            fc.__rulerGhostBrush = { onMouseDown() {}, onMouseMove() {}, onMouseUp() { return false; } };
-          }
-          const ghostBrush = fc.__rulerGhostBrush;
-          const realBrush = fc.freeDrawingBrush;
-
-          // Hit-test against the ruler's true transformed geometry (position,
-          // rotation and scale all included via calcTransformMatrix), sized
-          // to its actual current width/height - never a hardcoded or padded
-          // box - so the interactive area is pixel-for-pixel the visible ruler
-          // at any zoom, rotation or scale.
-          const findRulerAt = (canvasPt) => {
-            const rulers = fc.getObjects().filter(obj => obj.isRuler);
-            for (let i = rulers.length - 1; i >= 0; i--) {
-              const r = rulers[i];
-              const inv = fabric.util.invertTransform(r.calcTransformMatrix());
-              const local = fabric.util.transformPoint(canvasPt, inv);
-              const halfW = r.getScaledWidth() / 2;
-              const halfH = r.getScaledHeight() / 2;
-              if (Math.abs(local.x) <= halfW && Math.abs(local.y) <= halfH) {
-                return { ruler: r, local, halfH };
-              }
-            }
-            return null;
-          };
-
-          // Runs in the capture phase, ahead of Fabric's own mousedown/
-          // touchstart handling, so the swap lands before the real brush's
-          // onMouseDown ever executes for a ruler-guided stroke.
-          const captureHandler = (e) => {
-            if (AppState.activeTool !== 'pen') return;
-            const pt = fc.getPointer(e);
-            fc.freeDrawingBrush = findRulerAt(pt) ? ghostBrush : realBrush;
-          };
-          fc.upperCanvasEl.addEventListener('mousedown', captureHandler, true);
-          fc.upperCanvasEl.addEventListener('touchstart', captureHandler, true);
-          fc.__rulerCaptureHandler = captureHandler;
-
           let isRulerGuided = false;
           let rulerGuideLine = null;
           let rulerStartLocal = null;
           let activeRuler = null;
 
           fc.on('mouse:down', o => {
-            activeRuler = null;
             const pt = fc.getPointer(o.e);
-            const hit = findRulerAt(pt);
+            activeRuler = null;
+            
+            // Search for available rulers in close proximity to the start stroke
+            const rulers = fc.getObjects().filter(obj => obj.isRuler);
+            for (let r of rulers) {
+              const inv = fabric.util.invertTransform(r.calcTransformMatrix());
+              const tPt = fabric.util.transformPoint(pt, inv);
+              
+              // 180 + 40px bounding touch tolerance for horizontal axis
+              // Only the top edge (-27) and bottom edge (+27) of the ruler are writable,
+              // each with a small outward tolerance (40px) and inward tolerance (8px) —
+              // the middle of the ruler body is excluded.
+              const nearTopEdge = tPt.y >= -27 - 40 && tPt.y <= -27 + 8;
+              const nearBottomEdge = tPt.y <= 27 + 40 && tPt.y >= 27 - 8;
+              if (Math.abs(tPt.x) <= 180 + 40 && (nearTopEdge || nearBottomEdge)) {
+                activeRuler = r;
+                rulerStartLocal = tPt;
+                break;
+              }
+            }
 
-            if (hit) {
-              activeRuler = hit.ruler;
-              // Snap exactly to the closest physical long edge (top or
-              // bottom) - the ruler's real straightedge - while preserving
-              // the user's along-the-edge starting position untouched.
-              const edgeY = (hit.local.y < 0) ? -hit.halfH : hit.halfH;
-              rulerStartLocal = new fabric.Point(hit.local.x, edgeY);
+            if (activeRuler) {
               isRulerGuided = true;
+              
+              // Softly interrupt normal freehand Fabric functionality dynamically
+              fc.isDrawingMode = false;
+              fc._isCurrentlyDrawing = false; 
+              if (fc.contextTop) fc.clearContext(fc.contextTop); 
 
               // Project starting location exactly onto internal constraints space
               const matrix = activeRuler.calcTransformMatrix();
@@ -749,7 +1007,7 @@
               const inv = fabric.util.invertTransform(activeRuler.calcTransformMatrix());
               const localPt = fabric.util.transformPoint(pt, inv);
               
-              // Project live trace strictly back down onto ruler's parallel long axis edge (defined on click)
+              // Project live trace strictly back down onto ruler's parallel long axis (defined on click)
               const projectedLocal = new fabric.Point(localPt.x, rulerStartLocal.y);
               
               // Render corrected point cleanly backwards into final unscaled global canvas coordinates 
@@ -762,9 +1020,9 @@
           });
 
           fc.on('mouse:up', () => {
-            fc.freeDrawingBrush = realBrush;
             if (isRulerGuided) {
               isRulerGuided = false;
+              fc.isDrawingMode = true; // Reinstate freehand drawing system 
               if (rulerGuideLine) {
                 rulerGuideLine.setCoords();
                 rulerGuideLine.selectable = (AppState.activeTool === 'select');
@@ -772,8 +1030,6 @@
                 rulerGuideLine = null;
                 HistoryManager.saveState();
               }
-              activeRuler = null;
-              rulerStartLocal = null;
             }
           });
         }
@@ -1250,10 +1506,53 @@
         fc.on('object:added', () => { if (!AppState.isApplyingHistory && !fc.isRendering) HistoryManager.saveState(); });
         fc.on('mouse:down', () => { AppState.currentPage = pageNum; document.getElementById('bottom-page-num').textContent = pageNum; });
         fc.on('object:modified', () => { if (!AppState.isApplyingHistory && !fc.isRendering) HistoryManager.saveState(); });
-        
+
+        // ---------------------------------------------------------------
+        // WRITING + PEN UNDO/REDO (added feature) — extra listeners below.
+        // These are ADDITIONAL event listeners (fabric.js allows more than
+        // one listener per event) and do not remove or replace any of the
+        // listeners above. Each one only reacts to TEXT ("textbox") objects
+        // and PEN ("path") strokes, via WriteHistory._isTracked(), and
+        // calls WriteHistory.capture(), which is completely separate from
+        // HistoryManager above. Nothing else about the canvas is affected
+        // by these lines.
+        // ---------------------------------------------------------------
+        fc.on('object:added', (ev) => {
+          // Only record this as an action if the object added is a text box or a pen stroke.
+          if (ev && ev.target && WriteHistory._isTracked(ev.target) && !fc.isRendering) WriteHistory.capture(pageNum);
+        });
+        fc.on('object:modified', (ev) => {
+          // Only record this as an action if the modified object is a text box or pen stroke (e.g. moved/resized/edited).
+          if (ev && ev.target && WriteHistory._isTracked(ev.target) && !fc.isRendering) WriteHistory.capture(pageNum);
+        });
+        fc.on('object:removed', (ev) => {
+          // Only record this as an action if the removed object is a text box or pen stroke (e.g. deleted).
+          if (ev && ev.target && WriteHistory._isTracked(ev.target) && !fc.isRendering && !WriteHistory.isApplying) WriteHistory.capture(pageNum);
+        });
+        // 'text:changed' fires continuously while the user is TYPING inside a text box — this is the main "writing" trigger.
+        fc.on('text:changed', (ev) => {
+          if (ev && ev.target && WriteHistory._isTracked(ev.target) && !fc.isRendering) WriteHistory.capture(pageNum);
+        });
+        // 'path:created' fires once a Pen-tool stroke is finished being drawn — this is the main "pen" trigger.
+        // (fabric also fires 'object:added' for the same new path, but this listener makes the pen trigger explicit and easy to find.)
+        fc.on('path:created', (ev) => {
+          if (ev && ev.path && !fc.isRendering) WriteHistory.capture(pageNum);
+        });
+
         if (AppState.pageData[pageNum] && AppState.pageData[pageNum].objects.length > 0) {
           fc.isRendering = true;
           fc.loadFromJSON(AppState.pageData[pageNum], () => { fc.isRendering = false; fc.setDimensions({ width: sW, height: sH }); fc.setZoom(AppState.scale); fc.requestRenderAll(); });
+          // WRITING-ONLY UNDO/REDO (added feature): this page has previously-saved
+          // content (possibly including existing text boxes) that loads
+          // asynchronously above. Wait briefly for that load to finish, then
+          // remember whatever text boxes exist as the "baseline" writing state,
+          // so Undo can never erase text that already existed before this
+          // session started editing it. This line only READS the canvas after
+          // the fact — it does not change how the loading above behaves.
+          setTimeout(() => WriteHistory.captureBaseline(pageNum), 300);
+        } else {
+          // No saved content for this page — its "baseline" writing state is simply empty.
+          WriteHistory.captureBaseline(pageNum);
         }
         ToolController.applyToolToCanvas(fc);
       },
@@ -1521,6 +1820,30 @@
       document.getElementById('btn-new-blank-pdf').addEventListener('click', () => TemplateEngine.createBlankPDF(10));
       document.getElementById('btn-undo').addEventListener('click', () => HistoryManager.undo());
       document.getElementById('btn-redo').addEventListener('click', () => HistoryManager.redo());
+
+      // -----------------------------------------------------------------
+      // WRITING + PEN UNDO/REDO (added feature): wire up the two new
+      // buttons placed next to the zoom controls. These call WriteHistory
+      // (our new, separate, text+pen-only undo/redo system) instead of
+      // HistoryManager, so they only ever affect text/"writing" objects
+      // and pen-drawn strokes.
+      // -----------------------------------------------------------------
+      document.getElementById('btn-write-undo').addEventListener('click', () => WriteHistory.undo());
+      document.getElementById('btn-write-redo').addEventListener('click', () => WriteHistory.redo());
+
+      // WRITING + PEN UNDO/REDO (added feature): whenever a document is
+      // freshly loaded, created, or restored, forget any previously
+      // remembered writing/pen history so old undo/redo entries can't be
+      // mistakenly applied to a completely different document's pages.
+      // These are EXTRA listeners added alongside the existing ones
+      // above/below — they don't replace or alter what those existing
+      // listeners do.
+      document.getElementById('pdf-upload').addEventListener('change', () => WriteHistory.reset());
+      document.getElementById('btn-new-blank-pdf').addEventListener('click', () => WriteHistory.reset());
+      document.getElementById('drop-zone').addEventListener('drop', () => WriteHistory.reset());
+      if (document.getElementById('btn-restore-session')) {
+        document.getElementById('btn-restore-session').addEventListener('click', () => WriteHistory.reset());
+      }
 
       const handleNav = (d) => { const c = parseInt(document.getElementById('bottom-page-num').textContent) || 1; const t = c + d; if (t >= 1 && t <= AppState.numPages) ViewportEngine.scrollToPage(t); };
       document.getElementById('btn-bottom-prev').addEventListener('click', () => handleNav(-1)); document.getElementById('btn-bottom-next').addEventListener('click', () => handleNav(1));
