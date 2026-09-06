@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en" class="h-full bg-black text-neutral-100">
 <head>
@@ -40,38 +39,14 @@
     }
 
     html, body {
-      width: 100%;
-      height: 100%;
-      height: 100dvh;
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      -webkit-text-size-adjust: 100%;
-      text-size-adjust: 100%;
-      touch-action: pan-x pan-y;
+      width: 100%; height: 100%; height: 100dvh; margin: 0; padding: 0; overflow: hidden;
+      -webkit-text-size-adjust: 100%; text-size-adjust: 100%;
+      touch-action: none; /* Let JS handle gestures to prevent Safari layout zoom */
       overscroll-behavior: none;
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      background-color: #040406;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: #040406;
     }
 
-    input[type="number"], input[type="text"], select, textarea {
-      font-size: 16px !important;
-    }
-
-    /* Robust Fullscreen Fallback */
-    body.pseudo-fullscreen, html.pseudo-fullscreen {
-      position: fixed !important;
-      top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
-      width: 100vw !important; height: 100vh !important; height: 100dvh !important;
-      max-width: 100vw !important; max-height: 100dvh !important;
-      margin: 0 !important; padding: 0 !important; overflow: hidden !important;
-      z-index: 2147483647 !important;
-    }
-
-    :fullscreen, :-webkit-full-screen, :-moz-full-screen, :-ms-fullscreen {
-      width: 100vw !important; height: 100vh !important; height: 100dvh !important;
-      zoom: 1 !important; transform: none !important; -webkit-transform: none !important;
-    }
+    input[type="number"], input[type="text"], select, textarea { font-size: 16px !important; }
 
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #08080a; }
@@ -79,18 +54,8 @@
     ::-webkit-scrollbar-thumb:hover { background: #e11d48; }
 
     .glass-panel {
-      background: rgba(13, 10, 14, 0.92);
-      backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+      background: rgba(13, 10, 14, 0.92); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
       border: 1px solid rgba(225, 29, 72, 0.22);
-    }
-
-    #floating-toolbar {
-      bottom: calc(2.75rem + var(--safe-bottom)); margin-bottom: 6px;
-      transition: transform 0.2s ease, opacity 0.2s ease;
-    }
-
-    @media (max-width: 640px) {
-      #floating-toolbar { bottom: calc(3.75rem + var(--safe-bottom)); margin-bottom: 8px; }
     }
 
     .tool-btn { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); white-space: nowrap; }
@@ -99,7 +64,7 @@
       box-shadow: 0 0 0 1.5px rgba(225, 29, 72, 0.75), 0 4px 16px rgba(225, 29, 72, 0.4);
     }
 
-    #document-wrapper { transform-origin: top center; transition: transform 0.05s ease-out; will-change: transform; }
+    #document-wrapper { transform-origin: top left; transition: transform 0.05s ease-out; will-change: transform; }
 
     .pdf-page-container {
       position: relative; margin: 0 auto 1.75rem auto; 
@@ -111,10 +76,7 @@
     .canvas-container { position: absolute !important; top: 0 !important; left: 0 !important; z-index: 2 !important; touch-action: none !important; }
     .view-mode-active .canvas-container { pointer-events: none !important; }
     
-    .text-layer {
-      position: absolute; top: 0; left: 0; z-index: 3; pointer-events: none;
-      opacity: 1; line-height: 1.0; transform-origin: 0 0;
-    }
+    .text-layer { position: absolute; top: 0; left: 0; z-index: 3; pointer-events: none; opacity: 1; line-height: 1.0; transform-origin: 0 0; }
     .text-layer.active-select { pointer-events: auto !important; user-select: text; }
     .text-layer span { color: transparent; position: absolute; white-space: pre; cursor: text; transform-origin: 0% 0%; }
     .text-layer.active-select ::selection { background: rgba(225, 29, 72, 0.45); color: transparent; }
@@ -125,10 +87,16 @@
                         repeating-linear-gradient(to bottom, rgba(225, 29, 72, 0.16) 0, rgba(225, 29, 72, 0.16) 1px, transparent 1px, transparent 28px);
     }
 
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .no-scrollbar::-webkit-scrollbar { display: none; } .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .drawer-overlay { transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
     .drawer-content { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    
+    .checkerboard-bg {
+      background-color: #1a1a1a;
+      background-image: linear-gradient(45deg, #2a2a2a 25%, transparent 25%, transparent 75%, #2a2a2a 75%, #2a2a2a), 
+                        linear-gradient(45deg, #2a2a2a 25%, transparent 25%, transparent 75%, #2a2a2a 75%, #2a2a2a);
+      background-size: 20px 20px; background-position: 0 0, 10px 10px;
+    }
   </style>
 </head>
 
@@ -138,7 +106,7 @@
   <header class="h-14 sm:h-16 glass-panel border-b border-rose-950/60 shrink-0 z-30 px-3 sm:px-5 flex items-center justify-between gap-2">
     
     <div class="flex items-center space-x-2 sm:space-x-3 shrink-0">
-      <button id="btn-open-drawer" title="Menu" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-neutral-900/90 hover:bg-neutral-800 active:scale-95 border border-rose-900/40 text-rose-300 flex items-center justify-center transition shadow-sm hover:border-rose-600/60">
+      <button id="btn-open-left-drawer" title="Menu" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-neutral-900/90 hover:bg-neutral-800 active:scale-95 border border-rose-900/40 text-rose-300 flex items-center justify-center transition shadow-sm hover:border-rose-600/60">
         <i class="fa-solid fa-bars text-sm sm:text-base"></i>
       </button>
 
@@ -148,174 +116,275 @@
         </div>
         <div class="flex flex-col justify-center">
             <h1 class="text-sm sm:text-base font-bold tracking-tight text-white flex items-center truncate leading-tight">PageCraft</h1>
-            <!-- Save Status Indicator -->
             <span id="save-status" class="text-[9px] font-medium text-rose-400/80 tracking-wide transition-opacity duration-300 opacity-0 leading-tight">Saved</span>
         </div>
       </div>
     </div>
 
-    <div class="flex items-center space-x-1 sm:space-x-2 shrink-0">
-      <div class="flex items-center bg-neutral-950/90 p-0.5 rounded-xl border border-rose-950/60">
-        <button id="btn-undo" title="Undo (Ctrl+Z)" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg hover:bg-neutral-800 text-neutral-300 hover:text-rose-300 disabled:opacity-30 disabled:hover:bg-transparent flex items-center justify-center transition">
-          <i class="fa-solid fa-rotate-left text-xs"></i>
-        </button>
-        <button id="btn-redo" title="Redo (Ctrl+Y)" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg hover:bg-neutral-800 text-neutral-300 hover:text-rose-300 disabled:opacity-30 disabled:hover:bg-transparent flex items-center justify-center transition">
-          <i class="fa-solid fa-rotate-right text-xs"></i>
-        </button>
+    <div class="flex items-center space-x-2 sm:space-x-3 shrink-0">
+      <!-- Quick Nav & Undo -->
+      <div class="hidden sm:flex items-center space-x-1 border-r border-rose-950/80 pr-3">
+        <button id="btn-undo" title="Undo (Ctrl+Z)" class="w-8 h-8 rounded-lg hover:bg-neutral-800 text-neutral-300 hover:text-rose-300 disabled:opacity-30 flex items-center justify-center transition"><i class="fa-solid fa-rotate-left text-xs"></i></button>
+        <button id="btn-redo" title="Redo (Ctrl+Y)" class="w-8 h-8 rounded-lg hover:bg-neutral-800 text-neutral-300 hover:text-rose-300 disabled:opacity-30 flex items-center justify-center transition"><i class="fa-solid fa-rotate-right text-xs"></i></button>
       </div>
 
       <div class="flex items-center bg-neutral-950/90 p-0.5 rounded-xl border border-rose-950/60">
-        <button id="btn-zoom-out" title="Zoom Out" class="w-6 h-7 sm:w-7 sm:h-8 rounded-lg hover:bg-neutral-800 text-neutral-400 hover:text-rose-300 flex items-center justify-center transition">
-          <i class="fa-solid fa-minus text-[10px]"></i>
-        </button>
+        <button id="btn-zoom-out" title="Zoom Out" class="w-6 h-7 sm:w-7 sm:h-8 rounded-lg hover:bg-neutral-800 text-neutral-400 hover:text-rose-300 flex items-center justify-center transition"><i class="fa-solid fa-minus text-[10px]"></i></button>
         <span id="zoom-percentage" class="px-1 text-[11px] sm:text-xs font-mono font-bold text-rose-400 min-w-[38px] sm:min-w-[46px] text-center">100%</span>
-        <button id="btn-zoom-in" title="Zoom In" class="w-6 h-7 sm:w-7 sm:h-8 rounded-lg hover:bg-neutral-800 text-neutral-400 hover:text-rose-300 flex items-center justify-center transition">
-          <i class="fa-solid fa-plus text-[10px]"></i>
-        </button>
+        <button id="btn-zoom-in" title="Zoom In" class="w-6 h-7 sm:w-7 sm:h-8 rounded-lg hover:bg-neutral-800 text-neutral-400 hover:text-rose-300 flex items-center justify-center transition"><i class="fa-solid fa-plus text-[10px]"></i></button>
       </div>
 
-      <button id="btn-fullscreen" title="Toggle Fullscreen" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-neutral-900/90 hover:bg-neutral-800 active:scale-95 text-neutral-300 hover:text-rose-400 border border-rose-950/60 hover:border-rose-600/40 flex items-center justify-center transition shadow-sm">
-        <i class="fa-solid fa-expand text-xs sm:text-sm"></i>
+      <button id="btn-open-right-drawer" title="Tools" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-r from-rose-900/40 to-neutral-900/90 hover:bg-neutral-800 active:scale-95 border border-rose-600/40 text-rose-300 flex items-center justify-center transition shadow-sm hover:border-rose-500/60">
+        <i class="fa-solid fa-pen-ruler text-sm sm:text-base"></i>
       </button>
     </div>
   </header>
 
-  <!-- ================= HAMBURGER SLIDE-OUT DRAWER ================= -->
-  <div id="drawer-container" class="fixed inset-0 z-50 pointer-events-none">
-    <div id="drawer-backdrop" class="drawer-overlay absolute inset-0 bg-black/80 backdrop-blur-sm opacity-0 transition-opacity"></div>
-    
-    <div id="drawer-panel" class="drawer-content absolute top-0 left-0 bottom-0 w-[310px] sm:w-[350px] max-w-[88vw] bg-neutral-950 border-r border-rose-950/80 flex flex-col shadow-2xl shadow-rose-950/30 translate-x-[-100%] transition-transform">
-      
+  <!-- ================= LEFT HAMBURGER DRAWER (Doc & Modules) ================= -->
+  <div id="left-drawer-container" class="fixed inset-0 z-50 pointer-events-none">
+    <div id="left-drawer-backdrop" class="drawer-overlay absolute inset-0 bg-black/80 backdrop-blur-sm opacity-0 transition-opacity"></div>
+    <div id="left-drawer-panel" class="drawer-content absolute top-0 left-0 bottom-0 w-[310px] sm:w-[350px] max-w-[88vw] bg-neutral-950 border-r border-rose-950/80 flex flex-col shadow-2xl shadow-rose-950/30 translate-x-[-100%] transition-transform">
       <div class="h-16 px-4 flex items-center justify-between border-b border-rose-950/80 shrink-0">
         <div class="flex items-center space-x-2.5">
-          <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-rose-700 to-red-600 flex items-center justify-center text-white shadow-md shadow-rose-950/50">
-            <i class="fa-solid fa-file-signature text-sm"></i>
-          </div>
-          <div>
-            <h2 class="text-sm font-bold text-white">PageCraft</h2>
-            <p class="text-[10px] text-rose-400 font-medium">Menu & Tools</p>
-          </div>
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-rose-700 to-red-600 flex items-center justify-center text-white shadow-md shadow-rose-950/50"><i class="fa-solid fa-file-signature text-sm"></i></div>
+          <div><h2 class="text-sm font-bold text-white">PageCraft</h2><p class="text-[10px] text-rose-400 font-medium">Made By K210209♤ Studios</p></div>
         </div>
-        <button id="btn-close-drawer" class="w-8 h-8 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-400 hover:text-rose-400 border border-neutral-800 flex items-center justify-center transition">
-          <i class="fa-solid fa-xmark text-sm"></i>
-        </button>
+        <button id="btn-close-left-drawer" class="w-8 h-8 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-400 hover:text-rose-400 border border-neutral-800 flex items-center justify-center transition"><i class="fa-solid fa-xmark text-sm"></i></button>
       </div>
 
       <div class="flex-1 overflow-y-auto p-4 space-y-5" style="padding-bottom: calc(2.5rem + var(--safe-bottom));">
-        
+        <!-- Core PDF Document -->
         <div class="space-y-2">
           <span class="text-[10px] font-bold tracking-wider text-rose-400/80 uppercase">Document</span>
-          
           <label for="pdf-upload" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl bg-neutral-900/90 hover:bg-rose-950/40 hover:border-rose-600/50 border border-neutral-800 text-neutral-200 hover:text-white cursor-pointer transition text-xs font-medium">
             <i class="fa-solid fa-folder-open text-rose-500 text-sm"></i>
             <span>Open PDF Document</span>
             <input type="file" id="pdf-upload" accept="application/pdf" class="hidden">
           </label>
-
           <button id="btn-drawer-export" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-rose-700 to-red-600 hover:from-rose-600 hover:to-red-500 text-white shadow-lg shadow-rose-950/40 transition text-xs font-semibold text-left">
-            <i class="fa-solid fa-file-arrow-down text-white text-sm"></i>
-            <span>Export & Save PDF</span>
+            <i class="fa-solid fa-file-arrow-down text-white text-sm"></i><span>Export & Save PDF</span>
           </button>
-          
           <button id="btn-clear-session" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl bg-neutral-900/90 hover:bg-rose-950/40 border border-neutral-800 text-neutral-400 hover:text-rose-400 transition text-xs font-medium mt-1">
-            <i class="fa-solid fa-trash-can text-sm"></i>
-            <span>Clear Saved Session</span>
+            <i class="fa-solid fa-trash-can text-sm"></i><span>Clear Saved Session</span>
           </button>
         </div>
 
-        <div class="space-y-2.5">
-          <span class="text-[10px] font-bold tracking-wider text-rose-400/80 uppercase">Precision Inserts</span>
-          
-          <button id="btn-insert-ruler" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-neutral-900/90 hover:bg-rose-950/40 border border-rose-950/70 hover:border-rose-600/50 text-neutral-200 hover:text-white transition text-xs font-medium">
-            <div class="flex items-center space-x-3">
-              <i class="fa-solid fa-ruler-combined text-rose-400 text-sm"></i>
-              <div class="text-left">
-                <span class="block text-xs font-semibold text-white">Insert Precision Ruler</span>
-                <span class="block text-[10px] text-neutral-400">Draggable & rotatable straightedge</span>
-              </div>
-            </div>
-            <i class="fa-solid fa-plus text-xs text-rose-400"></i>
-          </button>
-
-          <div class="p-3 rounded-xl bg-neutral-900/90 border border-rose-950/70 space-y-3">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center space-x-2">
-                <i class="fa-solid fa-border-all text-rose-400 text-xs"></i>
-                <span class="text-xs font-semibold text-neutral-200">Cartesian Grid Graph</span>
-              </div>
-              <span class="text-[9px] text-rose-400/70 uppercase tracking-wider font-mono">Numbered Axes</span>
-            </div>
-
-            <div class="grid grid-cols-3 gap-2 text-left">
-              <div>
-                <label class="block text-[10px] text-neutral-400 mb-1">Rows</label>
-                <input type="number" id="graph-rows" value="10" min="4" max="60" class="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-2 py-1 text-xs text-rose-300 font-mono focus:outline-none focus:border-rose-500">
-              </div>
-              <div>
-                <label class="block text-[10px] text-neutral-400 mb-1">Cols</label>
-                <input type="number" id="graph-cols" value="10" min="4" max="60" class="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-2 py-1 text-xs text-rose-300 font-mono focus:outline-none focus:border-rose-500">
-              </div>
-              <div>
-                <label class="block text-[10px] text-neutral-400 mb-1">Space</label>
-                <input type="number" id="graph-spacing" value="28" min="10" max="150" step="2" class="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-2 py-1 text-xs text-rose-300 font-mono focus:outline-none focus:border-rose-500">
-              </div>
-            </div>
-
-            <button id="btn-create-graph" class="w-full py-2 rounded-lg bg-rose-950/60 hover:bg-rose-900/80 border border-rose-700/40 text-rose-200 text-xs font-semibold flex items-center justify-center space-x-1.5 transition active:scale-95">
-              <i class="fa-solid fa-plus text-xs"></i>
-              <span>Generate Graph to Page</span>
-            </button>
-          </div>
-        </div>
-
+        <!-- Blank PDF Templates -->
         <div class="space-y-2">
-          <span class="text-[10px] font-bold tracking-wider text-rose-400/80 uppercase">Writing Aid</span>
-          
-          <div class="p-3 rounded-xl bg-neutral-900/90 border border-rose-950/70 space-y-2.5">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center space-x-2">
-                <i class="fa-solid fa-table-cells text-rose-400 text-xs"></i>
-                <span class="text-xs font-semibold text-neutral-200">Accurate Write</span>
-              </div>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="toggle-accurate-write" class="sr-only peer">
-                <div class="w-9 h-5 bg-neutral-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-rose-600"></div>
-              </label>
+          <span class="text-[10px] font-bold tracking-wider text-rose-400/80 uppercase">Blank PDF Templates</span>
+          <button id="btn-new-blank-pdf" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-neutral-900/90 hover:bg-rose-950/40 border border-neutral-800 hover:border-rose-600/50 text-neutral-200 hover:text-white transition text-xs font-medium">
+            <div class="flex items-center space-x-3">
+              <i class="fa-solid fa-file-circle-plus text-rose-400 text-sm"></i>
+              <div class="text-left"><span class="block text-xs font-semibold text-white">Create 10-Page Blank</span><span class="block text-[10px] text-neutral-400">Fresh workspace for notes</span></div>
             </div>
-            <p class="text-[11px] text-neutral-400 leading-relaxed">Overlays a faint guide grid across the whole document. Purely visual — never exported.</p>
-          </div>
+            <i class="fa-solid fa-chevron-right text-xs text-rose-400"></i>
+          </button>
         </div>
 
+        <!-- Image Editor -->
+        <div class="space-y-2">
+          <span class="text-[10px] font-bold tracking-wider text-rose-400/80 uppercase">Advanced Modules</span>
+          <button id="btn-open-image-editor" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-neutral-900/90 hover:bg-rose-950/40 border border-neutral-800 hover:border-rose-600/50 text-neutral-200 hover:text-white transition text-xs font-medium">
+            <div class="flex items-center space-x-3">
+              <i class="fa-solid fa-wand-magic-sparkles text-rose-400 text-sm"></i>
+              <div class="text-left"><span class="block text-xs font-semibold text-white">Image Editor Suite</span><span class="block text-[10px] text-neutral-400">Crop, Mask, Background removal</span></div>
+            </div>
+            <i class="fa-solid fa-external-link-alt text-[10px] text-rose-400"></i>
+          </button>
+        </div>
+
+        <!-- View & Scaling -->
         <div class="space-y-2">
           <span class="text-[10px] font-bold tracking-wider text-rose-400/80 uppercase">View & Scaling</span>
           <div class="grid grid-cols-2 gap-2">
-            <button id="btn-fit-width" class="px-3 py-2 rounded-xl bg-neutral-900/90 hover:bg-neutral-800 hover:text-rose-300 border border-neutral-800 text-neutral-300 text-xs font-medium flex items-center justify-center space-x-1.5 transition">
-              <i class="fa-solid fa-arrows-left-right text-[11px]"></i><span>Fit Width</span>
-            </button>
-            <button id="btn-fit-page" class="px-3 py-2 rounded-xl bg-neutral-900/90 hover:bg-neutral-800 hover:text-rose-300 border border-neutral-800 text-neutral-300 text-xs font-medium flex items-center justify-center space-x-1.5 transition">
-              <i class="fa-solid fa-compress text-[11px]"></i><span>Fit Page</span>
-            </button>
-            <button id="btn-reset-zoom" class="px-3 py-2 rounded-xl bg-neutral-900/90 hover:bg-neutral-800 hover:text-rose-300 border border-neutral-800 text-neutral-300 text-xs font-medium flex items-center justify-center space-x-1.5 transition col-span-2">
-              <i class="fa-solid fa-rotate text-[11px]"></i><span>Original Size (100%)</span>
-            </button>
+            <button id="btn-fit-width" class="px-3 py-2 rounded-xl bg-neutral-900/90 hover:bg-neutral-800 hover:text-rose-300 border border-neutral-800 text-neutral-300 text-xs font-medium flex items-center justify-center space-x-1.5 transition"><i class="fa-solid fa-arrows-left-right text-[11px]"></i><span>Fit Width</span></button>
+            <button id="btn-fit-page" class="px-3 py-2 rounded-xl bg-neutral-900/90 hover:bg-neutral-800 hover:text-rose-300 border border-neutral-800 text-neutral-300 text-xs font-medium flex items-center justify-center space-x-1.5 transition"><i class="fa-solid fa-compress text-[11px]"></i><span>Fit Page</span></button>
+            <button id="btn-reset-zoom" class="px-3 py-2 rounded-xl bg-neutral-900/90 hover:bg-neutral-800 hover:text-rose-300 border border-neutral-800 text-neutral-300 text-xs font-medium flex items-center justify-center space-x-1.5 transition col-span-2"><i class="fa-solid fa-rotate text-[11px]"></i><span>Original Size (100%)</span></button>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
 
+  <!-- ================= RIGHT HAMBURGER DRAWER (Tools) ================= -->
+  <div id="right-drawer-container" class="fixed inset-0 z-50 pointer-events-none">
+    <div id="right-drawer-backdrop" class="drawer-overlay absolute inset-0 bg-black/80 backdrop-blur-sm opacity-0 transition-opacity"></div>
+    <div id="right-drawer-panel" class="drawer-content absolute top-0 right-0 bottom-0 w-[310px] sm:w-[350px] max-w-[88vw] bg-neutral-950 border-l border-rose-950/80 flex flex-col shadow-2xl shadow-rose-950/30 translate-x-[100%] transition-transform">
+      <div class="h-16 px-4 flex items-center justify-between border-b border-rose-950/80 shrink-0">
+        <button id="btn-close-right-drawer" class="w-8 h-8 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-400 hover:text-rose-400 border border-neutral-800 flex items-center justify-center transition"><i class="fa-solid fa-xmark text-sm"></i></button>
+        <div class="flex flex-col text-right">
+          <h2 class="text-sm font-bold text-white">Tool Palette</h2>
+          <p class="text-[10px] text-rose-400 font-medium">Draw & Annotate</p>
+        </div>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-4 space-y-6" style="padding-bottom: calc(2.5rem + var(--safe-bottom));">
+        
+        <!-- Core Selection -->
         <div class="space-y-2">
-          <span class="text-[10px] font-bold tracking-wider text-rose-400/80 uppercase">Page Navigation</span>
-          <div class="flex items-center justify-between p-2.5 rounded-xl bg-neutral-900/90 border border-rose-950/70">
-            <button id="drawer-prev-page" class="p-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs disabled:opacity-30"><i class="fa-solid fa-arrow-left"></i></button>
-            <div class="text-xs font-bold text-neutral-200">
-              Page <span id="drawer-page-current" class="text-rose-400">1</span> of <span id="drawer-page-total">0</span>
+          <span class="text-[10px] font-bold tracking-wider text-rose-400/80 uppercase">Interaction</span>
+          <div class="grid grid-cols-2 gap-2">
+            <button data-tool="view" class="tool-btn active w-full py-2.5 rounded-xl bg-neutral-900/90 border border-neutral-800 text-neutral-300 flex items-center justify-center space-x-2"><i class="fa-solid fa-hand text-xs"></i><span class="text-xs font-medium">Pan / View</span></button>
+            <button data-tool="select" class="tool-btn w-full py-2.5 rounded-xl bg-neutral-900/90 border border-neutral-800 text-neutral-300 flex items-center justify-center space-x-2"><i class="fa-solid fa-arrow-pointer text-xs"></i><span class="text-xs font-medium">Select</span></button>
+          </div>
+        </div>
+
+        <!-- Drawing & Annotation -->
+        <div class="space-y-2">
+          <span class="text-[10px] font-bold tracking-wider text-rose-400/80 uppercase">Drawing & Annotation</span>
+          <div class="grid grid-cols-3 gap-2">
+            <button data-tool="pen" class="tool-btn w-full py-2.5 rounded-xl bg-neutral-900/90 border border-neutral-800 text-neutral-300 flex flex-col items-center justify-center space-y-1"><i class="fa-solid fa-pen-nib text-sm"></i><span class="text-[10px] font-medium">Pen</span></button>
+            <button data-tool="highlight" class="tool-btn w-full py-2.5 rounded-xl bg-neutral-900/90 border border-neutral-800 text-neutral-300 flex flex-col items-center justify-center space-y-1"><i class="fa-solid fa-highlighter text-sm"></i><span class="text-[10px] font-medium">Highlight</span></button>
+            <button data-tool="eraser" class="tool-btn w-full py-2.5 rounded-xl bg-neutral-900/90 border border-neutral-800 text-neutral-300 flex flex-col items-center justify-center space-y-1"><i class="fa-solid fa-eraser text-sm"></i><span class="text-[10px] font-medium">Eraser</span></button>
+            <button data-tool="textbox" class="tool-btn w-full py-2.5 rounded-xl bg-neutral-900/90 border border-neutral-800 text-neutral-300 flex flex-col items-center justify-center space-y-1"><i class="fa-solid fa-font text-sm"></i><span class="text-[10px] font-medium">Add Text</span></button>
+            <button data-tool="text-select" class="tool-btn w-full py-2.5 rounded-xl bg-neutral-900/90 border border-neutral-800 text-neutral-300 flex flex-col items-center justify-center space-y-1"><i class="fa-solid fa-i-cursor text-sm"></i><span class="text-[10px] font-medium">PDF Text</span></button>
+          </div>
+        </div>
+
+        <!-- Tool Properties -->
+        <div class="p-3 rounded-xl bg-neutral-900/90 border border-rose-950/70 space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold tracking-wider text-rose-400/80 uppercase">Tool Properties</span>
+            <button id="btn-delete-selected" class="hidden text-[10px] bg-rose-950/40 text-rose-400 px-2 py-1 rounded border border-rose-600/40 hover:bg-rose-900/60"><i class="fa-solid fa-trash-can mr-1"></i>Delete Selected</button>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full overflow-hidden border-2 border-rose-500 relative cursor-pointer shadow-inner shrink-0">
+              <input type="color" id="prop-color" value="#e11d48" class="absolute -top-3 -left-3 w-14 h-14 cursor-pointer">
             </div>
-            <button id="drawer-next-page" class="p-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs disabled:opacity-30"><i class="fa-solid fa-arrow-right"></i></button>
+            <div class="flex-1 flex flex-col space-y-2">
+              <div class="flex items-center space-x-2"><i class="fa-solid fa-circle text-[8px] text-rose-500/70 w-3 text-center"></i><input type="range" id="prop-size" min="1" max="50" value="4" class="w-full accent-rose-600 cursor-pointer"></div>
+              <div class="flex items-center space-x-2"><i class="fa-solid fa-droplet text-[10px] text-rose-500/70 w-3 text-center"></i><input type="range" id="prop-opacity" min="0.1" max="1.0" step="0.05" value="1.0" class="w-full accent-rose-600 cursor-pointer"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Inserts & Watermarks -->
+        <div class="space-y-2">
+          <span class="text-[10px] font-bold tracking-wider text-rose-400/80 uppercase">Media & Precision Tools</span>
+          
+          <label for="pdf-image-upload" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-neutral-900/90 hover:bg-rose-950/40 border border-rose-950/70 hover:border-rose-600/50 text-neutral-200 hover:text-white transition cursor-pointer">
+            <div class="flex items-center space-x-3"><i class="fa-solid fa-image text-rose-400 text-sm"></i><span class="text-xs font-semibold">Insert Image</span></div>
+            <i class="fa-solid fa-plus text-xs text-rose-400"></i>
+            <input type="file" id="pdf-image-upload" accept="image/*" class="hidden">
+          </label>
+
+          <button id="btn-open-watermark" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-neutral-900/90 hover:bg-rose-950/40 border border-rose-950/70 hover:border-rose-600/50 text-neutral-200 hover:text-white transition mt-2">
+            <div class="flex items-center space-x-3"><i class="fa-solid fa-copyright text-rose-400 text-sm"></i><span class="text-xs font-semibold">Add Watermark</span></div>
+            <i class="fa-solid fa-plus text-xs text-rose-400"></i>
+          </button>
+
+          <button id="btn-insert-ruler" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-neutral-900/90 hover:bg-rose-950/40 border border-rose-950/70 hover:border-rose-600/50 text-neutral-200 hover:text-white transition mt-2">
+            <div class="flex items-center space-x-3"><i class="fa-solid fa-ruler-combined text-rose-400 text-sm"></i><span class="text-xs font-semibold">Insert Ruler</span></div>
+            <i class="fa-solid fa-plus text-xs text-rose-400"></i>
+          </button>
+
+          <div class="p-3 rounded-xl bg-neutral-900/90 border border-rose-950/70 space-y-3 mt-2">
+            <div class="flex items-center justify-between"><div class="flex items-center space-x-2"><i class="fa-solid fa-border-all text-rose-400 text-xs"></i><span class="text-xs font-semibold text-neutral-200">Cartesian Graph</span></div></div>
+            <div class="grid grid-cols-3 gap-2 text-left">
+              <div><label class="block text-[10px] text-neutral-400 mb-1">Rows</label><input type="number" id="graph-rows" value="10" min="4" max="60" class="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-2 py-1 text-xs text-rose-300 font-mono focus:outline-none focus:border-rose-500"></div>
+              <div><label class="block text-[10px] text-neutral-400 mb-1">Cols</label><input type="number" id="graph-cols" value="10" min="4" max="60" class="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-2 py-1 text-xs text-rose-300 font-mono focus:outline-none focus:border-rose-500"></div>
+              <div><label class="block text-[10px] text-neutral-400 mb-1">Space</label><input type="number" id="graph-spacing" value="28" min="10" max="150" step="2" class="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-2 py-1 text-xs text-rose-300 font-mono focus:outline-none focus:border-rose-500"></div>
+            </div>
+            <button id="btn-create-graph" class="w-full py-1.5 rounded-lg bg-rose-950/60 hover:bg-rose-900/80 border border-rose-700/40 text-rose-200 text-[11px] font-semibold flex items-center justify-center space-x-1 transition active:scale-95"><span>Generate Graph</span></button>
           </div>
         </div>
 
       </div>
-      <div class="p-3.5 border-t border-rose-950/80 text-center bg-black/95 shrink-0" style="padding-bottom: calc(1rem + var(--safe-bottom));">
-        <p class="text-[11px] font-medium text-rose-400/90 tracking-wide">Made by k210209♤ studios</p>
+    </div>
+  </div>
+
+  <!-- ================= WATERMARK MODAL ================= -->
+  <div id="watermark-modal" class="fixed inset-0 z-[70] hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm opacity-0 transition-opacity">
+    <div class="bg-neutral-950 border border-rose-950/80 rounded-2xl p-5 w-full max-w-sm shadow-2xl shadow-rose-950/40 transform scale-95 transition-transform">
+      <h3 class="text-base font-bold text-white mb-4"><i class="fa-solid fa-copyright text-rose-500 mr-2"></i>Configure Watermark</h3>
+      <div class="space-y-3">
+        <div><label class="block text-[11px] text-neutral-400 mb-1">Text</label><input type="text" id="wm-text" value="DRAFT" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-sm text-white focus:border-rose-500 outline-none"></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block text-[11px] text-neutral-400 mb-1">Color</label><input type="color" id="wm-color" value="#888888" class="w-full h-9 rounded bg-neutral-900 border border-neutral-800 cursor-pointer p-0.5"></div>
+          <div><label class="block text-[11px] text-neutral-400 mb-1">Opacity</label><input type="range" id="wm-opacity" min="0.1" max="1" step="0.1" value="0.3" class="w-full mt-2 accent-rose-600"></div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block text-[11px] text-neutral-400 mb-1">Size</label><input type="number" id="wm-size" value="60" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-1.5 text-sm text-white outline-none"></div>
+          <div><label class="block text-[11px] text-neutral-400 mb-1">Rotation</label><select id="wm-angle" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-2 py-1.5 text-sm text-white outline-none"><option value="-45">Diagonal (-45°)</option><option value="0">Horizontal (0°)</option><option value="45">Diagonal (45°)</option></select></div>
+        </div>
+        <div class="pt-2"><label class="flex items-center space-x-2 text-sm text-neutral-200 cursor-pointer"><input type="checkbox" id="wm-all-pages" checked class="w-4 h-4 rounded bg-neutral-900 border-neutral-800 text-rose-600 focus:ring-rose-600 focus:ring-offset-neutral-950"><span>Apply to All Pages</span></label></div>
       </div>
+      <div class="mt-6 flex gap-3">
+        <button id="btn-cancel-wm" class="flex-1 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 text-sm font-medium transition">Cancel</button>
+        <button id="btn-apply-wm" class="flex-1 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-sm font-bold shadow-lg shadow-rose-900/50 transition">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= IMAGE EDITOR OVERLAY ================= -->
+  <div id="image-editor-overlay" class="fixed inset-0 z-[80] hidden bg-black flex flex-col opacity-0 transition-opacity duration-300">
+    <header class="h-14 glass-panel border-b border-rose-950/60 shrink-0 px-4 flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <i class="fa-solid fa-wand-magic-sparkles text-rose-500"></i>
+        <h2 class="text-sm font-bold text-white">Image Editor</h2>
+      </div>
+      <div class="flex space-x-2">
+        <button id="btn-ie-download" class="px-4 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition shadow-lg shadow-rose-900/30">Download PNG</button>
+        <button id="btn-close-ie" class="px-4 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-medium transition">Close</button>
+      </div>
+    </header>
+    <div class="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden relative">
+      <!-- Image Editor Tools -->
+      <aside class="w-full md:w-64 bg-neutral-950 border-r border-rose-950/60 p-4 overflow-y-auto shrink-0 flex flex-col gap-4 max-h-[45vh] md:max-h-full">
+        <label class="w-full flex justify-center items-center py-2.5 rounded-xl bg-gradient-to-r from-rose-900/50 to-neutral-800 border border-rose-700/50 hover:border-rose-500 text-rose-200 cursor-pointer transition text-xs font-bold shadow-md shadow-rose-950/40">
+          <i class="fa-solid fa-folder-open mr-2"></i> Import Image
+          <input type="file" id="ie-upload" accept="image/*" class="hidden">
+        </label>
+        
+        <div class="space-y-2">
+          <span class="text-[10px] font-bold tracking-wider text-neutral-400 uppercase">Crop / Layout Shape</span>
+          <div class="grid grid-cols-2 gap-2">
+            <button data-ie-shape="none" class="ie-shape-btn active py-2 rounded-lg bg-neutral-900 border border-neutral-800 text-xs text-neutral-300 hover:bg-rose-950/30 hover:text-white transition">Original</button>
+            <button data-ie-shape="circle" class="ie-shape-btn py-2 rounded-lg bg-neutral-900 border border-neutral-800 text-xs text-neutral-300 hover:bg-rose-950/30 hover:text-white transition"><i class="fa-solid fa-circle mr-1 text-[10px]"></i>Circle</button>
+            <button data-ie-shape="triangle" class="ie-shape-btn py-2 rounded-lg bg-neutral-900 border border-neutral-800 text-xs text-neutral-300 hover:bg-rose-950/30 hover:text-white transition"><i class="fa-solid fa-play -rotate-90 mr-1 text-[10px]"></i>Triangle</button>
+            <button data-ie-shape="square" class="ie-shape-btn py-2 rounded-lg bg-neutral-900 border border-neutral-800 text-xs text-neutral-300 hover:bg-rose-950/30 hover:text-white transition"><i class="fa-solid fa-square mr-1 text-[10px]"></i>Square</button>
+          </div>
+          <p class="text-[9px] text-neutral-500 mt-1 leading-tight">Drag and scale the image to fit inside the chosen shape mask.</p>
+        </div>
+
+        <div class="space-y-2 pt-2 border-t border-rose-950/40">
+          <span class="text-[10px] font-bold tracking-wider text-neutral-400 uppercase">Removers</span>
+          <button id="btn-ie-bgremove" class="w-full py-2 rounded-lg bg-neutral-900 hover:bg-rose-950/40 border border-neutral-800 hover:border-rose-600/40 text-xs text-neutral-300 hover:text-white transition flex items-center justify-center gap-2">
+            <i class="fa-solid fa-wand-magic"></i> Auto BG Remove
+          </button>
+          <div class="grid grid-cols-2 gap-2">
+            <button id="btn-ie-freehand" class="ie-tool-btn py-2 rounded-lg bg-neutral-900 border border-neutral-800 text-xs text-neutral-300 hover:text-white transition"><i class="fa-solid fa-eraser mr-1"></i>Freehand</button>
+            <button id="btn-ie-restore" class="ie-tool-btn py-2 rounded-lg bg-neutral-900 border border-neutral-800 text-xs text-neutral-300 hover:text-white transition"><i class="fa-solid fa-brush mr-1"></i>Restore</button>
+          </div>
+          <div id="ie-brush-settings" class="hidden mt-2">
+            <label class="block text-[10px] text-neutral-400 mb-1">Brush Size</label>
+            <input type="range" id="ie-brush-size" min="5" max="100" value="20" class="w-full accent-rose-600">
+          </div>
+        </div>
+
+        <div class="space-y-2 pt-2 border-t border-rose-950/40">
+          <span class="text-[10px] font-bold tracking-wider text-neutral-400 uppercase">Transform</span>
+          <div class="grid grid-cols-2 gap-2">
+            <button id="btn-ie-rot-left" class="py-2 rounded-lg bg-neutral-900 border border-neutral-800 text-xs text-neutral-300 hover:bg-neutral-800 transition"><i class="fa-solid fa-rotate-left"></i></button>
+            <button id="btn-ie-rot-right" class="py-2 rounded-lg bg-neutral-900 border border-neutral-800 text-xs text-neutral-300 hover:bg-neutral-800 transition"><i class="fa-solid fa-rotate-right"></i></button>
+            <button id="btn-ie-flip-h" class="py-2 rounded-lg bg-neutral-900 border border-neutral-800 text-xs text-neutral-300 hover:bg-neutral-800 transition"><i class="fa-solid fa-arrows-left-right"></i></button>
+            <button id="btn-ie-flip-v" class="py-2 rounded-lg bg-neutral-900 border border-neutral-800 text-xs text-neutral-300 hover:bg-neutral-800 transition"><i class="fa-solid fa-arrows-up-down"></i></button>
+          </div>
+        </div>
+      </aside>
+      
+      <!-- Editor Canvas Area -->
+      <main class="flex-1 checkerboard-bg relative overflow-hidden flex items-center justify-center p-4">
+        <!-- Unified interaction workspace -->
+        <div id="ie-workspace" class="relative shadow-2xl shadow-black/80 ring-1 ring-white/10 hidden">
+           <!-- Fabric Canvas for Image/Masking/Drawing -->
+           <canvas id="ie-fabric-canvas"></canvas>
+        </div>
+        <div id="ie-empty-state" class="text-center text-neutral-500 pointer-events-none transition-opacity">
+          <i class="fa-regular fa-image text-4xl mb-3 opacity-50"></i>
+          <p class="text-sm">Import an image to start editing</p>
+        </div>
+      </main>
     </div>
   </div>
 
@@ -323,488 +392,217 @@
   <main id="viewport-container" class="flex-1 relative overflow-auto bg-black p-3 sm:p-6 flex flex-col view-mode-active" style="padding-bottom: calc(9rem + var(--safe-bottom));">
     
     <div id="drop-zone" class="my-auto mx-auto flex flex-col items-center justify-center p-6 sm:p-10 border-2 border-dashed border-rose-950/80 hover:border-rose-600/60 rounded-3xl bg-neutral-950/80 transition-all cursor-pointer w-full max-w-sm sm:max-w-md text-center shadow-2xl">
-      <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-rose-950/40 border border-rose-600/30 text-rose-500 flex items-center justify-center mb-4 text-2xl sm:text-3xl shadow-inner">
-        <i class="fa-solid fa-cloud-arrow-up"></i>
-      </div>
+      <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-rose-950/40 border border-rose-600/30 text-rose-500 flex items-center justify-center mb-4 text-2xl sm:text-3xl shadow-inner"><i class="fa-solid fa-cloud-arrow-up"></i></div>
       <h3 class="text-base sm:text-lg font-bold text-white mb-2">Open PDF Document</h3>
-      <p class="text-xs sm:text-sm text-neutral-400 mb-6 leading-relaxed">Drag & drop your PDF file here, or tap to browse. Runs 100% private in your browser.</p>
-      
+      <p class="text-xs sm:text-sm text-neutral-400 mb-6 leading-relaxed">Drag & drop your PDF file here, or tap to browse. Runs 100% private locally. It is recommended to save pdf regulary</p>
       <div class="flex flex-col gap-3 w-full">
-        <button class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-rose-700 to-red-600 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-rose-950/50 transition-all pointer-events-none">
-          Browse Files
-        </button>
-        <button id="btn-restore-session" class="hidden px-5 py-2.5 rounded-xl bg-neutral-800 border border-rose-950 hover:bg-neutral-700 text-rose-300 font-semibold text-xs sm:text-sm transition-all shadow-md">
-          Restore Last Session
-        </button>
+        <button class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-rose-700 to-red-600 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-rose-950/50 transition-all pointer-events-none">Browse Files</button>
+        <button id="btn-restore-session" class="hidden px-5 py-2.5 rounded-xl bg-neutral-800 border border-rose-950 hover:bg-neutral-700 text-rose-300 font-semibold text-xs sm:text-sm transition-all shadow-md">Restore Last Session</button>
       </div>
     </div>
 
     <div id="document-wrapper" class="hidden flex flex-col items-center w-full min-h-full"></div>
   </main>
 
-  <!-- ================= FLOATING TOOL PALETTE ================= -->
-  <div id="floating-toolbar" class="fixed left-1/2 -translate-x-1/2 z-40 max-w-[96vw] flex flex-col items-center gap-2 pointer-events-auto">
-    
-    <div id="properties-popover" class="glass-panel p-2 px-3 rounded-2xl flex items-center gap-3 shadow-2xl border border-rose-900/60 transition-all opacity-0 translate-y-2 pointer-events-none mb-1">
-      <div class="flex items-center space-x-1.5">
-        <div class="w-6 h-6 rounded-full overflow-hidden border-2 border-rose-500 relative cursor-pointer shadow-inner">
-          <input type="color" id="prop-color" value="#e11d48" class="absolute -top-3 -left-3 w-12 h-12 cursor-pointer">
-        </div>
-      </div>
-      <div class="flex items-center space-x-1.5">
-        <i class="fa-solid fa-circle text-[7px] text-rose-500/70"></i>
-        <input type="range" id="prop-size" min="1" max="50" value="4" class="w-20 sm:w-24 accent-rose-600 cursor-pointer">
-      </div>
-      <div class="flex items-center space-x-1.5">
-        <i class="fa-solid fa-droplet text-[9px] text-rose-500/70"></i>
-        <input type="range" id="prop-opacity" min="0.1" max="1.0" step="0.05" value="1.0" class="w-16 sm:w-20 accent-rose-600 cursor-pointer">
-      </div>
-      <button id="btn-close-props" class="p-1 text-neutral-400 hover:text-white text-xs"><i class="fa-solid fa-xmark"></i></button>
+  <!-- ================= BOTTOM NAVIGATION ================= -->
+  <div id="bottom-nav" class="fixed bottom-0 left-0 right-0 z-40 bg-black/80 backdrop-blur-md border-t border-rose-950/60 p-2 flex items-center justify-center pointer-events-none" style="padding-bottom: calc(0.5rem + var(--safe-bottom));">
+    <div class="glass-panel px-3 py-1.5 rounded-full flex items-center space-x-3 pointer-events-auto">
+      <button id="btn-bottom-prev" class="w-8 h-8 rounded-full hover:bg-neutral-800 text-neutral-300 flex items-center justify-center disabled:opacity-30"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+      <span class="font-mono text-xs font-bold text-rose-300 w-16 text-center"><span id="bottom-page-num">1</span> / <span id="bottom-page-count">0</span></span>
+      <button id="btn-bottom-next" class="w-8 h-8 rounded-full hover:bg-neutral-800 text-neutral-300 flex items-center justify-center disabled:opacity-30"><i class="fa-solid fa-chevron-right text-xs"></i></button>
     </div>
-
-    <nav class="glass-panel p-1.5 sm:p-2 rounded-2xl flex items-center gap-1 sm:gap-1.5 shadow-2xl shadow-black/80 border border-rose-950/80 overflow-x-auto no-scrollbar max-w-full">
-      <button data-tool="view" title="Pan / View Mode" class="tool-btn active w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300"><i class="fa-solid fa-hand text-xs sm:text-sm"></i></button>
-      <button data-tool="select" title="Select & Move Objects" class="tool-btn w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300"><i class="fa-solid fa-arrow-pointer text-xs sm:text-sm"></i></button>
-      <div class="w-px h-5 bg-rose-950/80 mx-0.5 shrink-0"></div>
-      <button data-tool="pen" title="Draw Pen" class="tool-btn w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300"><i class="fa-solid fa-pen-nib text-xs sm:text-sm"></i></button>
-      <button data-tool="highlight" title="Highlighter" class="tool-btn w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300"><i class="fa-solid fa-highlighter text-xs sm:text-sm"></i></button>
-      <button data-tool="textbox" title="Insert Text Box" class="tool-btn w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300"><i class="fa-solid fa-font text-xs sm:text-sm"></i></button>
-      <button data-tool="text-select" title="Select PDF Native Text" class="tool-btn w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300"><i class="fa-solid fa-i-cursor text-xs sm:text-sm"></i></button>
-      <button data-tool="eraser" title="Object Eraser" class="tool-btn w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-neutral-400 hover:text-rose-300"><i class="fa-solid fa-eraser text-xs sm:text-sm"></i></button>
-      <div class="w-px h-5 bg-rose-950/80 mx-0.5 shrink-0"></div>
-      <button id="btn-toggle-props" title="Adjust Color & Size" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 flex items-center justify-center transition border border-rose-950/80 hover:border-rose-600/50"><div id="prop-swatch-indicator" class="w-4 h-4 rounded-full bg-rose-600 border border-white/40"></div></button>
-      <button id="btn-delete-selected" title="Delete Selected" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 border border-rose-600/40 flex items-center justify-center transition hidden"><i class="fa-solid fa-trash-can text-xs sm:text-sm"></i></button>
-      
-      <div class="hidden md:flex items-center space-x-1 pl-1 border-l border-rose-950/80 shrink-0 text-xs text-neutral-400">
-        <button id="btn-bottom-prev" class="p-2 hover:text-rose-300 disabled:opacity-30"><i class="fa-solid fa-chevron-left"></i></button>
-        <span class="font-mono text-[11px] font-bold px-1 text-rose-300"><span id="bottom-page-num">1</span>/<span id="bottom-page-count">0</span></span>
-        <button id="btn-bottom-next" class="p-2 hover:text-rose-300 disabled:opacity-30"><i class="fa-solid fa-chevron-right"></i></button>
-      </div>
-    </nav>
   </div>
 
-  <div id="loading-indicator" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity">
+  <div id="loading-indicator" class="fixed inset-0 z-[100] bg-black/85 backdrop-blur-md flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity">
     <i class="fa-solid fa-circle-notch fa-spin text-4xl text-rose-600 mb-4"></i>
-    <p id="loading-text" class="text-neutral-300 font-medium tracking-wide text-sm">Processing Document...</p>
+    <p id="loading-text" class="text-neutral-300 font-medium tracking-wide text-sm">Processing...</p>
   </div>
 
   <script>
-    /** Diagnostics/Debug */
-    const LOG = (msg) => { /* console.log("[PageCraft Memory/Perf] " + msg); */ };
-
-    /** MODULE 1: AppCore & State */
+    /** AppCore & State */
     const AppState = {
-      pdfDoc: null,
-      pdfBlob: null,
-      numPages: 0,
-      currentPage: 1,
-      pageDimensions: [], 
-      scale: 1.0,         
-      zoomCssScale: 1.0,  
-      activeTool: 'view', 
-      
-      pageData: {},       
-      activePages: new Set(), 
-      fabricInstances: {}, 
-      pageRenderTasks: {}, 
-      
-      historyStack: [],
-      historyIndex: -1,
-      isApplyingHistory: false
+      pdfDoc: null, pdfBlob: null, numPages: 0, currentPage: 1, pageDimensions: [], scale: 1.0, zoomCssScale: 1.0, activeTool: 'view',
+      pageData: {}, activePages: new Set(), fabricInstances: {}, pageRenderTasks: {},
+      historyStack: [], historyIndex: -1, isApplyingHistory: false
     };
 
-    const FABRIC_CUSTOM_PROPS = [
-      'customType', 'isRuler', 'isGraph', 'strokeUniform', 
-      'selectable', 'evented', 'subTargetCheck', 'id',
-      'hasControls', 'hasBorders'
-    ];
+    const FABRIC_CUSTOM_PROPS = ['customType', 'isRuler', 'isGraph', 'strokeUniform', 'selectable', 'evented', 'subTargetCheck', 'id', 'hasControls', 'hasBorders', 'src'];
 
-    /** MODULE 2: IndexedDB Storage & Autosave (NEW) */
+    /** IndexedDB Storage & Autosave */
     const DBManager = {
-      dbName: 'PageCraftDB',
-      storeName: 'sessionStore',
-      db: null,
-      
+      dbName: 'PageCraftDB', storeName: 'sessionStore', db: null,
       async init() {
         return new Promise((resolve, reject) => {
-          const req = indexedDB.open(this.dbName, 1);
-          req.onupgradeneeded = (e) => {
-            const db = e.target.result;
-            if (!db.objectStoreNames.contains(this.storeName)) {
-              db.createObjectStore(this.storeName);
-            }
-          };
-          req.onsuccess = (e) => { this.db = e.target.result; resolve(); };
-          req.onerror = (e) => reject(e);
+          const req = indexedDB.open(this.dbName, 2);
+          req.onupgradeneeded = (e) => { const db = e.target.result; if (!db.objectStoreNames.contains(this.storeName)) db.createObjectStore(this.storeName); };
+          req.onsuccess = (e) => { this.db = e.target.result; resolve(); }; req.onerror = (e) => reject(e);
         });
       },
-      
       async get(key) {
         if (!this.db) await this.init();
         return new Promise((resolve, reject) => {
-          const tx = this.db.transaction(this.storeName, 'readonly');
-          const req = tx.objectStore(this.storeName).get(key);
-          req.onsuccess = () => resolve(req.result);
-          req.onerror = () => reject(req.error);
+          const tx = this.db.transaction(this.storeName, 'readonly'); const req = tx.objectStore(this.storeName).get(key);
+          req.onsuccess = () => resolve(req.result); req.onerror = () => reject(req.error);
         });
       },
-      
       async set(key, val) {
         if (!this.db) await this.init();
         return new Promise((resolve, reject) => {
-          const tx = this.db.transaction(this.storeName, 'readwrite');
-          const req = tx.objectStore(this.storeName).put(val, key);
-          req.onsuccess = () => resolve();
-          req.onerror = () => reject(req.error);
+          const tx = this.db.transaction(this.storeName, 'readwrite'); const req = tx.objectStore(this.storeName).put(val, key);
+          req.onsuccess = () => resolve(); req.onerror = () => reject(req.error);
         });
       },
-      
       async clear() {
         if (!this.db) await this.init();
         return new Promise((resolve, reject) => {
-          const tx = this.db.transaction(this.storeName, 'readwrite');
-          const req = tx.objectStore(this.storeName).clear();
-          req.onsuccess = () => resolve();
-          req.onerror = () => reject(req.error);
+          const tx = this.db.transaction(this.storeName, 'readwrite'); const req = tx.objectStore(this.storeName).clear();
+          req.onsuccess = () => resolve(); req.onerror = () => reject(req.error);
         });
       },
-
-      async hasSession() {
-        try {
-          const pdf = await this.get('pdfBytes');
-          return !!pdf;
-        } catch(e) { return false; }
-      }
+      async hasSession() { try { return !!(await this.get('pdfBytes')); } catch(e) { return false; } }
     };
 
-    /** MODULE 3: Fullscreen Engine */
-    const FullscreenEngine = {
-      isPseudo: false,
-      isFullscreen() {
-        return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement || this.isPseudo);
-      },
-      async toggle() {
-        if (this.isFullscreen()) await this.exit();
-        else await this.enter();
-        this.updateUI();
-      },
-      async enter() {
-        const root = document.documentElement;
-        let nativeTriggered = false;
-        const req = root.requestFullscreen || root.webkitRequestFullscreen || root.mozRequestFullScreen || root.msRequestFullscreen;
-        if (req) {
-          try {
-            const res = req.call(root, { navigationUI: 'hide' });
-            if (res && typeof res.then === 'function') await res;
-            nativeTriggered = true; this.isPseudo = false;
-          } catch (err) { nativeTriggered = false; }
-        }
-        if (!nativeTriggered && !document.fullscreenElement && !document.webkitFullscreenElement) this.enablePseudo();
-        this.updateUI();
-      },
-      async exit() {
-        if (this.isPseudo) this.disablePseudo();
-        const exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
-        if (exit && (document.fullscreenElement || document.webkitFullscreenElement)) {
-          try { await exit.call(document); } catch (err) {}
-        }
-        this.updateUI();
-      },
-      enablePseudo() { this.isPseudo = true; document.documentElement.classList.add('pseudo-fullscreen'); document.body.classList.add('pseudo-fullscreen'); },
-      disablePseudo() { this.isPseudo = false; document.documentElement.classList.remove('pseudo-fullscreen'); document.body.classList.remove('pseudo-fullscreen'); },
-      updateUI() {
-        const btn = document.getElementById('btn-fullscreen');
-        if (!btn) return;
-        const icon = btn.querySelector('i');
-        if (icon) {
-          if (this.isFullscreen()) { icon.className = 'fa-solid fa-compress text-xs sm:text-sm text-rose-400'; btn.title = 'Exit Fullscreen'; }
-          else { icon.className = 'fa-solid fa-expand text-xs sm:text-sm text-neutral-300'; btn.title = 'Enter Fullscreen'; }
-        }
-      },
-      init() {
-        document.getElementById('btn-fullscreen')?.addEventListener('click', (e) => { e.preventDefault(); this.toggle(); });
-        ['fullscreenchange', 'webkitfullscreenchange'].forEach(evt => document.addEventListener(evt, () => {
-          if (!document.fullscreenElement && !document.webkitFullscreenElement && !this.isPseudo) this.updateUI();
-        }));
-      }
-    };
-
-    /** MODULE 4: Drawer & Menu Controller */
+    /** Drawers Controller */
     const DrawerController = {
-      isOpen: false,
       init() {
-        const dCont = document.getElementById('drawer-container');
-        const dBack = document.getElementById('drawer-backdrop');
-        const dPanel = document.getElementById('drawer-panel');
+        const setupDrawer = (btnOpenId, btnCloseId, containerId, panelId, backdropId, side) => {
+          const cont = document.getElementById(containerId), back = document.getElementById(backdropId), panel = document.getElementById(panelId);
+          const open = () => { cont.classList.remove('pointer-events-none'); back.classList.remove('opacity-0'); back.classList.add('opacity-100'); panel.classList.remove(side === 'left' ? 'translate-x-[-100%]' : 'translate-x-[100%]'); };
+          const close = () => { back.classList.remove('opacity-100'); back.classList.add('opacity-0'); panel.classList.add(side === 'left' ? 'translate-x-[-100%]' : 'translate-x-[100%]'); setTimeout(() => cont.classList.add('pointer-events-none'), 300); };
+          document.getElementById(btnOpenId).addEventListener('click', open); document.getElementById(btnCloseId).addEventListener('click', close); back.addEventListener('click', close);
+          return close;
+        };
+        this.closeLeft = setupDrawer('btn-open-left-drawer', 'btn-close-left-drawer', 'left-drawer-container', 'left-drawer-panel', 'left-drawer-backdrop', 'left');
+        this.closeRight = setupDrawer('btn-open-right-drawer', 'btn-close-right-drawer', 'right-drawer-container', 'right-drawer-panel', 'right-drawer-backdrop', 'right');
         
-        const openDrawer = () => { this.isOpen = true; dCont.classList.remove('pointer-events-none'); dBack.classList.remove('opacity-0'); dBack.classList.add('opacity-100'); dPanel.classList.remove('translate-x-[-100%]'); };
-        const closeDrawer = () => { this.isOpen = false; dBack.classList.remove('opacity-100'); dBack.classList.add('opacity-0'); dPanel.classList.add('translate-x-[-100%]'); setTimeout(() => { if(!this.isOpen) dCont.classList.add('pointer-events-none'); }, 300); };
-
-        document.getElementById('btn-open-drawer').addEventListener('click', openDrawer);
-        document.getElementById('btn-close-drawer').addEventListener('click', closeDrawer);
-        dBack.addEventListener('click', closeDrawer);
-
-        document.getElementById('toggle-accurate-write').addEventListener('change', (e) => document.documentElement.classList.toggle('accurate-write-mode', e.target.checked));
-        document.getElementById('btn-fit-width').addEventListener('click', () => { ViewportEngine.fitToWidth(); closeDrawer(); });
-        document.getElementById('btn-fit-page').addEventListener('click', () => { ViewportEngine.fitToPage(); closeDrawer(); });
-        document.getElementById('btn-reset-zoom').addEventListener('click', () => { ViewportEngine.applyZoom(1.0); closeDrawer(); });
-        document.getElementById('btn-drawer-export').addEventListener('click', () => { closeDrawer(); ExportEngine.exportPDF(); });
-        document.getElementById('btn-clear-session').addEventListener('click', async () => {
-          if (confirm('Are you sure you want to delete the saved session? This cannot be undone.')) {
-             await DBManager.clear();
-             location.reload();
-          }
-        });
-        document.getElementById('btn-insert-ruler').addEventListener('click', () => { ShapeInsertEngine.insertRuler(); closeDrawer(); });
+        document.getElementById('btn-fit-width').addEventListener('click', () => { ViewportEngine.fitToWidth(); this.closeLeft(); });
+        document.getElementById('btn-fit-page').addEventListener('click', () => { ViewportEngine.fitToPage(); this.closeLeft(); });
+        document.getElementById('btn-reset-zoom').addEventListener('click', () => { ViewportEngine.applyZoom(1.0); this.closeLeft(); });
+        document.getElementById('btn-drawer-export').addEventListener('click', () => { this.closeLeft(); ExportEngine.exportPDF(); });
+        document.getElementById('btn-clear-session').addEventListener('click', async () => { if (confirm('Clear saved session?')) { await DBManager.clear(); location.reload(); } });
+        document.getElementById('btn-insert-ruler').addEventListener('click', () => { ShapeInsertEngine.insertRuler(); this.closeRight(); });
         document.getElementById('btn-create-graph').addEventListener('click', () => {
-          const r = parseInt(document.getElementById('graph-rows').value) || 10;
-          const c = parseInt(document.getElementById('graph-cols').value) || 10;
-          const s = parseFloat(document.getElementById('graph-spacing').value) || 28;
-          ShapeInsertEngine.insertGraph(r, c, s);
-          closeDrawer();
+          ShapeInsertEngine.insertGraph(parseInt(document.getElementById('graph-rows').value)||10, parseInt(document.getElementById('graph-cols').value)||10, parseFloat(document.getElementById('graph-spacing').value)||28);
+          this.closeRight();
         });
       },
       showLoading(text) { document.getElementById('loading-text').textContent = text; document.getElementById('loading-indicator').classList.remove('opacity-0', 'pointer-events-none'); },
       hideLoading() { document.getElementById('loading-indicator').classList.add('opacity-0', 'pointer-events-none'); }
     };
 
-    /** MODULE 5: Memory-Optimized Undo/Redo & Autosave System */
+    /** History & Autosave */
     const HistoryManager = {
-      _saveTimeout: null,
-      _dbSaveTimeout: null,
-      
+      _saveTimeout: null, _dbSaveTimeout: null,
       saveState() {
         if (AppState.isApplyingHistory) return;
-        
         if (this._saveTimeout) cancelAnimationFrame(this._saveTimeout);
         this._saveTimeout = requestAnimationFrame(() => {
-          // Serialize currently active canvases to memory
           const pageUpdates = {};
           AppState.activePages.forEach(pageNum => {
             const fc = AppState.fabricInstances[pageNum];
-            if (fc) {
+            if (fc && !fc.isRendering) {
               const json = fc.toJSON(FABRIC_CUSTOM_PROPS);
-              // Only save if it has actually changed, avoid saving empty pages
-              if (json.objects.length === 0) {
-                 delete AppState.pageData[pageNum];
-                 pageUpdates[pageNum] = { objects: [] }; // record deletion
-              } else {
-                 AppState.pageData[pageNum] = json;
-                 pageUpdates[pageNum] = json;
-              }
+              if (json.objects.length === 0) { delete AppState.pageData[pageNum]; pageUpdates[pageNum] = { objects: [] }; }
+              else { AppState.pageData[pageNum] = json; pageUpdates[pageNum] = json; }
             }
           });
-          
-          // Action-delta based history: only push pages that changed in this step
           if (Object.keys(pageUpdates).length > 0) {
               AppState.historyStack = AppState.historyStack.slice(0, AppState.historyIndex + 1);
-              // Stringify only the delta to save RAM
               AppState.historyStack.push(JSON.stringify(pageUpdates));
-              if (AppState.historyStack.length > 20) AppState.historyStack.shift(); 
-              else AppState.historyIndex++;
+              if (AppState.historyStack.length > 20) AppState.historyStack.shift(); else AppState.historyIndex++;
               this.updateUI();
           }
-          
           this.triggerAutosave();
         });
       },
-
       triggerAutosave() {
-        const ind = document.getElementById('save-status');
-        ind.textContent = 'Saving...';
-        ind.classList.remove('opacity-0');
-        
+        const ind = document.getElementById('save-status'); ind.textContent = 'Saving...'; ind.classList.remove('opacity-0');
         if (this._dbSaveTimeout) clearTimeout(this._dbSaveTimeout);
         this._dbSaveTimeout = setTimeout(async () => {
-           try {
-              // Extract pure state
-              const stateToSave = JSON.parse(JSON.stringify(AppState.pageData));
-              await DBManager.set('pageData', stateToSave);
-              ind.textContent = 'Saved';
-              setTimeout(() => ind.classList.add('opacity-0'), 2000);
-           } catch(e) {
-              console.error("Autosave failed", e);
-              ind.textContent = 'Save Failed';
-           }
-        }, 8000); // 8-second debounce
+           try { await DBManager.set('pageData', JSON.parse(JSON.stringify(AppState.pageData))); ind.textContent = 'Saved'; setTimeout(() => ind.classList.add('opacity-0'), 2000); }
+           catch(e) { ind.textContent = 'Save Failed'; }
+        }, 8000);
       },
-
       async applyState(snapshotStr) {
         AppState.isApplyingHistory = true;
         try {
           const delta = JSON.parse(snapshotStr);
-          
           for (const [pageNumStr, state] of Object.entries(delta)) {
-            const pageNum = parseInt(pageNumStr);
-            AppState.pageData[pageNum] = state; // Update memory record
-            
+            const pageNum = parseInt(pageNumStr); AppState.pageData[pageNum] = state;
             if (AppState.activePages.has(pageNum) && AppState.fabricInstances[pageNum]) {
               const fCanvas = AppState.fabricInstances[pageNum];
               if (state && state.objects && state.objects.length > 0) {
-                await new Promise(resolve => fCanvas.loadFromJSON(state, resolve));
-                fCanvas.setZoom(AppState.scale);
-                fCanvas.requestRenderAll();
-              } else {
-                fCanvas.clear();
-              }
+                await new Promise(resolve => fCanvas.loadFromJSON(state, resolve)); fCanvas.setZoom(AppState.scale); fCanvas.requestRenderAll();
+              } else { fCanvas.clear(); }
             }
           }
           this.triggerAutosave();
-        } finally {
-          AppState.isApplyingHistory = false;
-          this.updateUI();
-        }
+        } finally { AppState.isApplyingHistory = false; this.updateUI(); }
       },
       undo() {
         if (AppState.historyIndex >= 0) {
-          // Need to fetch previous states for the pages that changed in the CURRENT step
           const currentDelta = JSON.parse(AppState.historyStack[AppState.historyIndex]);
-          const pagesToRevert = Object.keys(currentDelta);
-          
-          // Construct a reversal delta
           const reverseDelta = {};
-          
-          // Walk backwards from current index - 1 to find the last known state of these pages
-          for (let p of pagesToRevert) {
+          for (let p of Object.keys(currentDelta)) {
              let found = false;
-             for (let i = AppState.historyIndex - 1; i >= 0; i--) {
-                const pastDelta = JSON.parse(AppState.historyStack[i]);
-                if (pastDelta[p]) {
-                   reverseDelta[p] = pastDelta[p];
-                   found = true;
-                   break;
-                }
-             }
-             if (!found) reverseDelta[p] = { objects: [] }; // Revert to empty
+             for (let i = AppState.historyIndex - 1; i >= 0; i--) { const pastDelta = JSON.parse(AppState.historyStack[i]); if (pastDelta[p]) { reverseDelta[p] = pastDelta[p]; found = true; break; } }
+             if (!found) reverseDelta[p] = { objects: [] };
           }
-          
-          AppState.historyIndex--;
-          this.applyState(JSON.stringify(reverseDelta));
+          AppState.historyIndex--; this.applyState(JSON.stringify(reverseDelta));
         }
       },
-      redo() {
-        if (AppState.historyIndex < AppState.historyStack.length - 1) {
-          AppState.historyIndex++;
-          this.applyState(AppState.historyStack[AppState.historyIndex]);
-        }
-      },
-      updateUI() {
-        document.getElementById('btn-undo').disabled = AppState.historyIndex < 0;
-        document.getElementById('btn-redo').disabled = AppState.historyIndex >= AppState.historyStack.length - 1;
-      }
+      redo() { if (AppState.historyIndex < AppState.historyStack.length - 1) { AppState.historyIndex++; this.applyState(AppState.historyStack[AppState.historyIndex]); } },
+      updateUI() { document.getElementById('btn-undo').disabled = AppState.historyIndex < 0; document.getElementById('btn-redo').disabled = AppState.historyIndex >= AppState.historyStack.length - 1; }
     };
 
-    /** MODULE 6: Shape, Ruler & Graph */
+    /** Shape/Insert Engine */
     const ShapeInsertEngine = {
       getActiveCanvas() {
         let cur = AppState.currentPage || 1;
-        if (!AppState.fabricInstances[cur]) {
-          const keys = Object.keys(AppState.fabricInstances).map(Number);
-          if (keys.length > 0) cur = keys.includes(AppState.currentPage) ? AppState.currentPage : keys[0];
-        }
+        if (!AppState.fabricInstances[cur]) { const keys = Object.keys(AppState.fabricInstances).map(Number); if (keys.length > 0) cur = keys.includes(AppState.currentPage) ? AppState.currentPage : keys[0]; }
         return AppState.fabricInstances[cur] || null;
       },
       insertRuler() {
-        const fCanvas = this.getActiveCanvas();
-        if (!fCanvas) return;
-        const width = 360, height = 54;
-        const objects = [
-          new fabric.Rect({ left: 0, top: 0, width: width, height: height, fill: 'rgba(225, 29, 72, 0.15)', stroke: '#e11d48', strokeWidth: 1.5, rx: 4, ry: 4, selectable: false, evented: false }),
-          new fabric.Rect({ left: 0, top: 0, width: width, height: 6, fill: 'rgba(225, 29, 72, 0.65)', selectable: false, evented: false })
-        ];
-        for (let x = 10; x <= width - 10; x += 10) {
-          const isMajor = x % 50 === 0, isMid = x % 25 === 0;
-          const tickHeight = isMajor ? 14 : (isMid ? 10 : 6);
-          objects.push(new fabric.Line([x, 0, x, tickHeight], { stroke: '#fb7185', strokeWidth: isMajor ? 1.5 : 1, selectable: false, evented: false }));
-          if (isMajor) objects.push(new fabric.Text((x / 50).toString(), { left: x - 3, top: tickHeight + 2, fontSize: 9, fill: '#fda4af', fontFamily: 'JetBrains Mono, monospace', fontWeight: 'bold', selectable: false, evented: false }));
+        const fCanvas = this.getActiveCanvas(); if (!fCanvas) return;
+        const w = 360, h = 54;
+        const objs = [new fabric.Rect({ left: 0, top: 0, width: w, height: h, fill: 'rgba(225, 29, 72, 0.15)', stroke: '#e11d48', strokeWidth: 1.5, rx: 4, ry: 4, selectable: false }), new fabric.Rect({ left: 0, top: 0, width: w, height: 6, fill: 'rgba(225, 29, 72, 0.65)', selectable: false })];
+        for (let x = 10; x <= w - 10; x += 10) {
+          const isMaj = x % 50 === 0, isMid = x % 25 === 0; const th = isMaj ? 14 : (isMid ? 10 : 6);
+          objs.push(new fabric.Line([x, 0, x, th], { stroke: '#fb7185', strokeWidth: isMaj ? 1.5 : 1, selectable: false }));
+          if (isMaj) objs.push(new fabric.Text((x / 50).toString(), { left: x - 3, top: th + 2, fontSize: 9, fill: '#fda4af', fontFamily: 'monospace', fontWeight: 'bold', selectable: false }));
         }
-        objects.push(new fabric.Text('PAGE CRAFT • RULER', { left: width / 2 - 45, top: height - 16, fontSize: 8, fill: 'rgba(255, 255, 255, 0.75)', fontFamily: 'Inter, sans-serif', fontWeight: 'bold', selectable: false, evented: false }));
-        
         const dim = AppState.pageDimensions[AppState.currentPage] || { width: 600, height: 800 };
-        const rulerGroup = new fabric.Group(objects, {
-          left: Math.max(20, (dim.width - width) / 2), top: Math.max(40, (dim.height - height) / 3),
-          originX: 'left', originY: 'top', selectable: true, evented: true, hasRotatingPoint: true,
-          transparentCorners: false, cornerColor: '#e11d48', cornerStrokeColor: '#ffffff', cornerSize: 9, cornerStyle: 'circle'
-        });
-        rulerGroup.isRuler = true; rulerGroup.customType = 'ruler';
-        fCanvas.add(rulerGroup); fCanvas.setActiveObject(rulerGroup); rulerGroup.setCoords();
-        fCanvas.requestRenderAll(); HistoryManager.saveState(); ToolController.setActiveTool('select');
+        const grp = new fabric.Group(objs, { left: Math.max(20, (dim.width-w)/2), top: Math.max(40, (dim.height-h)/3), originX: 'left', originY: 'top', selectable: true, hasRotatingPoint: true, transparentCorners: false, cornerColor: '#e11d48', cornerStrokeColor: '#ffffff' });
+        grp.isRuler = true; grp.customType = 'ruler'; fCanvas.add(grp); fCanvas.setActiveObject(grp);
+        HistoryManager.saveState(); ToolController.setActiveTool('select');
       },
-      insertGraph(rows, cols, spacing) {
-        const fCanvas = this.getActiveCanvas();
-        if (!fCanvas) return;
-        rows = Math.min(Math.max(rows, 4), 60); cols = Math.min(Math.max(cols, 4), 60); spacing = Math.min(Math.max(spacing, 10), 150);
-        const w = cols * spacing, h = rows * spacing;
-        const objects = [new fabric.Rect({ left: 0, top: 0, width: w, height: h, fill: 'rgba(10, 6, 8, 0.88)', stroke: '#e11d48', strokeWidth: 2, selectable: false, evented: false })];
-        const mR = Math.floor(rows / 2), mC = Math.floor(cols / 2), oX = mC * spacing, oY = mR * spacing;
-        
-        for (let r = 1; r < rows; r++) if (r !== mR) objects.push(new fabric.Line([0, r*spacing, w, r*spacing], { stroke: 'rgba(225, 29, 72, 0.28)', strokeWidth: 1, selectable: false, evented: false }));
-        for (let c = 1; c < cols; c++) if (c !== mC) objects.push(new fabric.Line([c*spacing, 0, c*spacing, h], { stroke: 'rgba(225, 29, 72, 0.28)', strokeWidth: 1, selectable: false, evented: false }));
-        objects.push(new fabric.Line([0, oY, w, oY], { stroke: '#fb7185', strokeWidth: 2, selectable: false, evented: false }));
-        objects.push(new fabric.Line([oX, 0, oX, h], { stroke: '#fb7185', strokeWidth: 2, selectable: false, evented: false }));
-        
-        for (let c = 0; c <= cols; c++) {
-          const val = c - mC; if (val === 0) continue;
-          objects.push(new fabric.Line([c*spacing, oY - 3, c*spacing, oY + 3], { stroke: '#fda4af', strokeWidth: 1.5, selectable: false, evented: false }));
-          objects.push(new fabric.Text(val.toString(), { left: c*spacing - (val < 0 ? 5 : 3), top: oY + 4, fontSize: 8, fill: '#fda4af', fontFamily: 'JetBrains Mono, monospace', fontWeight: 'bold', selectable: false, evented: false }));
-        }
-        for (let r = 0; r <= rows; r++) {
-          const val = mR - r; if (val === 0) continue;
-          objects.push(new fabric.Line([oX - 3, r*spacing, oX + 3, r*spacing], { stroke: '#fda4af', strokeWidth: 1.5, selectable: false, evented: false }));
-          objects.push(new fabric.Text(val.toString(), { left: oX - (val < 0 ? 12 : 8), top: r*spacing - 4, fontSize: 8, fill: '#fda4af', fontFamily: 'JetBrains Mono, monospace', fontWeight: 'bold', selectable: false, evented: false }));
-        }
-        objects.push(new fabric.Text('0', { left: oX + 3, top: oY + 3, fontSize: 8, fill: '#fda4af', fontFamily: 'JetBrains Mono, monospace', fontWeight: 'bold', selectable: false, evented: false }));
-        
+      insertGraph(rows, cols, sp) {
+        const fCanvas = this.getActiveCanvas(); if (!fCanvas) return;
+        rows = Math.min(Math.max(rows,4),60); cols = Math.min(Math.max(cols,4),60); sp = Math.min(Math.max(sp,10),150);
+        const w = cols*sp, h = rows*sp;
+        const objs = [new fabric.Rect({ left:0, top:0, width:w, height:h, fill:'rgba(10,6,8,0.88)', stroke:'#e11d48', strokeWidth:2, selectable:false })];
+        const mR = Math.floor(rows/2), mC = Math.floor(cols/2), oX = mC*sp, oY = mR*sp;
+        for (let r=1; r<rows; r++) if (r!==mR) objs.push(new fabric.Line([0,r*sp,w,r*sp], { stroke:'rgba(225,29,72,0.28)', strokeWidth:1, selectable:false }));
+        for (let c=1; c<cols; c++) if (c!==mC) objs.push(new fabric.Line([c*sp,0,c*sp,h], { stroke:'rgba(225,29,72,0.28)', strokeWidth:1, selectable:false }));
+        objs.push(new fabric.Line([0,oY,w,oY], { stroke:'#fb7185', strokeWidth:2, selectable:false }), new fabric.Line([oX,0,oX,h], { stroke:'#fb7185', strokeWidth:2, selectable:false }));
         const dim = AppState.pageDimensions[AppState.currentPage] || { width: 600, height: 800 };
-        const gGroup = new fabric.Group(objects, { left: Math.max(20, (dim.width - w) / 2), top: Math.max(40, (dim.height - h) / 3), originX: 'left', originY: 'top', selectable: true, evented: true, hasRotatingPoint: true, transparentCorners: false, cornerColor: '#e11d48', cornerStrokeColor: '#ffffff', cornerSize: 9, cornerStyle: 'circle' });
-        gGroup.isGraph = true; gGroup.customType = 'graph';
-        fCanvas.add(gGroup); fCanvas.setActiveObject(gGroup); gGroup.setCoords();
-        fCanvas.requestRenderAll(); HistoryManager.saveState(); ToolController.setActiveTool('select');
+        const grp = new fabric.Group(objs, { left: Math.max(20, (dim.width-w)/2), top: Math.max(40, (dim.height-h)/3), originX:'left', originY:'top', selectable:true, hasRotatingPoint:true, transparentCorners:false, cornerColor:'#e11d48', cornerStrokeColor:'#ffffff' });
+        grp.isGraph = true; grp.customType = 'graph'; fCanvas.add(grp); fCanvas.setActiveObject(grp);
+        HistoryManager.saveState(); ToolController.setActiveTool('select');
       }
     };
 
-    /** Ruler Brush */
-    const RulerPencilBrush = fabric.util.createClass(fabric.PencilBrush, {
-      _rulerCache: null,
-      _updateRulerCache: function() {
-        if (!this.canvas) { this._rulerCache = null; return; }
-        const r = this.canvas.getObjects().find(o => o.isRuler || o.customType === 'ruler');
-        if (!r) { this._rulerCache = null; return; }
-        r.setCoords(); const c = r.aCoords; if (!c || !c.tl || !c.tr || !c.bl) { this._rulerCache = null; return; }
-        const ux = c.tr.x - c.tl.x, uy = c.tr.y - c.tl.y, lT = Math.hypot(ux, uy); if (lT === 0) return;
-        const wx = c.bl.x - c.tl.x, wy = c.bl.y - c.tl.y, lS = Math.hypot(wx, wy); if (lS === 0) return;
-        this._rulerCache = { tl: c.tl, bl: c.bl, uX: ux/lT, uY: uy/lT, nX: wx/lS, nY: wy/lS, lT, lS };
-      },
-      _snapPointer: function(pt) {
-        const c = this._rulerCache; if (!c) return new fabric.Point(pt.x, pt.y);
-        const dx = pt.x - c.tl.x, dy = pt.y - c.tl.y;
-        const t = dx * c.uX + dy * c.uY, h = dx * c.nX + dy * c.nY;
-        if (t >= -15 && t <= c.lT + 15) {
-          if (h >= -25 && h <= Math.max(28, c.lS * 0.55)) { const cT = Math.max(0, Math.min(c.lT, t)); return new fabric.Point(c.tl.x + cT * c.uX, c.tl.y + cT * c.uY); }
-          if (h > Math.max(28, c.lS * 0.55) && h <= c.lS + 25) { const cT = Math.max(0, Math.min(c.lT, t)); return new fabric.Point(c.bl.x + cT * c.uX, c.bl.y + cT * c.uY); }
-        }
-        return new fabric.Point(pt.x, pt.y);
-      },
-      _prepareForDrawing: function(pt) {
-        this._updateRulerCache(); const s = this._snapPointer(pt); const p = new fabric.Point(s.x, s.y);
-        this._reset(); this._addPoint(p); this.canvas.contextTop.moveTo(p.x, p.y);
-      },
-      _captureDrawingPath: function(pt) { return this._addPoint(this._snapPointer(pt)); },
-      _finalizeAndAddPath: function() { this._rulerCache = null; this.callSuper('_finalizeAndAddPath'); }
-    });
-
-    /** MODULE 7: Tool Controller */
+    /** Tool Controller */
     const ToolController = {
       init() {
-        document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => btn.addEventListener('click', () => this.setActiveTool(btn.dataset.tool)));
-        const popover = document.getElementById('properties-popover');
-        document.getElementById('btn-toggle-props').addEventListener('click', () => popover.classList.toggle('opacity-0') | popover.classList.toggle('pointer-events-none'));
-        document.getElementById('btn-close-props').addEventListener('click', () => popover.classList.add('opacity-0', 'pointer-events-none'));
-        
-        document.getElementById('prop-color').addEventListener('input', (e) => { document.getElementById('prop-swatch-indicator').style.backgroundColor = e.target.value; this.updateProps(); });
-        ['prop-size', 'prop-opacity'].forEach(id => document.getElementById(id).addEventListener('input', () => this.updateProps()));
+        document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => btn.addEventListener('click', () => {
+          this.setActiveTool(btn.dataset.tool);
+          if (window.innerWidth < 640) DrawerController.closeRight();
+        }));
+        ['prop-color','prop-size','prop-opacity'].forEach(id => document.getElementById(id).addEventListener('input', () => this.updateProps()));
         document.getElementById('btn-delete-selected').addEventListener('click', () => this.deleteSelected());
-        window.addEventListener('keydown', (e) => { if ((e.key === 'Delete' || e.key === 'Backspace') && !['INPUT','TEXTAREA'].includes(e.target.tagName)) this.deleteSelected(); });
+        window.addEventListener('keydown', (e) => { if ((e.key==='Delete'||e.key==='Backspace') && !['INPUT','TEXTAREA'].includes(e.target.tagName)) this.deleteSelected(); });
+        document.getElementById('pdf-image-upload').addEventListener('change', (e) => { if (e.target.files[0]) this.insertImage(e.target.files[0]); e.target.value=''; });
       },
       setActiveTool(tool) {
         AppState.activeTool = tool;
@@ -819,8 +617,8 @@
         const color = document.getElementById('prop-color').value, size = parseInt(document.getElementById('prop-size').value), op = parseFloat(document.getElementById('prop-opacity').value);
         
         fc.isDrawingMode = (tool === 'pen'); fc.selection = (tool === 'select');
-        if (fc.isDrawingMode) { fc.freeDrawingBrush = new RulerPencilBrush(fc); fc.freeDrawingBrush.color = color; fc.freeDrawingBrush.width = size; fc.defaultCursor = 'crosshair'; }
-        else fc.defaultCursor = tool === 'view' ? 'grab' : (tool === 'eraser' ? 'cell' : (tool === 'highlight' ? 'crosshair' : 'default'));
+        if (fc.isDrawingMode) { fc.freeDrawingBrush = new fabric.PencilBrush(fc); fc.freeDrawingBrush.color = color; fc.freeDrawingBrush.width = size; fc.defaultCursor = 'crosshair'; }
+        else fc.defaultCursor = tool === 'view' ? 'grab' : (tool === 'eraser' ? 'cell' : 'default');
         
         if (tool !== 'select' && tool !== 'textbox') fc.discardActiveObject();
         fc.forEachObject(obj => {
@@ -832,31 +630,21 @@
         
         if (tool === 'highlight') {
           let hl = null, start = null, isHL = false;
-          fc.on('mouse:down', o => {
-            isHL = true; start = fc.getPointer(o.e);
-            hl = new fabric.Line([start.x, start.y, start.x, start.y], { stroke: this.hexToRgba(color, Math.min(op * 0.5, 0.5)), strokeWidth: Math.max(12, size * 3), strokeCap: 'square', selectable: false, evented: false });
-            fc.add(hl);
-          });
-          fc.on('mouse:move', o => {
-            if (!isHL || !hl) return;
-            let pt = fc.getPointer(o.e), tx = pt.x, ty = pt.y;
-            if (Math.abs(ty - start.y) < 14) ty = start.y; else if (Math.abs(tx - start.x) < 14) tx = start.x;
-            hl.set({ x2: tx, y2: ty }); fc.requestRenderAll();
-          });
+          fc.on('mouse:down', o => { isHL = true; start = fc.getPointer(o.e); hl = new fabric.Line([start.x, start.y, start.x, start.y], { stroke: `rgba(${parseInt(color.slice(1,3),16)},${parseInt(color.slice(3,5),16)},${parseInt(color.slice(5,7),16)},${Math.min(op*0.5,0.5)})`, strokeWidth: Math.max(12, size*3), strokeCap: 'square', selectable: false, evented: false }); fc.add(hl); });
+          fc.on('mouse:move', o => { if (!isHL || !hl) return; let pt = fc.getPointer(o.e), tx = pt.x, ty = pt.y; if (Math.abs(ty - start.y) < 14) ty = start.y; else if (Math.abs(tx - start.x) < 14) tx = start.x; hl.set({ x2: tx, y2: ty }); fc.requestRenderAll(); });
           fc.on('mouse:up', () => { if (isHL && hl) { isHL = false; hl.setCoords(); hl.selectable = (AppState.activeTool === 'select'); hl.evented = true; hl = null; HistoryManager.saveState(); } });
         }
         else if (tool === 'textbox') {
           fc.on('mouse:down', o => {
             if (o.target && (o.target.type === 'textbox' || o.target.type === 'i-text')) return;
-            const pt = fc.getPointer(o.e);
-            const tb = new fabric.Textbox('Type here', { left: pt.x, top: pt.y, width: Math.max(150, size * 5), fontSize: Math.max(16, size * 2), fill: color, opacity: op, fontFamily: 'sans-serif', editable: true });
+            const tb = new fabric.Textbox('Text', { left: fc.getPointer(o.e).x, top: fc.getPointer(o.e).y, width: 150, fontSize: Math.max(16, size*2), fill: color, opacity: op, fontFamily: 'sans-serif' });
             fc.add(tb); fc.setActiveObject(tb); tb.enterEditing(); tb.selectAll(); fc.requestRenderAll();
           });
         }
         else if (tool === 'eraser') {
           let isErasing = false;
-          fc.on('mouse:down', o => { isErasing = true; if(o.target) { fc.remove(o.target); fc.discardActiveObject(); fc.requestRenderAll(); HistoryManager.saveState(); } });
-          fc.on('mouse:move', o => { if(isErasing && o.target) { fc.remove(o.target); fc.discardActiveObject(); fc.requestRenderAll(); } });
+          fc.on('mouse:down', o => { isErasing = true; if(o.target) { fc.remove(o.target); fc.discardActiveObject(); HistoryManager.saveState(); } });
+          fc.on('mouse:move', o => { if(isErasing && o.target) { fc.remove(o.target); fc.discardActiveObject(); } });
           fc.on('mouse:up', () => { if(isErasing) HistoryManager.saveState(); isErasing = false; });
         }
         fc.requestRenderAll();
@@ -881,266 +669,472 @@
           const fc = AppState.fabricInstances[p];
           if (fc) { const act = fc.getActiveObjects(); if (act && act.length) { act.forEach(o => fc.remove(o)); fc.discardActiveObject(); fc.requestRenderAll(); deleted = true; } }
         });
-        if (deleted) HistoryManager.saveState();
-        document.getElementById('btn-delete-selected').classList.add('hidden');
+        if (deleted) HistoryManager.saveState(); document.getElementById('btn-delete-selected').classList.add('hidden');
       },
-      hexToRgba(hex, alpha) { const r = parseInt(hex.slice(1,3), 16), g = parseInt(hex.slice(3,5), 16), b = parseInt(hex.slice(5,7), 16); return `rgba(${r},${g},${b},${alpha})`; }
-    };
-
-    /** MODULE 8: Adaptive Memory Manager & Virtualization (OPTIMIZED FOR 3GB) */
-    const MemoryManager = {
-      observer: null,
-      maxActivePages: 2, 
-      
-      init() {
-        // Detect memory to set limits (3GB target -> use conservative strategy)
-        const deviceMemory = navigator.deviceMemory || 4;
-        this.maxActivePages = deviceMemory <= 3 ? 2 : (deviceMemory >= 8 ? 6 : 4);
-        LOG(`Device Memory: ~${deviceMemory}GB. Max active pages set to ${this.maxActivePages}`);
-
-        // IntersectionObserver strictly tracking viewport entry/exit with a 0px margin
-        this.observer = new IntersectionObserver((entries) => {
-          entries.forEach(entry => {
-            const pageNum = parseInt(entry.target.dataset.page);
-            if (entry.isIntersecting) {
-              this.loadPage(pageNum);
-            } else {
-              // The exact millisecond a page scrolls out of the visible screen area,
-              // aggressively clear and unload it to free up RAM.
-              this.unloadPage(pageNum);
-            }
-          });
-        }, { root: document.getElementById('viewport-container'), rootMargin: "0px" });
-      },
-
-      observePage(element) { this.observer.observe(element); },
-
-      async loadPage(pageNum) {
-        if (AppState.activePages.has(pageNum)) return;
-        
-        // Eviction Policy: Enforce RAM limits
-        if (AppState.activePages.size >= this.maxActivePages) {
-           let furthestPage = -1; let maxDist = -1;
-           for (let p of AppState.activePages) {
-               const dist = Math.abs(p - AppState.currentPage);
-               if (dist > maxDist) { maxDist = dist; furthestPage = p; }
-           }
-           if (furthestPage !== -1 && furthestPage !== pageNum) {
-               this.unloadPage(furthestPage);
-           }
-        }
-
-        LOG(`Loading page ${pageNum}`);
-        AppState.activePages.add(pageNum);
-        
-        const container = document.getElementById(`page-${pageNum}`);
-        if (!container) return;
-
-        if (!container.querySelector('.pdf-canvas-layer')) {
-          container.innerHTML = `<canvas class="pdf-canvas-layer"></canvas><canvas id="fabric-${pageNum}"></canvas><div class="text-layer text-layer-${pageNum}"></div>`;
-        }
-
-        await RenderEngine.renderPDFPage(pageNum, container);
-        this.initFabricCanvas(pageNum, container);
-      },
-
-      unloadPage(pageNum) {
-        if (!AppState.activePages.has(pageNum)) return;
-        LOG(`Unloading page ${pageNum} to save RAM`);
-        AppState.activePages.delete(pageNum);
-
-        if (AppState.pageRenderTasks[pageNum]) {
-          try { AppState.pageRenderTasks[pageNum].cancel(); } catch(e) {}
-          delete AppState.pageRenderTasks[pageNum];
-        }
-
-        const container = document.getElementById(`page-${pageNum}`);
-        if (!container) return;
-
-        const fCanvas = AppState.fabricInstances[pageNum];
-        if (fCanvas) {
-          const state = fCanvas.toJSON(FABRIC_CUSTOM_PROPS);
-          if (state.objects.length > 0) AppState.pageData[pageNum] = state;
-          else delete AppState.pageData[pageNum];
-          
-          fCanvas.off(); // Strip event listeners
-          fCanvas.dispose();
-          delete AppState.fabricInstances[pageNum];
-        }
-
-        // Wipe Canvas Contexts instantly
-        const pdfCanvas = container.querySelector('.pdf-canvas-layer');
-        if (pdfCanvas) {
-           const ctx = pdfCanvas.getContext('2d');
-           if (ctx) ctx.clearRect(0,0, pdfCanvas.width, pdfCanvas.height);
-           pdfCanvas.width = 0; pdfCanvas.height = 0; 
-        }
-        
-        const textLayer = container.querySelector('.text-layer');
-        if(textLayer) textLayer.innerHTML = '';
-      },
-
-      initFabricCanvas(pageNum, container) {
-        const canvasEl = container.querySelector(`#fabric-${pageNum}`);
-        const dim = AppState.pageDimensions[pageNum];
-        const scaledWidth = Math.round(dim.width * AppState.scale);
-        const scaledHeight = Math.round(dim.height * AppState.scale);
-        
-        const fCanvas = new fabric.Canvas(canvasEl, { width: scaledWidth, height: scaledHeight, selection: false, enableRetinaScaling: false, renderOnAddRemove: true });
-        fCanvas.baseWidth = dim.width; fCanvas.baseHeight = dim.height;
-        fCanvas.setDimensions({ width: scaledWidth, height: scaledHeight }); fCanvas.setZoom(AppState.scale);
-        
-        AppState.fabricInstances[pageNum] = fCanvas;
-
-        const toggleDel = () => {
-           const act = fCanvas.getActiveObjects();
-           document.getElementById('btn-delete-selected').classList.toggle('hidden', !act || act.length === 0);
-        };
-        fCanvas.on('selection:created', toggleDel); fCanvas.on('selection:updated', toggleDel); fCanvas.on('selection:cleared', toggleDel);
-        
-        fCanvas.on('object:added', () => { if (!AppState.isApplyingHistory && !fCanvas.isRendering) HistoryManager.saveState(); });
-        fCanvas.on('mouse:down', () => { AppState.currentPage = pageNum; document.getElementById('drawer-page-current').textContent = pageNum; document.getElementById('bottom-page-num').textContent = pageNum; document.querySelectorAll('.pdf-page-container').forEach(el => el.style.zIndex = '1'); container.style.zIndex = '10'; });
-        fCanvas.on('object:modified', (e) => {
-            const obj = e.target;
-            if (!obj) { if (!AppState.isApplyingHistory && !fCanvas.isRendering) HistoryManager.saveState(); return; }
-            // Basic cross-page drop handler
-            const objRect = obj.getBoundingRect(), canvasRect = fCanvas.getElement().getBoundingClientRect();
-            const absX = canvasRect.left + objRect.left + (objRect.width/2), absY = canvasRect.top + objRect.top + (objRect.height/2);
-            const els = document.elementsFromPoint(absX, absY);
-            const targetPageEl = els ? els.find(el => el.classList.contains('pdf-page-container')) : null;
-            if (targetPageEl) {
-                const targetNum = parseInt(targetPageEl.dataset.page);
-                if (targetNum !== pageNum && AppState.fabricInstances[targetNum]) {
-                    const targetCanvas = AppState.fabricInstances[targetNum], targetRect = targetCanvas.getElement().getBoundingClientRect();
-                    obj.clone((cloned) => {
-                        AppState.isApplyingHistory = true;
-                        cloned.set({ left: obj.left + (canvasRect.left - targetRect.left)/AppState.scale, top: obj.top + (canvasRect.top - targetRect.top)/AppState.scale, strokeUniform: true });
-                        cloned.setCoords(); fCanvas.remove(obj); fCanvas.discardActiveObject();
-                        targetCanvas.add(cloned); targetCanvas.setActiveObject(cloned);
-                        fCanvas.requestRenderAll(); targetCanvas.requestRenderAll();
-                        AppState.isApplyingHistory = false; HistoryManager.saveState(); 
-                    }, FABRIC_CUSTOM_PROPS);
-                    return; 
-                }
-            }
-            if (!AppState.isApplyingHistory && !fCanvas.isRendering) HistoryManager.saveState();
+      insertImage(file) {
+        const url = URL.createObjectURL(file);
+        fabric.Image.fromURL(url, (img) => {
+          const fc = ShapeInsertEngine.getActiveCanvas(); if (!fc) return;
+          const dim = AppState.pageDimensions[AppState.currentPage] || { width: 600, height: 800 };
+          const scale = Math.min(1, (dim.width * 0.8) / img.width, (dim.height * 0.8) / img.height);
+          img.set({ scaleX: scale, scaleY: scale, left: (dim.width - img.width * scale)/2, top: (dim.height - img.height * scale)/2, transparentCorners: false, cornerColor: '#e11d48', cornerStrokeColor: '#ffffff' });
+          fc.add(img); fc.setActiveObject(img); fc.requestRenderAll(); HistoryManager.saveState(); ToolController.setActiveTool('select');
+          DrawerController.closeRight();
         });
-        
-        if (AppState.pageData[pageNum] && AppState.pageData[pageNum].objects && AppState.pageData[pageNum].objects.length > 0) {
-          fCanvas.isRendering = true;
-          fCanvas.loadFromJSON(AppState.pageData[pageNum], () => {
-            fCanvas.isRendering = false; fCanvas.setDimensions({ width: scaledWidth, height: scaledHeight });
-            fCanvas.setZoom(AppState.scale); fCanvas.requestRenderAll();
-          });
-        }
-        ToolController.applyToolToCanvas(fCanvas);
-      },
-
-      // Crucial optimization before heavy tasks
-      emergencyCleanup() {
-         LOG("Executing emergency cleanup");
-         for (let p of AppState.activePages) {
-             if (p !== AppState.currentPage) this.unloadPage(p);
-         }
       }
     };
 
-    /** MODULE 9: Render Engine */
+    /** Watermark Engine */
+    const WatermarkEngine = {
+      init() {
+        const modal = document.getElementById('watermark-modal');
+        document.getElementById('btn-open-watermark').addEventListener('click', () => { DrawerController.closeRight(); modal.classList.remove('hidden'); requestAnimationFrame(()=>modal.classList.remove('opacity-0')); });
+        document.getElementById('btn-cancel-wm').addEventListener('click', () => { modal.classList.add('opacity-0'); setTimeout(()=>modal.classList.add('hidden'), 300); });
+        document.getElementById('btn-apply-wm').addEventListener('click', () => {
+          this.applyWatermark(
+            document.getElementById('wm-text').value, document.getElementById('wm-color').value, parseFloat(document.getElementById('wm-opacity').value),
+            parseInt(document.getElementById('wm-size').value), parseInt(document.getElementById('wm-angle').value), document.getElementById('wm-all-pages').checked
+          );
+          modal.classList.add('opacity-0'); setTimeout(()=>modal.classList.add('hidden'), 300);
+        });
+      },
+      applyWatermark(text, color, opacity, size, angle, allPages) {
+        if (!AppState.pdfDoc) return;
+        const addWm = (pageNum) => {
+          const dim = AppState.pageDimensions[pageNum]; if (!dim) return;
+          const obj = new fabric.Text(text, { left: dim.width/2, top: dim.height/2, originX: 'center', originY: 'center', fontSize: size, fill: color, opacity: opacity, angle: angle, fontWeight: 'bold', customType: 'watermark' });
+          if (AppState.fabricInstances[pageNum]) { const fc = AppState.fabricInstances[pageNum]; fc.add(obj); fc.requestRenderAll(); }
+          else {
+            if (!AppState.pageData[pageNum]) AppState.pageData[pageNum] = { version: "5.3.1", objects: [] };
+            AppState.pageData[pageNum].objects.push(obj.toJSON(FABRIC_CUSTOM_PROPS));
+          }
+        };
+        if (allPages) { for (let i = 1; i <= AppState.numPages; i++) addWm(i); }
+        else { addWm(AppState.currentPage || 1); }
+        HistoryManager.saveState(); ToolController.setActiveTool('select');
+      }
+    };
+
+    /** Image Editor Engine (Advanced Suite) */
+    const ImageEditorEngine = {
+      isUp: false, fileUrl: null, fCanvas: null, originalCanvas: null, workingCanvas: null,
+      currentShapeMask: 'none', maskRect: null, editingImage: null, ro: null,
+      maxDim: 2500, // Safe limit for mobile RAM protection
+      currentMode: 'select',
+      
+      init() {
+        const overlay = document.getElementById('image-editor-overlay');
+        document.getElementById('btn-open-image-editor').addEventListener('click', () => { DrawerController.closeLeft(); overlay.classList.remove('hidden'); requestAnimationFrame(()=>overlay.classList.remove('opacity-0')); this.isUp = true; setTimeout(() => this.setupCanvas(), 50); });
+        document.getElementById('btn-close-ie').addEventListener('click', () => { overlay.classList.add('opacity-0'); setTimeout(()=>overlay.classList.add('hidden'),300); this.isUp = false; this.resetEditor(); });
+        document.getElementById('ie-upload').addEventListener('change', (e) => { if (e.target.files[0]) this.loadImage(e.target.files[0]); e.target.value=''; });
+        
+        document.querySelectorAll('.ie-shape-btn').forEach(btn => btn.addEventListener('click', (e) => {
+          document.querySelectorAll('.ie-shape-btn').forEach(b => b.classList.remove('active', 'bg-rose-950/30')); btn.classList.add('active', 'bg-rose-950/30');
+          this.applyShapeMask(btn.dataset.ieShape);
+        }));
+
+        const brushSet = document.getElementById('ie-brush-settings');
+        document.getElementById('btn-ie-freehand').addEventListener('click', () => this.setMode('erase', brushSet));
+        document.getElementById('btn-ie-restore').addEventListener('click', () => this.setMode('restore', brushSet));
+        document.getElementById('ie-brush-size').addEventListener('input', (e) => { if (this.fCanvas && this.fCanvas.freeDrawingBrush) this.fCanvas.freeDrawingBrush.width = parseInt(e.target.value); });
+        
+        document.getElementById('btn-ie-bgremove').addEventListener('click', () => this.autoBgRemove());
+        document.getElementById('btn-ie-rot-left').addEventListener('click', () => { if(this.editingImage) { this.editingImage.rotate(this.editingImage.angle - 90); this.fCanvas.requestRenderAll(); } });
+        document.getElementById('btn-ie-rot-right').addEventListener('click', () => { if(this.editingImage) { this.editingImage.rotate(this.editingImage.angle + 90); this.fCanvas.requestRenderAll(); } });
+        document.getElementById('btn-ie-flip-h').addEventListener('click', () => { if(this.editingImage) { this.editingImage.set('flipX', !this.editingImage.flipX); this.fCanvas.requestRenderAll(); } });
+        document.getElementById('btn-ie-flip-v').addEventListener('click', () => { if(this.editingImage) { this.editingImage.set('flipY', !this.editingImage.flipY); this.fCanvas.requestRenderAll(); } });
+        
+        document.getElementById('btn-ie-download').addEventListener('click', () => this.exportImage());
+      },
+      
+      setupCanvas() {
+        if (!this.fCanvas) {
+          const wrapper = document.getElementById('ie-workspace');
+          const p = wrapper.parentElement;
+          const w = p.clientWidth - 32, h = p.clientHeight - 32;
+          wrapper.style.width = `${w}px`; wrapper.style.height = `${h}px`;
+          
+          this.fCanvas = new fabric.Canvas('ie-fabric-canvas', { width: w, height: h, preserveObjectStacking: true, selection: false });
+          
+          // True pixel editing interception
+          this.fCanvas.on('path:created', (e) => {
+             if (this.fCanvas.isDrawingMode) this.handleBrushStroke(e.path);
+          });
+
+          // Handle responsive workspace recalculation elegantly
+          this.ro = new ResizeObserver(() => {
+             if (this.isUp && p && p.clientWidth > 0) {
+                const nw = p.clientWidth - 32, nh = p.clientHeight - 32;
+                if (nw !== this.fCanvas.width || nh !== this.fCanvas.height) {
+                    wrapper.style.width = `${nw}px`; wrapper.style.height = `${nh}px`;
+                    this.fCanvas.setWidth(nw); this.fCanvas.setHeight(nh);
+                    if (this.editingImage) {
+                        this.editingImage.set({ left: nw/2, top: nh/2 });
+                        this.editingImage.setCoords();
+                        this.applyShapeMask(this.currentShapeMask);
+                    }
+                }
+             }
+          });
+          this.ro.observe(p);
+        }
+      },
+      
+      resetEditor() {
+        if (this.fCanvas) { this.fCanvas.clear(); this.fCanvas.isDrawingMode = false; }
+        if (this.fileUrl) { URL.revokeObjectURL(this.fileUrl); this.fileUrl = null; }
+        this.editingImage = null; this.maskRect = null; this.originalCanvas = null; this.workingCanvas = null;
+        this.currentMode = 'select'; this.currentShapeMask = 'none';
+        
+        document.getElementById('ie-workspace').classList.add('hidden');
+        document.getElementById('ie-empty-state').classList.remove('hidden', 'opacity-0');
+        document.getElementById('ie-brush-settings').classList.add('hidden');
+        document.querySelectorAll('.ie-shape-btn').forEach(b => {
+           b.classList.toggle('active', b.dataset.ieShape === 'none');
+           b.classList.toggle('bg-rose-950/30', b.dataset.ieShape === 'none');
+        });
+      },
+      
+      loadImage(file) {
+        this.resetEditor(); // Clean memory completely
+        this.fileUrl = URL.createObjectURL(file);
+        
+        const imgEl = new Image();
+        imgEl.onerror = () => { alert("Failed to decode image. The file may be corrupted or unsupported."); this.resetEditor(); };
+        imgEl.onload = () => {
+           document.getElementById('ie-workspace').classList.remove('hidden');
+           document.getElementById('ie-empty-state').classList.add('opacity-0');
+           setTimeout(()=>document.getElementById('ie-empty-state').classList.add('hidden'), 300);
+
+           // Scale mathematical bounding limits
+           let w = imgEl.width, h = imgEl.height;
+           const imgScale = Math.min(1, this.maxDim / w, this.maxDim / h);
+           w = Math.round(w * imgScale); h = Math.round(h * imgScale);
+
+           this.originalCanvas = document.createElement('canvas');
+           this.originalCanvas.width = w; this.originalCanvas.height = h;
+           this.originalCanvas.getContext('2d').drawImage(imgEl, 0, 0, w, h);
+           
+           this.workingCanvas = document.createElement('canvas');
+           this.workingCanvas.width = w; this.workingCanvas.height = h;
+           this.workingCanvas.getContext('2d').drawImage(this.originalCanvas, 0, 0);
+
+           // Establish fit for active mobile UI
+           const fw = this.fCanvas.width, fh = this.fCanvas.height;
+           const fitScale = Math.min(1, (fw - 40) / w, (fh - 40) / h);
+           
+           // Initialize with canvas element directly to preserve authoritative resolution & transparency
+           const fImg = new fabric.Image(this.workingCanvas);
+           fImg.set({ left: fw/2, top: fh/2, originX: 'center', originY: 'center', scaleX: fitScale, scaleY: fitScale });
+           
+           this.editingImage = fImg; 
+           this.fCanvas.add(fImg); 
+           this.fCanvas.setActiveObject(fImg);
+           this.applyShapeMask('none');
+        };
+        imgEl.src = this.fileUrl;
+      },
+      
+      setMode(mode, settingsUI) {
+        this.currentMode = mode;
+        if (!this.fCanvas) return;
+        if (mode === 'erase' || mode === 'restore') {
+           this.fCanvas.isDrawingMode = true; settingsUI.classList.remove('hidden');
+           this.fCanvas.freeDrawingBrush = new fabric.PencilBrush(this.fCanvas);
+           this.fCanvas.freeDrawingBrush.width = parseInt(document.getElementById('ie-brush-size').value);
+           this.fCanvas.freeDrawingBrush.color = 'white'; // Stroke color doesn't matter, mask handles alpha mathematically
+        } else { this.fCanvas.isDrawingMode = false; settingsUI.classList.add('hidden'); }
+      },
+      
+      handleBrushStroke(pathObj) {
+        if (!this.editingImage || !this.workingCanvas) return;
+        this.fCanvas.remove(pathObj); // Do not leave Fabric UI stroke behind
+
+        // Render purely the stroke matching screen projection accurately (retina scaling disabled to prevent offset/blowup)
+        const maskC = document.createElement('canvas');
+        maskC.width = this.fCanvas.width; maskC.height = this.fCanvas.height;
+        const tmpFab = new fabric.StaticCanvas(maskC, {width: maskC.width, height: maskC.height, enableRetinaScaling: false});
+        pathObj.set({ stroke: 'white', fill: 'transparent', strokeWidth: this.fCanvas.freeDrawingBrush.width, strokeLineCap: 'round', strokeLineJoin: 'round', opacity: 1, shadow: null });
+        tmpFab.add(pathObj); tmpFab.renderAll();
+
+        const wCtx = this.workingCanvas.getContext('2d');
+        
+        // Formulates mathematically precise coordinate inversion connecting responsive layout CSS bounds to true image pixels
+        const applyInverseMath = (ctx) => {
+            ctx.translate(this.workingCanvas.width/2, this.workingCanvas.height/2);
+            if (this.editingImage.flipX) ctx.scale(-1, 1);
+            if (this.editingImage.flipY) ctx.scale(1, -1);
+            ctx.scale(1/this.editingImage.scaleX, 1/this.editingImage.scaleY);
+            ctx.rotate(-this.editingImage.angle * Math.PI / 180);
+            ctx.translate(-this.editingImage.left, -this.editingImage.top);
+        };
+
+        if (this.currentMode === 'restore') {
+            const tempL = document.createElement('canvas'); 
+            tempL.width = this.workingCanvas.width; 
+            tempL.height = this.workingCanvas.height;
+            const tCtx = tempL.getContext('2d');
+            
+            // Map stroke dynamically into original uncompressed coordinate space
+            tCtx.save(); applyInverseMath(tCtx); tCtx.drawImage(maskC, 0, 0); tCtx.restore();
+            
+            // Critical fix: Erase destination pixels actively covered by the stroke *first* to prevent opaque composite blending
+            wCtx.save();
+            wCtx.globalCompositeOperation = 'destination-out';
+            applyInverseMath(wCtx); wCtx.drawImage(maskC, 0, 0);
+            wCtx.restore();
+            
+            // Crop exact historical authoritative pixels using stroke boundary
+            tCtx.globalCompositeOperation = 'source-in'; 
+            tCtx.drawImage(this.originalCanvas, 0, 0);
+            
+            // Paste isolated native pixel recovery block precisely into the now transparent hole
+            wCtx.save();
+            wCtx.globalCompositeOperation = 'source-over'; 
+            wCtx.drawImage(tempL, 0, 0);
+            wCtx.restore();
+            
+        } else {
+            // Freehand Erase directly eliminates pixel data matching precise transform masking
+            wCtx.save();
+            wCtx.globalCompositeOperation = 'destination-out';
+            applyInverseMath(wCtx); wCtx.drawImage(maskC, 0, 0);
+            wCtx.restore();
+        }
+
+        // Pass modified authoritative buffer straight back to memory instantly triggering texture cache update
+        this.editingImage.setElement(this.workingCanvas);
+        this.editingImage.dirty = true;
+        this.fCanvas.requestRenderAll();
+      },
+      
+      applyShapeMask(type) {
+        if (!this.fCanvas) return;
+        this.currentShapeMask = type;
+        if (this.maskRect) { this.fCanvas.remove(this.maskRect); this.maskRect = null; }
+        if (type === 'none') { this.fCanvas.requestRenderAll(); return; }
+        
+        const w = this.fCanvas.width, h = this.fCanvas.height, size = Math.min(w, h) * 0.8;
+        const cx = w/2, cy = h/2, r = size/2;
+        let inner = '';
+        
+        if (type === 'circle') inner = `M ${cx} ${cy-r} A ${r} ${r} 0 1 0 ${cx} ${cy+r} A ${r} ${r} 0 1 0 ${cx} ${cy-r} Z`;
+        else if (type === 'square') inner = `M ${cx-r} ${cy-r} V ${cy+r} H ${cx+r} V ${cy-r} Z`;
+        else if (type === 'triangle') inner = `M ${cx} ${cy-r} L ${cx-r} ${cy+r} L ${cx+r} ${cy+r} Z`;
+        
+        // Exact Passe-partout overlay geometry matching identical export clipping
+        const pathStr = `M 0 0 H ${w} V ${h} H 0 Z ` + inner;
+        this.maskRect = new fabric.Path(pathStr, { left: 0, top: 0, fill: 'rgba(10,10,15,0.92)', selectable: false, evented: false, fillRule: 'evenodd' });
+        this.fCanvas.add(this.maskRect);
+        this.fCanvas.requestRenderAll();
+      },
+      
+      autoBgRemove() {
+        if (!this.editingImage || !this.workingCanvas) return;
+        const wCtx = this.workingCanvas.getContext('2d');
+        const imgData = wCtx.getImageData(0,0,this.workingCanvas.width,this.workingCanvas.height);
+        const data = imgData.data, w = imgData.width, h = imgData.height;
+        
+        const tol = 65; // Tolerance threshold
+        const visited = new Uint8Array(w * h);
+        const stack = new Uint32Array(w * h * 2);
+        let sp = 0;
+        
+        const pushIfValid = (px, py) => { const idx = py * w + px; if (!visited[idx]) { visited[idx] = 1; stack[sp++] = px; stack[sp++] = py; } };
+        
+        // Seed coordinates representing common background anchor roots
+        const seeds = [[0,0], [w-1,0], [0,h-1], [w-1,h-1]];
+        const bgColors = [];
+        seeds.forEach(s => { pushIfValid(s[0], s[1]); const idx = (s[1] * w + s[0]) * 4; bgColors.push([data[idx], data[idx+1], data[idx+2]]); });
+        
+        while (sp > 0) {
+            const py = stack[--sp], px = stack[--sp];
+            const pIdx = (py * w + px) * 4;
+            if (data[pIdx+3] === 0) continue;
+            
+            let isBg = false;
+            for (let i = 0; i < bgColors.length; i++) {
+                if (Math.abs(data[pIdx]-bgColors[i][0]) + Math.abs(data[pIdx+1]-bgColors[i][1]) + Math.abs(data[pIdx+2]-bgColors[i][2]) < tol) { isBg = true; break; }
+            }
+            if (isBg) {
+                data[pIdx+3] = 0;
+                if (px > 0) pushIfValid(px-1, py);
+                if (px < w-1) pushIfValid(px+1, py);
+                if (py > 0) pushIfValid(px, py-1);
+                if (py < h-1) pushIfValid(px, py+1);
+            }
+        }
+        wCtx.putImageData(imgData, 0, 0);
+        this.editingImage.setElement(this.workingCanvas);
+        this.editingImage.dirty = true;
+        this.fCanvas.requestRenderAll();
+      },
+      
+      exportImage() {
+        if (!this.fCanvas || !this.editingImage) return;
+        if (this.maskRect) this.maskRect.set('opacity', 0); // Hide interactive UI overlay
+        this.fCanvas.discardActiveObject(); this.fCanvas.requestRenderAll();
+        
+        try {
+            let cx, cy, cw, ch;
+            if (this.currentShapeMask === 'none') {
+                const br = this.editingImage.getBoundingRect();
+                cx = br.left; cy = br.top; cw = br.width; ch = br.height;
+            } else {
+                const size = Math.min(this.fCanvas.width, this.fCanvas.height) * 0.8;
+                cw = size; ch = size; cx = this.fCanvas.width/2 - size/2; cy = this.fCanvas.height/2 - size/2;
+            }
+            
+            // Calculate optimal scale mapping preserving original dimensions where plausible 
+            const sourceScale = Math.max(0.1, Math.max(Math.abs(this.editingImage.scaleX), Math.abs(this.editingImage.scaleY)));
+            let outputMult = Math.min(2048 / cw, 2048 / ch, 1 / sourceScale);
+            outputMult = Math.max(1, outputMult); // Guarantee no down-scaling below interface
+
+            const fDataURL = this.fCanvas.toDataURL({ format: 'png', left: cx, top: cy, width: cw, height: ch, multiplier: outputMult });
+            
+            if (this.currentShapeMask !== 'none') {
+                const eW = Math.round(cw * outputMult), eH = Math.round(ch * outputMult);
+                const tC = document.createElement('canvas'); tC.width = eW; tC.height = eH;
+                const tCtx = tC.getContext('2d');
+                tCtx.beginPath();
+                if (this.currentShapeMask === 'circle') tCtx.arc(eW/2, eH/2, eW/2, 0, Math.PI*2);
+                else if (this.currentShapeMask === 'triangle') { tCtx.moveTo(eW/2, 0); tCtx.lineTo(eW, eH); tCtx.lineTo(0, eH); }
+                else if (this.currentShapeMask === 'square') tCtx.rect(0, 0, eW, eH);
+                tCtx.closePath(); tCtx.clip(); // Perform mathematically identical transparent clipping
+                
+                const loaderImg = new Image();
+                loaderImg.onload = () => { tCtx.drawImage(loaderImg, 0, 0, eW, eH); download(tC.toDataURL('image/png'), "PageCraft_Image.png", "image/png"); };
+                loaderImg.src = fDataURL;
+            } else { download(fDataURL, "PageCraft_Image.png", "image/png"); }
+        } finally {
+            if (this.maskRect) this.maskRect.set('opacity', 1);
+            this.fCanvas.requestRenderAll();
+        }
+      }
+    };
+
+    /** Template Engine */
+    const TemplateEngine = {
+      async createBlankPDF(pages = 10) {
+        DrawerController.showLoading("Generating Blank Workspace...");
+        try {
+          const pdfDoc = await PDFLib.PDFDocument.create();
+          for (let i = 0; i < pages; i++) pdfDoc.addPage([595.28, 841.89]); // A4 Size
+          const pdfBytes = await pdfDoc.save();
+          await RenderEngine.loadDocument(pdfBytes, false);
+          DrawerController.closeLeft();
+        } catch(e) { console.error(e); alert("Failed to create template."); }
+        finally { DrawerController.hideLoading(); }
+      }
+    };
+
+    /** Memory Manager */
+    const MemoryManager = {
+      observer: null, maxActivePages: 3, 
+      init() {
+        this.maxActivePages = (navigator.deviceMemory || 4) <= 3 ? 2 : 4;
+        this.observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => { const p = parseInt(entry.target.dataset.page); if (entry.isIntersecting) this.loadPage(p); else this.unloadPage(p); });
+        }, { root: document.getElementById('viewport-container'), rootMargin: "0px" });
+      },
+      observePage(el) { this.observer.observe(el); },
+      async loadPage(pageNum) {
+        if (AppState.activePages.has(pageNum)) return;
+        if (AppState.activePages.size >= this.maxActivePages) {
+           let furthest = -1, maxD = -1;
+           for (let p of AppState.activePages) { const d = Math.abs(p - AppState.currentPage); if (d > maxD) { maxD = d; furthest = p; } }
+           if (furthest !== -1 && furthest !== pageNum) this.unloadPage(furthest);
+        }
+        AppState.activePages.add(pageNum); const cont = document.getElementById(`page-${pageNum}`); if (!cont) return;
+        if (!cont.querySelector('.pdf-canvas-layer')) cont.innerHTML = `<canvas class="pdf-canvas-layer"></canvas><canvas id="fabric-${pageNum}"></canvas><div class="text-layer text-layer-${pageNum}"></div>`;
+        await RenderEngine.renderPDFPage(pageNum, cont); this.initFabricCanvas(pageNum, cont);
+      },
+      unloadPage(pageNum) {
+        if (!AppState.activePages.has(pageNum)) return; AppState.activePages.delete(pageNum);
+        if (AppState.pageRenderTasks[pageNum]) { try { AppState.pageRenderTasks[pageNum].cancel(); } catch(e){} delete AppState.pageRenderTasks[pageNum]; }
+        const cont = document.getElementById(`page-${pageNum}`); if (!cont) return;
+        const fc = AppState.fabricInstances[pageNum];
+        if (fc) {
+          if (!fc.isRendering) {
+            const state = fc.toJSON(FABRIC_CUSTOM_PROPS);
+            if (state.objects.length > 0) AppState.pageData[pageNum] = state; else delete AppState.pageData[pageNum];
+          }
+          fc.off(); fc.dispose(); delete AppState.fabricInstances[pageNum];
+        }
+        const pdfC = cont.querySelector('.pdf-canvas-layer'); if (pdfC) { const ctx = pdfC.getContext('2d'); if(ctx) ctx.clearRect(0,0,pdfC.width,pdfC.height); pdfC.width=0; pdfC.height=0; }
+        const txtL = cont.querySelector('.text-layer'); if(txtL) txtL.innerHTML = '';
+      },
+      initFabricCanvas(pageNum, cont) {
+        const cEl = cont.querySelector(`#fabric-${pageNum}`); const dim = AppState.pageDimensions[pageNum];
+        const sW = Math.round(dim.width * AppState.scale), sH = Math.round(dim.height * AppState.scale);
+        const fc = new fabric.Canvas(cEl, { width: sW, height: sH, selection: false, enableRetinaScaling: false });
+        fc.baseWidth = dim.width; fc.baseHeight = dim.height; fc.setZoom(AppState.scale); AppState.fabricInstances[pageNum] = fc;
+        const toggleDel = () => document.getElementById('btn-delete-selected').classList.toggle('hidden', !fc.getActiveObjects().length);
+        fc.on('selection:created', toggleDel); fc.on('selection:updated', toggleDel); fc.on('selection:cleared', toggleDel);
+        fc.on('object:added', () => { if (!AppState.isApplyingHistory && !fc.isRendering) HistoryManager.saveState(); });
+        fc.on('mouse:down', () => { AppState.currentPage = pageNum; document.getElementById('bottom-page-num').textContent = pageNum; });
+        fc.on('object:modified', () => { if (!AppState.isApplyingHistory && !fc.isRendering) HistoryManager.saveState(); });
+        
+        if (AppState.pageData[pageNum] && AppState.pageData[pageNum].objects.length > 0) {
+          fc.isRendering = true;
+          fc.loadFromJSON(AppState.pageData[pageNum], () => { fc.isRendering = false; fc.setDimensions({ width: sW, height: sH }); fc.setZoom(AppState.scale); fc.requestRenderAll(); });
+        }
+        ToolController.applyToolToCanvas(fc);
+      },
+      emergencyCleanup() { for (let p of AppState.activePages) if (p !== AppState.currentPage) this.unloadPage(p); }
+    };
+
+    /** Render Engine */
     const RenderEngine = {
       async loadDocument(fileOrArrayBuffer, isRestore = false) {
         DrawerController.showLoading("Loading PDF...");
         try {
-          Object.values(AppState.pageRenderTasks).forEach(t => { try { t.cancel(); } catch(e){} });
-          AppState.pageRenderTasks = {};
-          
-          // Thorough teardown
-          for (const key in AppState.fabricInstances) { MemoryManager.unloadPage(parseInt(key)); }
-          
-          if (!isRestore) {
-             AppState.pageData = {}; AppState.historyStack = []; AppState.historyIndex = -1;
-          }
+          Object.values(AppState.pageRenderTasks).forEach(t => { try { t.cancel(); } catch(e){} }); AppState.pageRenderTasks = {};
+          for (const k in AppState.fabricInstances) MemoryManager.unloadPage(parseInt(k));
+          if (!isRestore) { AppState.pageData = {}; AppState.historyStack = []; AppState.historyIndex = -1; }
           document.getElementById('btn-undo').disabled = true; document.getElementById('btn-redo').disabled = true;
 
-          const pdfBlob = fileOrArrayBuffer instanceof File 
-            ? fileOrArrayBuffer 
-            : new Blob([fileOrArrayBuffer], { type: 'application/pdf' });
-          
+          const pdfBlob = fileOrArrayBuffer instanceof File ? fileOrArrayBuffer : new Blob([fileOrArrayBuffer], { type: 'application/pdf' });
           AppState.pdfBlob = pdfBlob; 
           
-          const blobUrl = URL.createObjectURL(pdfBlob);
-          const loadingTask = pdfjsLib.getDocument(blobUrl);
+          AppState.pdfDoc = await pdfjsLib.getDocument(URL.createObjectURL(pdfBlob)).promise;
+          AppState.numPages = AppState.pdfDoc.numPages; AppState.currentPage = 1;
           
-          AppState.pdfDoc = await loadingTask.promise;
-          AppState.numPages = AppState.pdfDoc.numPages;
-          AppState.currentPage = 1;
+          document.getElementById('bottom-page-count').textContent = AppState.numPages; document.getElementById('bottom-page-num').textContent = '1';
+          document.getElementById('drop-zone').classList.add('hidden'); document.getElementById('bottom-nav').classList.remove('pointer-events-none');
           
-          document.getElementById('drawer-page-total').textContent = AppState.numPages;
-          document.getElementById('drawer-page-current').textContent = '1';
-          document.getElementById('bottom-page-count').textContent = AppState.numPages;
-          document.getElementById('bottom-page-num').textContent = '1';
-          document.getElementById('drop-zone').classList.add('hidden');
-          
-          const wrapper = document.getElementById('document-wrapper');
-          wrapper.innerHTML = ''; wrapper.classList.remove('hidden');
-
-          AppState.pageDimensions = [];
-          AppState.scale = 1.0; AppState.zoomCssScale = 1.0;
-          document.getElementById('zoom-percentage').textContent = '100%';
+          const wrap = document.getElementById('document-wrapper'); wrap.innerHTML = ''; wrap.classList.remove('hidden');
+          AppState.pageDimensions = []; AppState.scale = 1.0; AppState.zoomCssScale = 1.0; document.getElementById('zoom-percentage').textContent = '100%';
 
           for (let i = 1; i <= AppState.numPages; i++) {
-            const page = await AppState.pdfDoc.getPage(i);
-            const vp = page.getViewport({ scale: 1.0 });
+            const page = await AppState.pdfDoc.getPage(i); const vp = page.getViewport({ scale: 1.0 });
             AppState.pageDimensions[i] = { width: vp.width, height: vp.height };
-            
-            const div = document.createElement('div');
-            div.className = 'pdf-page-container'; div.id = `page-${i}`; div.dataset.page = i;
+            const div = document.createElement('div'); div.className = 'pdf-page-container'; div.id = `page-${i}`; div.dataset.page = i;
             div.style.width = `${Math.round(vp.width)}px`; div.style.height = `${Math.round(vp.height)}px`;
-            wrapper.appendChild(div);
-            MemoryManager.observePage(div);
+            wrap.appendChild(div); MemoryManager.observePage(div);
           }
-          
-          // Initial persistent save
-          await DBManager.set('pdfBytes', await AppState.pdfBlob.arrayBuffer());
-          await DBManager.set('pageData', AppState.pageData);
-          document.getElementById('save-status').textContent = 'Saved';
-          
-        } catch (e) { console.error(e); alert("Failed to load PDF."); }
-        finally { DrawerController.hideLoading(); }
+          await DBManager.set('pdfBytes', await AppState.pdfBlob.arrayBuffer()); await DBManager.set('pageData', AppState.pageData);
+        } catch (e) { alert("Failed to load PDF."); } finally { DrawerController.hideLoading(); }
       },
-
-      async renderPDFPage(pageNum, container) {
-        if (AppState.pageRenderTasks[pageNum]) {
-          try { AppState.pageRenderTasks[pageNum].cancel(); } catch(e) {}
-          delete AppState.pageRenderTasks[pageNum];
-        }
-
-        const page = await AppState.pdfDoc.getPage(pageNum);
-        const vp = page.getViewport({ scale: AppState.scale });
-        const canvas = container.querySelector('.pdf-canvas-layer');
-        const textLayer = container.querySelector('.text-layer');
-        if (!canvas) return;
-        
-        const dpr = Math.min(window.devicePixelRatio || 1, 2); // Cap at 2 to save memory
-        canvas.width = Math.round(vp.width * dpr); canvas.height = Math.round(vp.height * dpr);
-        canvas.style.width = `${Math.round(vp.width)}px`; canvas.style.height = `${Math.round(vp.height)}px`;
-
+      async renderPDFPage(pageNum, cont) {
+        if (AppState.pageRenderTasks[pageNum]) { try{AppState.pageRenderTasks[pageNum].cancel();}catch(e){} delete AppState.pageRenderTasks[pageNum]; }
+        const page = await AppState.pdfDoc.getPage(pageNum); const vp = page.getViewport({ scale: AppState.scale });
+        const canvas = cont.querySelector('.pdf-canvas-layer'); const txtL = cont.querySelector('.text-layer'); if (!canvas) return;
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.round(vp.width * dpr); canvas.height = Math.round(vp.height * dpr); canvas.style.width = `${Math.round(vp.width)}px`; canvas.style.height = `${Math.round(vp.height)}px`;
         const ctx = canvas.getContext('2d', { alpha: false }); ctx.scale(dpr, dpr);
-        const task = page.render({ canvasContext: ctx, viewport: vp });
-        AppState.pageRenderTasks[pageNum] = task;
-
+        const task = page.render({ canvasContext: ctx, viewport: vp }); AppState.pageRenderTasks[pageNum] = task;
         try {
-          await task.promise;
-          delete AppState.pageRenderTasks[pageNum];
-          if (textLayer) {
-            textLayer.innerHTML = ''; textLayer.style.width = `${Math.round(vp.width)}px`; textLayer.style.height = `${Math.round(vp.height)}px`; textLayer.style.transform = `scale(${AppState.scale})`;
-            const textContent = await page.getTextContent();
-            await pdfjsLib.renderTextLayer({ textContentSource: textContent, container: textLayer, viewport: page.getViewport({ scale: 1.0 }), textDivs: [] }).promise;
+          await task.promise; delete AppState.pageRenderTasks[pageNum];
+          if (txtL) {
+            txtL.innerHTML=''; txtL.style.width=`${Math.round(vp.width)}px`; txtL.style.height=`${Math.round(vp.height)}px`; txtL.style.transform=`scale(${AppState.scale})`;
+            await pdfjsLib.renderTextLayer({ textContentSource: await page.getTextContent(), container: txtL, viewport: page.getViewport({ scale: 1.0 }), textDivs: [] }).promise;
           }
-        } catch (err) { if (err.name !== 'RenderingCancelledException') console.error("Render err page " + pageNum, err); }
+        } catch (err) {}
       }
     };
 
-    /** MODULE 10: Smooth Viewport */
+    /** Viewport Engine (Mobile Pinch Zoom Fix included) */
     const ViewportEngine = {
       zoomTimeout: null, pinchStartDist: 0, initialPinchScale: 1.0,
       init() {
@@ -1152,7 +1146,7 @@
               for (let i of AppState.activePages) {
                 const el = document.getElementById(`page-${i}`);
                 if (el && Math.abs((el.offsetTop - vp.scrollTop + el.clientHeight/2) - vp.clientHeight/2) < el.clientHeight/2) {
-                  AppState.currentPage = i; document.getElementById('drawer-page-current').textContent = i; document.getElementById('bottom-page-num').textContent = i; break;
+                  AppState.currentPage = i; document.getElementById('bottom-page-num').textContent = i; break;
                 }
               }
               scrollTick = false;
@@ -1162,173 +1156,203 @@
 
         document.getElementById('btn-zoom-in').addEventListener('click', () => this.applyZoom(AppState.scale + 0.15));
         document.getElementById('btn-zoom-out').addEventListener('click', () => this.applyZoom(AppState.scale - 0.15));
-
         vp.addEventListener('wheel', (e) => { if (e.ctrlKey || e.metaKey) { e.preventDefault(); this.handleSmoothZoom(e.deltaY < 0 ? 0.08 : -0.08); } }, { passive: false });
-        vp.addEventListener('touchstart', (e) => { if (e.touches.length === 2 && AppState.activeTool === 'view') { this.pinchStartDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); this.initialPinchScale = AppState.scale; } }, { passive: true });
-        vp.addEventListener('touchmove', (e) => {
-          if (e.touches.length === 2 && AppState.activeTool === 'view' && this.pinchStartDist > 0) {
-            const nS = Math.min(Math.max(0.35, this.initialPinchScale * (Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY) / this.pinchStartDist)), 3.5);
-            AppState.zoomCssScale = nS / AppState.scale;
-            document.getElementById('document-wrapper').style.transform = `scale(${AppState.zoomCssScale})`; document.getElementById('zoom-percentage').textContent = Math.round(nS * 100) + '%';
-          }
-        }, { passive: true });
-        vp.addEventListener('touchend', (e) => { if (this.pinchStartDist > 0 && e.touches.length < 2) { const finalScale = AppState.scale * AppState.zoomCssScale; this.pinchStartDist = 0; this.commitZoom(finalScale); } }, { passive: true });
         
-        let rDebounce = null; window.addEventListener('resize', () => { clearTimeout(rDebounce); rDebounce = setTimeout(() => FullscreenEngine.updateUI(), 150); });
+        // Strict Safari/Mobile native zoom prevention & override
+        vp.addEventListener('touchstart', (e) => { if (e.touches.length >= 2 && AppState.activeTool === 'view') { e.preventDefault(); this.pinchStartDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); this.initialPinchScale = AppState.scale; } }, { passive: false });
+        vp.addEventListener('touchmove', (e) => {
+          if (e.touches.length >= 2) {
+            e.preventDefault();
+            if (AppState.activeTool === 'view' && this.pinchStartDist > 0) {
+              const nS = Math.min(Math.max(0.35, this.initialPinchScale * (Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY) / this.pinchStartDist)), 3.5);
+              AppState.zoomCssScale = nS / AppState.scale;
+              document.getElementById('document-wrapper').style.transform = `scale(${AppState.zoomCssScale})`; document.getElementById('zoom-percentage').textContent = Math.round(nS * 100) + '%';
+            }
+          }
+        }, { passive: false });
+        vp.addEventListener('touchend', (e) => { if (this.pinchStartDist > 0 && e.touches.length < 2) { const finalScale = AppState.scale * AppState.zoomCssScale; this.pinchStartDist = 0; this.commitZoom(finalScale); } }, { passive: true });
       },
-      fitToWidth() { if (!AppState.pdfDoc) return; const vp = document.getElementById('viewport-container'); const firstDim = AppState.pageDimensions[1]; if (firstDim) this.applyZoom(Math.max(0.3, (vp.clientWidth - (window.innerWidth < 768 ? 24 : 48)) / firstDim.width)); },
-      fitToPage() { if (!AppState.pdfDoc) return; const vp = document.getElementById('viewport-container'); const firstDim = AppState.pageDimensions[1]; if (firstDim) this.applyZoom(Math.max(0.3, Math.min((vp.clientWidth - 32) / firstDim.width, (vp.clientHeight - 80) / firstDim.height))); },
-      handleSmoothZoom(delta) { if (!AppState.pdfDoc) return; const tS = Math.min(Math.max(0.35, AppState.scale * AppState.zoomCssScale + delta), 3.5); AppState.zoomCssScale = tS / AppState.scale; document.getElementById('zoom-percentage').textContent = Math.round(tS * 100) + '%'; document.getElementById('document-wrapper').style.transform = `scale(${AppState.zoomCssScale})`; clearTimeout(this.zoomTimeout); this.zoomTimeout = setTimeout(() => this.commitZoom(tS), 200); },
+      fitToWidth() { if (!AppState.pdfDoc) return; const dim = AppState.pageDimensions[1]; if (dim) this.applyZoom(Math.max(0.3, (document.getElementById('viewport-container').clientWidth - 48) / dim.width)); },
+      fitToPage() { if (!AppState.pdfDoc) return; const vp = document.getElementById('viewport-container'); const dim = AppState.pageDimensions[1]; if (dim) this.applyZoom(Math.max(0.3, Math.min((vp.clientWidth - 32) / dim.width, (vp.clientHeight - 80) / dim.height))); },
+      handleSmoothZoom(d) { if (!AppState.pdfDoc) return; const tS = Math.min(Math.max(0.35, AppState.scale * AppState.zoomCssScale + d), 3.5); AppState.zoomCssScale = tS / AppState.scale; document.getElementById('zoom-percentage').textContent = Math.round(tS * 100) + '%'; document.getElementById('document-wrapper').style.transform = `scale(${AppState.zoomCssScale})`; clearTimeout(this.zoomTimeout); this.zoomTimeout = setTimeout(() => this.commitZoom(tS), 200); },
       applyZoom(nS) { if (!AppState.pdfDoc) return; nS = Math.min(Math.max(0.35, nS), 3.5); document.getElementById('zoom-percentage').textContent = Math.round(nS * 100) + '%'; this.commitZoom(nS); },
       async commitZoom(nS) {
         const oS = AppState.scale; AppState.scale = nS; AppState.zoomCssScale = 1.0;
-        const wrapper = document.getElementById('document-wrapper'); wrapper.style.transform = 'none';
+        const w = document.getElementById('document-wrapper'); w.style.transform = 'none';
         const vp = document.getElementById('viewport-container'); const sr = nS / oS; vp.scrollTop *= sr; vp.scrollLeft *= sr;
-        
-        for (let i = 1; i <= AppState.numPages; i++) {
-          const dim = AppState.pageDimensions[i], el = document.getElementById(`page-${i}`);
-          if (el && dim) { el.style.width = `${Math.round(dim.width * nS)}px`; el.style.height = `${Math.round(dim.height * nS)}px`; }
-        }
+        for (let i = 1; i <= AppState.numPages; i++) { const dim = AppState.pageDimensions[i], el = document.getElementById(`page-${i}`); if (el && dim) { el.style.width = `${Math.round(dim.width * nS)}px`; el.style.height = `${Math.round(dim.height * nS)}px`; } }
         for (let p of AppState.activePages) {
-          const container = document.getElementById(`page-${p}`);
-          if (container) {
-            await RenderEngine.renderPDFPage(p, container);
-            const fc = AppState.fabricInstances[p];
-            if (fc) { fc.setDimensions({ width: Math.round(fc.baseWidth * nS), height: Math.round(fc.baseHeight * nS) }); fc.setZoom(nS); fc.requestRenderAll(); }
-          }
+          const cont = document.getElementById(`page-${p}`);
+          if (cont) { await RenderEngine.renderPDFPage(p, cont); const fc = AppState.fabricInstances[p]; if (fc) { fc.setDimensions({ width: Math.round(fc.baseWidth * nS), height: Math.round(fc.baseHeight * nS) }); fc.setZoom(nS); fc.requestRenderAll(); } }
         }
       },
       scrollToPage(num) { const el = document.getElementById(`page-${num}`); if(el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
     };
 
-    /** MODULE 11: Optimized Export Engine (LOW RAM) */
+    /** Export Engine */
     const ExportEngine = {
+      isExporting: false,
       async exportPDF() {
-        if (!AppState.pdfBlob) return;
+        if (!AppState.pdfBlob || this.isExporting) return;
+        this.isExporting = true;
         DrawerController.showLoading("Generating High-Quality PDF...");
+        const originalPageCount = AppState.numPages;
         
         try {
-          // 1. Force state serialization for safety
-          AppState.activePages.forEach(p => {
-             if (AppState.fabricInstances[p]) {
-                AppState.pageData[p] = AppState.fabricInstances[p].toJSON(FABRIC_CUSTOM_PROPS);
-             }
+          // 1. Capture current Fabric states
+          AppState.activePages.forEach(p => { 
+            if (AppState.fabricInstances[p] && !AppState.fabricInstances[p].isRendering) {
+              AppState.pageData[p] = AppState.fabricInstances[p].toJSON(FABRIC_CUSTOM_PROPS); 
+            }
           });
-
-          // 2. Emergency Cleanup: Dump non-essential live canvases to survive peak RAM
           MemoryManager.emergencyCleanup();
-
-          const exportBuffer = await AppState.pdfBlob.arrayBuffer();
-          const pdfDoc = await PDFLib.PDFDocument.load(exportBuffer);
+          
+          // 3. Load original PDF base
+          const pdfDoc = await PDFLib.PDFDocument.load(await AppState.pdfBlob.arrayBuffer());
           const pages = pdfDoc.getPages();
-
-          // 3. Sequential page processing
+          
+          // 4. Apply annotations page by page to protect memory limits
           for (let i = 0; i < pages.length; i++) {
-            const pageNum = i + 1;
+            const pageNum = i + 1; 
             const stateObj = AppState.pageData[pageNum];
             
             if (stateObj && stateObj.objects && stateObj.objects.length > 0) {
                 const dim = AppState.pageDimensions[pageNum];
+                let eS = 2; 
+                if (dim.width * dim.height * eS * eS > 8000000) eS = Math.sqrt(8000000 / (dim.width * dim.height));
+                const eW = Math.round(dim.width * eS), eH = Math.round(dim.height * eS);
                 
-                // Adaptive Scale: Restrict max canvas size on low RAM (approx max 8 Megapixels)
-                let exportScale = 2; 
-                if (dim.width * dim.height * exportScale * exportScale > 8000000) {
-                    exportScale = Math.sqrt(8000000 / (dim.width * dim.height));
-                }
-                const eW = Math.round(dim.width * exportScale);
-                const eH = Math.round(dim.height * exportScale);
+                // Construct strictly ONE temporary canvas context
+                const tEl = document.createElement('canvas'); 
+                tEl.width = eW; tEl.height = eH;
+                if (!tEl || tEl.width === 0) throw new Error("Canvas allocation failed");
+                const eC = new fabric.StaticCanvas(tEl, { width: eW, height: eH });
                 
-                const tempCanvasEl = document.createElement('canvas');
-                tempCanvasEl.width = eW; tempCanvasEl.height = eH;
-                
-                const exportCanvas = new fabric.StaticCanvas(tempCanvasEl, {
-                  width: eW, height: eH, enableRetinaScaling: false
-                });
-
-                await new Promise(resolve => exportCanvas.loadFromJSON(stateObj, resolve));
-                exportCanvas.setZoom(exportScale);
-                exportCanvas.renderAll();
-
-                // Memory Hack: Use toBlob instead of toDataURL to prevent massive Base64 String duplication
-                const blob = await new Promise(res => {
-                   // Accessing internal HTMLCanvasElement
-                   exportCanvas.getElement().toBlob(res, 'image/png');
+                // 11. Handle Fabric restoration safely with Promise wrapper
+                await new Promise((resolve, reject) => {
+                  try {
+                    eC.loadFromJSON(stateObj, () => resolve());
+                  } catch (err) { reject(err); }
                 });
                 
-                const arrayBuf = await blob.arrayBuffer();
-                const pngImage = await pdfDoc.embedPng(arrayBuf);
-
+                eC.setZoom(eS); 
+                eC.renderAll();
+                
+                // 10. Handle toBlob() securely verifying non-null valid generation
+                let blob = await new Promise((resolve, reject) => {
+                  try {
+                    eC.getElement().toBlob((b) => {
+                      if (!b || b.size === 0) reject(new Error("Canvas toBlob failed or generated empty blob"));
+                      else resolve(b);
+                    }, 'image/png');
+                  } catch (err) { reject(err); }
+                });
+                
+                let arrayBuffer = await blob.arrayBuffer();
+                let pngImage = await pdfDoc.embedPng(arrayBuffer);
+                
                 const { width, height } = pages[i].getSize();
                 pages[i].drawImage(pngImage, { x: 0, y: 0, width: width, height: height });
                 
-                // CRITICAL: Explicitly release all temporary memory immediately
-                exportCanvas.dispose();
-                tempCanvasEl.width = 0; tempCanvasEl.height = 0;
-                
-                // Yield to Event Loop & Garbage Collector between pages
-                await new Promise(r => setTimeout(r, 300));
+                // 7. & 8. Release temporary memory immediately to sustain stability on low-ram devices
+                eC.dispose(); tEl.width = 0; tEl.height = 0;
+                blob = null; arrayBuffer = null; pngImage = null;
+                await new Promise(r => setTimeout(r, 50)); // Permit quick garbage collection breath
             }
           }
-
-          const modifiedBytes = await pdfDoc.save();
-          download(modifiedBytes, "PageCraft_Edited.pdf", "application/pdf");
+          
+          // 5. Serialize PDF with strict compatibility checks
+          let generatedBytes;
+          let isValid = false;
+          
+          // Attempt 1: Safe fallback path (Resolves catalog/xref corruption in strict readers like ReadEra)
+          try {
+            generatedBytes = await pdfDoc.save({ useObjectStreams: false });
+            isValid = await this.validatePDF(generatedBytes, originalPageCount);
+          } catch(e) { 
+            console.error("Export Attempt 1 Failed", e); 
+          }
+          
+          // 4. Fallback execution upon validation failure
+          if (!isValid) {
+            try {
+              generatedBytes = await pdfDoc.save();
+              isValid = await this.validatePDF(generatedBytes, originalPageCount);
+            } catch(e) { 
+              console.error("Export Fallback Failed", e); 
+            }
+          }
+          
+          if (!isValid) throw new Error("Generated PDF failed final validation checks");
+          
+          // 18. ONLY THEN download the finalized validated stream
+          download(generatedBytes, "PageCraft_Edited.pdf", "application/pdf");
           
         } catch (e) {
           console.error("Export Error:", e);
-          alert("Export failed, possibly due to memory limits. Your work is still saved locally.");
+          alert("Export failed. Your work is saved locally.");
         } finally {
+          this.isExporting = false;
           DrawerController.hideLoading();
+        }
+      },
+
+      // 3. Post-Export PDF Validation
+      async validatePDF(bytes, expectedPageCount) {
+        if (!bytes || bytes.length === 0) return false;
+        
+        try {
+          // 19. Basic byte signature validation protecting against completely malformed streams
+          const header = new TextDecoder('ascii').decode(bytes.subarray(0, 5));
+          if (header !== '%PDF-') return false;
+          
+          const tailLen = Math.min(1024, bytes.length);
+          const tail = new TextDecoder('ascii').decode(bytes.subarray(bytes.length - tailLen));
+          if (!tail.includes('%%EOF')) return false;
+          
+          // Deep validation: Ensure PDF-Lib can fully parse the output back into an active document structure
+          const testDoc = await PDFLib.PDFDocument.load(bytes, { ignoreEncryption: true });
+          
+          // 5. Verify uncompromised page count structural integrity
+          if (testDoc.getPageCount() !== expectedPageCount) return false;
+          
+          return true;
+        } catch (err) {
+          console.error("Validation reload error", err);
+          return false;
         }
       }
     };
 
     /** INITIALIZATION */
     document.addEventListener('DOMContentLoaded', async () => {
-      FullscreenEngine.init();
-      DrawerController.init();
-      ToolController.init();
-      MemoryManager.init();
-      ViewportEngine.init();
-
-      // Check for saved session
+      DrawerController.init(); ToolController.init(); MemoryManager.init(); ViewportEngine.init(); ImageEditorEngine.init(); WatermarkEngine.init();
+      
       await DBManager.init();
       if (await DBManager.hasSession()) {
-         const btnRestore = document.getElementById('btn-restore-session');
-         btnRestore.classList.remove('hidden');
-         btnRestore.addEventListener('click', async () => {
+         const btnRes = document.getElementById('btn-restore-session'); btnRes.classList.remove('hidden');
+         btnRes.addEventListener('click', async () => {
              DrawerController.showLoading("Restoring Previous Session...");
-             try {
-                const savedPdf = await DBManager.get('pdfBytes');
-                const savedData = await DBManager.get('pageData');
-                if (savedData) AppState.pageData = savedData;
-                await RenderEngine.loadDocument(savedPdf, true);
-             } catch(e) {
-                alert("Failed to restore session.");
-             }
+             try { const d = await DBManager.get('pageData'); if(d) AppState.pageData = d; await RenderEngine.loadDocument(await DBManager.get('pdfBytes'), true); }
+             catch(e) { alert("Failed to restore."); }
          });
       }
 
       document.getElementById('pdf-upload').addEventListener('change', e => { if (e.target.files[0]) RenderEngine.loadDocument(e.target.files[0]); });
+      document.getElementById('btn-new-blank-pdf').addEventListener('click', () => TemplateEngine.createBlankPDF(10));
       document.getElementById('btn-undo').addEventListener('click', () => HistoryManager.undo());
       document.getElementById('btn-redo').addEventListener('click', () => HistoryManager.redo());
 
-      const handlePageNav = (delta) => {
-        const current = parseInt(document.getElementById('drawer-page-current').textContent) || 1;
-        const target = current + delta;
-        if (target >= 1 && target <= AppState.numPages) ViewportEngine.scrollToPage(target);
-      };
-      document.getElementById('drawer-prev-page').addEventListener('click', () => handlePageNav(-1));
-      document.getElementById('drawer-next-page').addEventListener('click', () => handlePageNav(1));
-      document.getElementById('btn-bottom-prev').addEventListener('click', () => handlePageNav(-1));
-      document.getElementById('btn-bottom-next').addEventListener('click', () => handlePageNav(1));
+      const handleNav = (d) => { const c = parseInt(document.getElementById('bottom-page-num').textContent) || 1; const t = c + d; if (t >= 1 && t <= AppState.numPages) ViewportEngine.scrollToPage(t); };
+      document.getElementById('btn-bottom-prev').addEventListener('click', () => handleNav(-1)); document.getElementById('btn-bottom-next').addEventListener('click', () => handleNav(1));
 
       window.addEventListener('beforeunload', (e) => { if (AppState.pdfDoc) { e.preventDefault(); e.returnValue = ''; } });
       window.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden' && AppState.pdfDoc) HistoryManager.triggerAutosave(); });
 
-      const dropZone = document.getElementById('drop-zone');
-      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); }));
-      dropZone.addEventListener('drop', e => { if (e.dataTransfer.files[0]?.type === 'application/pdf') RenderEngine.loadDocument(e.dataTransfer.files[0]); });
-      dropZone.addEventListener('click', (e) => { if (e.target.id !== 'btn-restore-session') document.getElementById('pdf-upload').click(); });
+      const dz = document.getElementById('drop-zone');
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); }));
+      dz.addEventListener('drop', e => { if (e.dataTransfer.files[0]?.type === 'application/pdf') RenderEngine.loadDocument(e.dataTransfer.files[0]); });
+      dz.addEventListener('click', (e) => { if (e.target.id !== 'btn-restore-session') document.getElementById('pdf-upload').click(); });
     });
   </script>
 </body>
